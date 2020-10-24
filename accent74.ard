@@ -1,0 +1,33 @@
+; Файл расположения для accent7.exe
+; Комментарии начинаются с ' или ;
+; 
+
+'-- MACRO ---
+#home = $(AppPath)
+#data = $(DbPath)
+
+
+*.adb = #home\..\data
+*.adt = #home\..\templates
+*.afm = #data\..\forms
+*.afc = #data\..\forms
+*.adg = #data\..\dialogs
+*.adc = #data\..\dialogs
+*.ash = #data\..\sheets
+*.asc = #data\..\sheets
+*.avb = #data\..\modules
+*.avc = #data\..\modules
+*.acp = #data
+*.chm = #data\..\help
+*.aup = #data\..\updates
+*.xml = #data\..\xml
+*.xsd = #data\..\xsd
+*.htm = #data\..\html
+*.htm = #data\..\help
+*.backup = #data\backup
+*.bmp=#data\..\help\images
+*.bmp=#data\..\html\images
+*.gif=#data\..\help\images
+*.gif=#data\..\html\images
+*.sql=#data\..\scripts
+*.xsl=#data\..\xml
