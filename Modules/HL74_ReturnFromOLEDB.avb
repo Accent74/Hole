@@ -1,0 +1,253 @@
+Option Explicit
+
+Const prmQty	=	" оличество"
+
+'--------------------------
+'	набор процедур дл€ поддержки операций по возврату товара поставщику
+'	пока возвращаетс€ только методом FIFO
+'--------------------------
+Function ReturnFrom(Op, TrNoTo, TrNoFrom, ReturnMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+	Dim Errors
+	Dim MyCoID
+	Dim InhertiValue
+	
+	MyCoID = WorkArea.MyCompany.ID
+
+	Set Errors = CreateObject("Scripting.Dictionary")
+
+	If ReturnMode = 3 Then 
+		ManualCharge Op, TrNoTo, TrNoFrom, Errors, MyCoID
+	Else
+		With Op.TransList(TrNoTo)
+			InhertiValue = .Inherit
+			.Inherit = 510
+		End With
+
+		ReturnToSupplier Op, TrNoTo, flBalAccount, flAgFrom, Errors, MyCoID
+	End If
+
+	If Errors.Count <> 0 Then
+		If IsViewError Then 
+			ViewError Errors
+			Set WorkArea.Map.Item("ErrorOp") = Op
+		End If
+			
+		ReturnFrom = False
+	Else
+		ReturnFrom = True
+	End If
+
+	Op.TransList(TrNoTo).Inherit = InhertiValue
+
+End Function
+
+'--------------------------
+'	
+'--------------------------
+Sub ReturnToSupplier(Op, TrNoTo, flBalAccount, flAgFrom, ByRef Errors, MC)
+	Dim i
+	Dim aSeries, DictSeries
+
+
+	Set DictSeries = CreateObject("Scripting.Dictionary")
+
+	i = 1
+
+	While i <= Op.TransList(TrNoTo).Rows
+		With Op.Trans(TrNoTo, i)
+			If .EntID <> 0 Then
+				aSeries = GetRestEntSeries(.AgFromID, .EntID, .AgToID, .AccDbID, Op.ID, Op.Date, MC)
+
+				If UBound(aSeries) <> -1 Then 
+     	  		If Abs(.Qty) > 0 Then AddEntRetToRow aSeries, Op, TrNoTo, i, DictSeries, Errors
+				Else
+					Errors.Add Errors.Count + 1, Array(acErrorNoSeries, .EntId , Abs(.Qty), i, .AccDbID, .AgFromID) ' ошибка - нет серий
+				End If
+			End If
+
+		End With
+		i = i + 1
+	Wend
+End Sub
+
+'--------------------------
+'	
+'--------------------------
+Sub AddEntRetToRow(ByRef aSeries, ByRef Op, TrNoTo, ByRef i, ByRef DictSeries, ByRef Errors)
+	Dim Qty, QtySeries
+	Dim j, Pos
+
+	Qty = Abs(Op.Trans(TrNoTo, i).Qty)
+
+	For j = 0 To UBound(aSeries, 2)
+		If Qty <= 0 Then Exit For
+
+		If Not DictSeries.Exists(aSeries(0, j)) Then	DictSeries.Add aSeries(0, j), aSeries(1, j)
+
+		With Op.Trans(TrNoTo, i)
+			QtySeries = DictSeries.Item(aSeries(0, j))
+			.SeriesID = aSeries(0, j)
+
+			If aSeries(2, j) = 0 Or aSeries(1, j) = 0 Then
+				.Price = 0
+			Else
+				.Price = aSeries(2, j) / aSeries(1, j)
+			End If
+
+			If QtySeries >= Qty Then
+				DictSeries.Item(aSeries(0, j)) =  QtySeries - Qty
+				Qty = 0
+				Exit For
+			Else
+				' расщепл€ем строку
+				.Qty = -QtySeries
+				.Params(prmQty).Value = QtySeries
+					
+				Pos = Op.TransList(TrNoTo).InsertRow(i + 1)
+				Qty = (Qty - QtySeries)
+
+				With Op.Trans(TrNoTo, Pos)
+					.Qty = -Qty
+					.Params(prmQty).Value = Qty
+				End With
+		
+				i = Pos
+
+				DictSeries.Item(aSeries(0, j)) =  0
+			End If
+		End With
+	Next
+	
+	If Qty <> 0 Then	
+		Errors.Add Errors.Count + 1, Array(acErrorNoQuant, Op.Trans(TrNoTo, i).EntId , Qty, i, 0, 0) ' ошибка - недостаточно количества
+	End If
+
+End Sub
+
+'--------------------------
+'	
+'--------------------------
+Sub AddParameters(Cmd, ArgValue, ArgType, ArgLong)
+	Dim Prm
+
+	' устанавливаем параметры
+	Set Prm = Cmd.CreateParameter(, ArgType, 1, ArgLong)	' 	создаем параметр 
+	Prm.Value = ArgValue														'	присваиваем значение
+	Cmd.Parameters.Append Prm												'	добавл€ем параметр в коллекцию параметров команды
+
+End Sub
+
+'--------------------------
+'	
+'--------------------------
+Function GetRestEntSeries(AgSupplierID, EntID, AgStorageID, AccStorageID, DocID, OnDate, MC)
+	Dim Cn
+	Dim Cmd
+	Dim Rs
+
+	Set Cn = WorkArea.AdoConnection
+	Cn.CursorLocation = 2 'курсор на нашей стороне
+
+	Set Cmd = CreateObject("ADODB.Command")
+	Set Cmd.ActiveConnection = Cn 
+
+	Cmd.CommandText = "ST7_RestSeriesFromSupplier"
+
+	' устанавливаем параметры
+	AddParameters Cmd, AgSupplierID, 3, 10
+	AddParameters Cmd, EntID, 3, 10
+	AddParameters Cmd, AgStorageID, 3, 10
+	AddParameters Cmd, AccStorageID, 3, 10
+	AddParameters Cmd, DocID, 3, 10
+	AddParameters Cmd, OnDate, 7, 20
+	AddParameters Cmd, MC, 3, 10
+	
+	' сообщаем, что команда это инструкци€ хранима€ процедура
+	Cmd.CommandType = 4	
+	' выполнили запрос
+	Set Rs = 	Cmd.Execute	' выполн€ем команду 
+
+	If Not rs.eof Then
+		GetRestEntSeries = Rs.GetRows()
+	Else
+		GetRestEntSeries = Array()
+	End If
+
+End Function
+'--------------------------
+'	
+'--------------------------
+Sub ManualCharge(Op, TrNoTo, TrNoFrom, Errors, MyCoID)
+	Dim i
+	Dim DictSeries
+	Dim RestQty
+	Dim OpDate
+	Dim OpID
+
+	OpDate = Op.Date
+	OpID = Op.ID
+	Set DictSeries = CreateObject("Scripting.Dictionary")
+
+	For i = 1 To Op.TransList(TrNoTo).Rows
+		With Op.Trans(TrNoTo, i)
+			If .SeriesID = 0 Then
+				Errors.Add Errors.Count + 1, Array(acErrorNoSeriesSet, .EntId , Abs(.Qty) - RestQty, i, .AccDbID, .AgFromID) ' ошибка - недостаточно количества				
+			Else				
+				If Not DictSeries.Exists(.SeriesID) Then
+					DictSeries.Add .SeriesID, GetRestQtySeries(.EntID, .SeriesID, .AccDbID, .AgToID, .AgFromID, OpDate, OpID, MyCoID)
+				End If
+
+				RestQty = DictSeries.Item(.SeriesID)
+
+				If Abs(.Qty) <= RestQty Then
+					DictSeries.Item(.SeriesID) = DictSeries.Item(.SeriesID) - Abs(.Qty)
+				Else
+					Errors.Add Errors.Count + 1, Array(acErrorNoQtySeries, .EntId , Abs(.Qty) - RestQty, i, .AccDbID, .AgFromID) ' ошибка - недостаточно количества				
+				End If
+			End If
+		End With
+	Next
+
+End Sub 
+
+'--------------------------
+'	
+'--------------------------
+Function GetRestQtySeries(EntID, SeriesID, AccID, AgToID, AgFromID, OpDate, OpID, MyCoID)
+	Dim Cn
+	Dim Cmd
+	Dim Rs
+
+	Set Cn = WorkArea.AdoConnection
+	Cn.CursorLocation = 2 'курсор на нашей стороне
+
+	Set Cmd = CreateObject("ADODB.Command")
+	Set Cmd.ActiveConnection = Cn 
+
+	Cmd.CommandText = "ST7_RestEntSeriesFromSupplier"
+
+	' устанавливаем параметры
+	AddParameters Cmd, SeriesID, 3, 10
+	AddParameters Cmd, AgFromID, 3, 10
+	AddParameters Cmd, EntID, 3, 10
+	AddParameters Cmd, AgToID, 3, 10
+	AddParameters Cmd, AccID, 3, 10
+	AddParameters Cmd, OpID, 3, 10
+	AddParameters Cmd, OpDate, 7, 20
+	AddParameters Cmd, MyCoID, 3, 10
+	
+	' сообщаем, что команда это инструкци€ хранима€ процедура
+	Cmd.CommandType = 4	
+	' выполнили запрос
+	Set Rs = 	Cmd.Execute	' выполн€ем команду 
+
+	If Not Rs.EOF Then
+		GetRestQtySeries = Rs.Fields(0).Value
+	Else
+		GetRestQtySeries = 0
+	End If
+	
+End Function
+'--------------------------
+'	
+'--------------------------

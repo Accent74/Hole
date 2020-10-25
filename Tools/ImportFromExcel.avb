@@ -1,0 +1,167 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+'#include "HL74_common.avb"
+'#include "HL74_const.avb"
+
+Const prmEntPhotoRef = "—сылка на фото"
+Const prmEntMscBrand = "Ѕренд"
+
+Const START_ROW = 10
+Const PRL_ID = 1
+Const PRC_ID = 1
+Const ROOT_ID = 2189
+
+Const MSC_BRAND_ID = 204
+Const MSC_BRAND_NO = 30
+
+Dim aData, EntRoot
+
+stop
+main
+
+Sub Main
+	If OpenExcelFile("K:\Dropbox\work\Hole\price01.02.xls", 0, aData) Then
+
+		If ROOT_ID = 0 Then
+			Set EntRoot = Workarea.Entities
+		Else
+			Set EntRoot = Workarea.Entity(ROOT_ID).Children
+		End If
+
+		ImportEnts aData
+	Else
+		MsgBox "Bad"
+	End If
+End Sub
+
+Sub ImportEnts(aData)
+	Dim i, pKind, EntCat, Ent
+	Dim Mtr
+
+	Set Mtr = Meter
+	Set pKind = Workarea.PriceKind(PRC_ID)
+
+	Mtr.Open "»мпорт ...", 1, UBound(aData, 2)
+
+	For i = START_ROW To UBound(aData, 2)
+		Mtr.Pos = i
+		EntCat = aData(0, i)
+
+		If EntCat <> "" Then
+			Set Ent = FindEntByCat(EntCat, aData, i)
+
+			If Not Ent Is Nothing Then
+				ent.name = Checknull(aData(4, i), ent.name)
+				ent.memo = checknull(aData(12, i), ent.memo)
+				ent.bar = Checknull(aData(13, i), ent.bar)
+				com_setparamvalue ent, prmEntPhotoRef, checknull(aData(15, i), com_getparamvalue(ent, prmEntPhotoRef, ""))
+				com_setparamvalue ent, prmEntMscBrand, _
+							GetMscIDByName(MSC_BRAND_NO, _
+								checknull(aData(5, i), com_getparamvalue(ent, prmEntMscBrand, "")))
+
+				pKind.SetEntPrice Ent.ID, Date, checknull(aData(7, i), 0), PRL_ID
+				Ent.Save
+
+			End If
+			
+		End If
+	Next
+
+	Mtr.Close
+End Sub
+
+Function GetMscIDByName(MscNo, MscName)
+	Dim SQL, aMsc, Msc
+
+	SQL = "select top 1 msc_id from misc where msc_no=" & MscNO & " and msc_name='" & MscName & "'"
+
+	If GetRs2(SQL, aMsc) Then
+		GetMscIDByName = aMsc(0, 0)
+	Else
+		Set Msc = Workarea.Misc(MSC_BRAND_ID).Children.Create(1, MscName)
+		If Not Msc Is Nothing Then
+			GetMscIDByName = Msc.ID
+		Else
+			GetMscIDByName = 0
+		End If
+	End If
+
+End Function
+
+
+Function FindEntByCat(EntCat, aData, RowNo)
+	Dim EntID, aEnt, SQL, EntFolder, i, Ent
+
+	SQL = "select top 1 ent_id from entities where ent_cat like '" & EntCat & "'"
+
+	If GetRs2(SQL, aEnt) Then
+		EntID = aEnt(0, 0)
+		Set Ent = Workarea.Entity(EntID)
+	Else
+
+		Set EntFolder = EntRoot
+
+		For i = 1 To 3
+			Set EntFolder = GetEntFolder(EntFolder, aData(i, RowNo))
+			If EntFolder Is Nothing Then
+				Set EntFolder = EntRoot
+				Exit For
+			End If
+
+			Set EntFolder = EntFolder.Children
+		Next
+
+		Set Ent = EntFolder.Create(1004, aData(4, RowNo))
+		Ent.Cat = EntCat
+	End If
+
+	Set FindEntByCat = Ent
+End Function
+
+Function GetEntFolder(EntRootFolder, NewFolderName)
+	Dim SQL, aFld
+
+	SQL = 	"select id " & _
+				"FROM ENTITIES Right Join ENT_TREE On ENTITIES.ENT_ID = ENT_TREE.ID " & _
+				"where ent_name = '" & NewFolderName & _
+					"' and p0=" & EntRootFolder.Parent.ID
+
+	If GetRs2(SQL, aFld) Then
+		Set GetEntFolder = Workarea.Entity(aFld(0, 0))
+	Else
+		Set GetEntFolder = EntRootFolder.Create(0, NewFolderName)
+	End If
+
+End Function
+
+Function OpenExcelFile(FilePath, TableNo, aData)
+	Dim Rs
+	Dim ConnString, Conn, Cat, i
+
+	ConnString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & FilePath & ";Extended Properties=""Excel 8.0;HDR=No; IMEX=1;"""	
+	Set Conn = CreateObject("ADODB.Connection")	
+	Conn.Open(ConnString)
+
+	Set cat = CreateObject("ADOX.Catalog")
+	Set cat.ActiveConnection = Conn
+
+	Set rs = CreateObject("ADODB.Recordset")
+	Set rs.ActiveConnection = Conn
+
+	rs.CursorType = 1
+	rs.LockType = 1
+
+	rs.Source = "Select * from [" & cat.Tables(TableNo).Name & "]"
+	Rs.Open
+
+	OpenExcelFile = Not rs.eof
+
+	If Not rs.eof Then
+		aData = Rs.GetRows()
+	Else
+		aData = Array()
+	End If
+
+	Rs.Close
+
+End Function	

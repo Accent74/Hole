@@ -1,0 +1,666 @@
+'#include "HL74_XML.avb"
+'#include "agent_const.avb"
+'#include "HL74_common.avb"
+'#include "HL74_const.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_ZIP.avb"
+
+Option Explicit
+
+Const acPrice = 16
+
+Const MSG_BOX_CAPTION = "Мобильный агент: экспорт данных"
+
+Dim xmlRoot, prm
+
+'stop
+'agent_export_all True
+
+'prm = Array(3507, False)
+'agent_export_one_manager prm
+'---
+'
+'---
+Sub agent_export_timer
+	Dim AgRoot
+
+	Set AgRoot = Workarea.Misc(MSC_AGENT_ROOT)
+	agent_export_main AgRoot, 0, True, False, False
+End Sub
+
+'---
+'
+'---
+Sub agent_export_all(Init)
+	Dim AgRoot
+
+	Set AgRoot = Workarea.Misc(MSC_AGENT_ROOT)
+	agent_export_main AgRoot, 0, True, Init, True
+End Sub
+'---
+'
+'---
+Sub agent_export_main(AgRoot, Mode, ClearData, Init, ShowMessage)
+	Dim Mtr, n, i, Ags, Ag, aRests, aPrm, SQL
+
+	Set Ags = AgRoot.Nested
+	n = Ags.Count
+	Set Mtr = Meter
+
+	Mtr.Open "Экспорт информации для агентов ...", 1, n
+	
+	SQL = "_Export_RestsForManagers"
+	aPrm = Array(workarea.getaccidold("ОСТАТКИ ДЛЯ ПРАЙСА"), Date)
+
+	query SQL, aPrm, aRests
+
+	For i = 1 To n
+		Mtr.Pos = i
+		Set Ag = Ags.Item(i)
+
+		If Ag.Type = 1 Then 
+			agent_export Ag, Mode, ClearData, iif(ShowMessage, (i = n), False), aRests, Init
+		End If
+	Next
+
+	Mtr.Close
+End Sub
+'---
+'
+'---
+Sub agent_export_one_manager(prm)
+	Dim AgID, Init
+	Dim Ag, SQL, aPrm, aRests
+
+	AgID = prm(0)
+	Init = prm(1)
+
+	If AgID = 0 Then Exit Sub
+
+	SQL = "_Export_RestsForManagers"
+	aPrm = Array(workarea.getaccidold("ОСТАТКИ ДЛЯ ПРАЙСА"), Date)
+
+	query SQL, aPrm, aRests
+
+	Set Ag = workarea.Misc(AgID)
+	agent_export Ag, 0, True, True, aRests, Init
+
+End Sub
+'---
+'
+'---
+Sub agent_export(Ag, Mode, ClearData, ShowMessage, aRests, IsInitMode)
+	Dim Exp_filename, oXml, z, zipFileName, aClients
+	Dim TextComment, elemCount, LastTimeCoord, DstFileName
+	
+	TextComment = "XML файл создан программой Акцент www.accent.ua для обмена данными с мобильным агентом" 
+	Exp_filename = truncguid(Ag.guid) & ".xml"
+	Set oXml = New XML
+
+	If oXml.Create Then
+		elemCount = 1
+
+		oXml.xml.appendChild(oXml.xml.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'"))
+		oXml.xml.appendChild(oXml.xml.createComment(TextComment))
+		Set xmlRoot = oXml.xml.createelement("mobile_sales")
+		xmlRoot.SetAttribute "version_code", "1"
+		xmlRoot.SetAttribute "message_number", Mode 
+
+		xmlRoot.AppendChild agent_GetAgSettings(oxml, Ag, ClearData)
+		agent_AddNom aRests, oxml, xmlRoot, ag, elemCount
+
+		agent_AddClient aClients, oxml, xmlRoot, ag, elemCount
+		agent_AddAssort oxml, xmlRoot, ag, elemCount
+		agent_AddPrices aRests, oXML, xmlRoot, ag, elemCount
+
+		If UBound(aClients) <> -1 Then
+			agent_AddAgries aClients, oXML, xmlRoot, ag, elemCount
+		End If
+
+		agent_AddUnits oXML, xmlRoot, ag, elemCount
+		agent_AddDocCredit oXML, xmlRoot, ag, elemCount
+		agent_AddDocs oXML, xmlRoot, ag, prmAgBinderOrders, "T_APPROVED_ORDERS", elemCount
+		agent_AddDocs oXML, xmlRoot, ag, prmAgBinderCashOrders, "T_APPROVED_CASH_ORDERS", elemCount
+		agent_AddDocs oXML, xmlRoot, ag, prmAgBinderStorCheck, "T_APPROVED_STORECHECK", elemCount
+		agent_AddDocs oXML, xmlRoot, ag, prmAgBinderReturns, "T_APPROVED_RETURN", elemCount
+		agent_AddRests aRests, oXML, xmlRoot, ag, elemCount
+
+		xmlRoot.SetAttribute "last_time_coords", LastTimeCoord
+		xmlRoot.SetAttribute "count", elemCount
+		oXml.xml.InsertBefore xmlRoot, Null
+		oXML.FileName  = Exp_filename
+
+		If oXml.xmlFileName <> "" Then 
+			oXml.SaveAll
+
+			If Not oXml.IsError Then
+				Set z = New zip
+				ZipFileName = EXPORT_PATH & iif(IsInitMode, ag.name, truncguid(ag.guid))
+
+				DstFileName = ZipFileName & iif(IsInitMode, ".mbsi",".mbsl")				
+				If IsFileExists(DstFileName) Then z.FSO.DeleteFile DstFileName
+
+				If z.Open(ZipFileName & ".zip") = 1 Then
+					z.AddFile z.RD.GetFullPath(Exp_filename)
+					z.Close
+
+					If IsFileExists(DstFileName) Then
+						z.FSO.DeleteFile DstFileName
+					End If
+
+					If IsFileExists(DstFileName) Then
+						MsgBox "Невозможно удалить файл" & vbNewLine & DstFileName, vbExclamation, MSG_BOX_CAPTION
+						Exit Sub
+					End If
+					z.FSO.MoveFile ZipFileName & ".zip", DstFileName
+				End If
+
+			End If
+		End If
+	End If
+	
+	If oXml.ErrorMsg <> "" Then 
+		MsgBox oXml.ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+	ElseIf ShowMessage Then
+		MsgBox "Экспорт завершен.", vbInformation, MSG_BOX_CAPTION
+	End If
+
+End Sub
+'---
+'
+'---	
+Sub agent_AddDocs(oXML, xmlRoot, ag, prmBinderName, ElemName, elemCount)
+	Dim i, ElemRoot, BinderID
+
+	BinderID = com_getparamvalue(Ag, prmBinderName, 0)
+
+	If BinderID <> 0 Then
+		With workarea.Binder(BinderID).Operations
+			For i = 1 To .Count
+				With .Item(i)
+					If .Done And Not .Deleted Then
+						Set ElemRoot = oXML.xml.CreateElement(ElemName)
+						oXML.CreateElem ElemRoot, "N_ID", TruncGuid(Op.guid)
+						oXML.CreateElem ElemRoot, "N_BB_NUMBER", Op.DocNo
+
+						xmlRoot.AppendChild ElemRoot
+						ElemCount = ElemCount + 1
+					End If
+				End With
+			Next
+		End With
+	End If
+
+End Sub
+
+'---
+'
+'---
+Sub agent_AddRests(aRests, oXML, xmlRoot, ag, elemCount)
+	Dim i, RootElem, wr, j, Store, Ent, ElemRoot
+
+	Set ElemRoot = oXML.xml.CreateElement("T_WAREHOUSE")
+	oXML.CreateElem ElemRoot, "N_ID", "CF984C46-CC58-11D2-89FD-0080480180F7"
+	oXML.CreateElem ElemRoot, "N_NAME", "Склад"
+	
+	xmlRoot.AppendChild ElemRoot
+	ElemCount = ElemCount + 1
+
+	If UBound(aRests) = -1 Then Exit Sub
+	
+	For i = 0 To UBound(aRests, 2)
+		Set Ent = workarea.entity(aRests(0, i))
+
+		If Ent.IsRightEnabled(1) Then
+								
+			Set ElemRoot = oXML.xml.CreateElement("T_REMAINS")
+			oXML.CreateElem ElemRoot, "N_NOMENID", TruncGuid(Ent.guid)
+			oXML.CreateElem ElemRoot, "N_WAREHOUSEID", "CF984C46-CC58-11D2-89FD-0080480180F7"
+			oXML.CreateElem ElemRoot, "N_NUMBER", checknull(aRests(8, i), 0)
+	
+			xmlRoot.AppendChild ElemRoot
+			elemCount = elemCount + 1
+		End If
+	Next
+End Sub
+'---
+'
+'---
+Function GetUnitGUID(UnitID)
+	Dim aData, SQL
+
+	SQL = "select un_guid from units where un_id = " & UnitID
+
+	If GetRs2(SQL, aData) Then
+		GetUnitGUID = TruncGuid(aData(0, 0))
+	Else
+		GetUnitGUID = ""
+	End If	
+
+End Function
+'---
+'
+'---
+Sub agent_AddUnits(oXML, xmlRoot, ag, elemCount)
+	Dim i, RootElem
+
+	With workarea.units
+		For i = 1 To .Count
+			With .Item(i)
+				Set RootElem = oXML.xml.CreateElement("T_UNITS")
+				oxml.CreateElem RootElem, "N_ID", GetUnitGUID(.ID)
+				oXML.CreateElem RootElem, "N_NAME", .ShortName
+
+				xmlRoot.AppendChild RootElem
+				elemCount = elemCount + 1
+			End With
+		Next
+	End With
+
+End Sub
+'---
+'
+'---
+Sub agent_AddDocCredit(oXML, xmlRoot, ag, elemCount)
+	Dim i, ElemRoot, BinderID
+
+	BinderID = com_getparamvalue(Ag, prmAgBinderCredit, 0)
+
+	If BinderID <> 0 Then
+		With workarea.Binder(BinderID).Operations
+			For i = 1 To .Count
+				With .Item(i)
+					If .Done And Not .Deleted Then
+						Set ElemRoot = oXML.xml.CreateElement("T_DEBTS")
+						Set Tr = .Trans(1)
+
+						If Not Tr.AgTo Is Nothing Then
+							oXML.CreateElem ElemRoot, "N_PARENTID", TruncGuid(Tr.AgTo.guid)
+						End If
+
+						If Op.TemplateID <> 0 Then
+							oXML.CreateElem ElemRoot, "N_TYPE", workarea.templates(Op.TemplateID).Tag
+						End If
+	
+						oXML.CreateElem ElemRoot, "N_BASE_ID", TruncGuid(Op.guid)
+						oXML.CreateElem ElemRoot, "N_NUMBER", Op.DocNo
+						oXML.CreateElem ElemRoot, "N_DATE", DateDiff("s", "01/01/1970 00:00:00", Op.Date)			' нужно преобразование даты по типу юникса в long
+						oXML.CreateElem ElemRoot, "N_SUM", Op.Sum
+						oXML.CreateElem ElemRoot, "N_SUM_OVERDUE", Op.Sum
+						oXML.CreateElem ElemRoot, "N_FORMID", 1
+
+						xmlRoot.AppendChild ElemRoot
+						elemCount = elemCount + 1
+
+					End If
+				End With
+			Next
+		End With
+	End If
+
+End Sub
+'---
+'
+'---
+Sub agent_AddAgries(aClients, oXML, xmlRoot, ag, elemCount)
+	Dim i, ElemRoot, AgreeRootID, aAgries, aPrm, SQL, j
+
+	AgreeRootID = com_getparamvalue(Ag, prmAgAgreeRoot, MSC_AGREE_ROOT)
+
+	If AgreeRootID <> 0 Then
+		For i = 0 To UBound(aClients, 2)
+			SQL = "_Export_AgriesForManagers"
+			aPrm = Array(aClients(0, i), AgreeRootID)	
+
+			If Query(SQL, aPrm, aAgries) Then
+				For j = 0 To UBound(aAgries, 2)	
+					Set ElemRoot = oXML.xml.CreateElement("T_CONTRACT")
+					oXML.CreateElem ElemRoot, "N_ID", TruncGuid(aAgries(0, j))
+					oXML.CreateElem ElemRoot, "N_PARENTID", TruncGuid(aClients(3, i))
+					oXML.CreateElem ElemRoot, "N_NUMBER", ""
+					oXML.CreateElem ElemRoot, "N_FORM", iif(aAgries(1, j) = "1", "Нал.", "Б/н")
+					oXML.CreateElem ElemRoot, "N_FORMID", checknull(aAgries(1, j), "1")
+					oXML.CreateElem ElemRoot, "N_DAY_OF_DELAY", aClients(0, i)
+					oXML.CreateElem ElemRoot, "N_DAY_OF_CONTRACT", DateDiff("s", "01/01/1970 00:00:00", CDate(0))
+					oXML.CreateElem ElemRoot, "N_DAY_OF_TERMINATION", DateDiff("s", "01/01/1970 00:00:00", CDate(0))
+
+					xmlRoot.AppendChild ElemRoot
+					elemCount = elemCount + 1
+				Next
+			End If
+		Next
+	End If
+
+End Sub
+'---
+'
+'---
+Sub agent_AddPrices(aRests, oXML, xmlRoot, ag, elemCount)
+	Dim i, pKind, ElemRoot, dPKinds, keys
+	Dim EntPrice, j
+	Dim EntKeys, Ent
+
+	Set ElemRoot = oXML.xml.CreateElement("T_PRICE_NAME")
+	Set dPKinds = CreateObject("Scripting.Dictionary")
+
+	oXML.CreateElem ElemRoot, "N_ID", 1
+	oXML.CreateElem ElemRoot, "N_NAME", "Наличные"
+	xmlRoot.AppendChild ElemRoot
+	elemCount = elemCount + 1
+
+	If UBound(aRests) = -1 Then Exit Sub
+
+	For i = 0 To UBound(aRests, 2)
+		Set Ent = workarea.entity(aRests(0, i))
+		Set ElemRoot = oXML.xml.CreateElement("T_PRICE")
+		oXML.CreateElem ElemRoot, "N_PRICEID", 1
+		oXML.CreateElem ElemRoot, "N_NOMENID", TruncGuid(Ent.guid)
+		oXML.CreateElem ElemRoot, "N_PRICE", checknull(aRests(9, i), 0)
+
+		xmlRoot.AppendChild ElemRoot							
+		elemCount = elemCount + 1
+	Next
+
+End Sub
+'---
+'
+'---
+Sub agent_AddAssort(oxml, xmlRoot, ag, elemCount)
+	Dim ElemRoot
+	
+	Set ElemRoot = oxml.xml.createElement("T_ASSORTMENT")
+	oXML.CreateElem ElemRoot, "N_ID", "000000001"
+	oXML.CreateElem ElemRoot, "N_NAME", "Общий"
+
+	xmlRoot.AppendChild ElemRoot
+	elemCount = elemCount + 1
+End Sub
+'---
+'
+'---
+Sub agent_AddClient(aClients, oxml, xmlRoot, ag, elemCount)
+	Dim i, Client, SQL, aPrm, ParentGUID, j
+
+	SQL = "_Export_ClientsForManagers2"
+	aPrm = Array(Ag.ID)
+
+	If Query(SQL, aPrm, aClients) Then
+		For i = 0 To UBound(aClients, 2)
+			Set Client = workarea.agent(aClients(0, i))
+			ParentGUID = TruncGuid(Client.GUID)		
+			AddClient Client, Client.name, ParentGUID, oXml, xmlRoot, elemCount, True
+
+			If Client.HasChildren Then
+				ParentGUID = TruncGuid(Client.GUID)
+				With Client.Children
+					For j = 1 To .Count
+						AddClient .Item(j), Client.name, ParentGUID, oXml, xmlRoot, elemCount, False
+					Next
+				End With
+			End If
+		Next
+	End If
+	
+End Sub
+'---
+'
+'---
+Sub AddClient(Client, ClientName, ParentGUID, oXml, xmlRoot, ByRef elemCount, IsAgreeCreate)
+	Dim ElemRoot, ClientAddress
+	
+	Set ElemRoot = oxml.xml.createElement("T_CLIENT")
+	oXml.CreateElem ElemRoot, "N_ID", TruncGuid(Client.guid)
+	oXml.CreateElem ElemRoot, "N_NAME", ClientName
+
+	oXml.CreateElem ElemRoot, "N_PARENTID", ParentGUID
+
+	oXml.CreateElem ElemRoot, "N_OBJECT", Client.Tag
+	ClientAddress = Client.Params("Адрес доставки").Value2
+	If ClientAddress = "" Then ClientAddress = Client.Address
+
+	oXml.CreateElem ElemRoot, "N_ADDRESS", ClientAddress		'checknull(aClients(2, i), "")
+	oXml.CreateElem ElemRoot, "N_CONTACT", Client.Contact
+
+	oXml.CreateElem ElemRoot, "N_DEFAULT_PRICEID", "1"
+
+	If IsAgreeCreate Then
+		oXml.CreateElem ElemRoot, "N_DEFAULT_CONTRACTID", TruncGuid(GetDefContractGUIDByAg(Client, MSC_AGREE_ROOT, "1"))
+	Else
+	End If
+
+	oXml.CreateElem ElemRoot, "N_DEFAULT_UNITID", "units" 
+	oXml.CreateElem ElemRoot, "N_LOGISTICID", "Розница"
+	oXml.CreateElem ElemRoot, "N_SORTORDER", ""
+	oXml.CreateElem ElemRoot, "N_CLIENTTYPEID", "Магазин"
+	oXml.CreateElem ElemRoot, "N_DAYS_OF_WEEK", "111111111111111111111"
+	oXml.CreateElem ElemRoot, "N_TASK", ""
+	oXml.CreateElem ElemRoot, "N_LNG", 0
+	oXml.CreateElem ElemRoot, "N_LAT", 0
+	oXml.CreateElem ElemRoot, "N_PRIORITY", ""
+	oXml.CreateElem ElemRoot, "N_EXCEPTIONS", ""
+	oXml.CreateElem ElemRoot, "N_PHONE", Client.Phone
+	oXml.CreateElem ElemRoot, "N_EMAIL", Client.EMail
+	oXml.CreateElem ElemRoot, "N_ADVANCED", Client.Memo
+
+	xmlRoot.AppendChild ElemRoot
+	elemCount = elemCount + 1
+End Sub
+'---
+'
+'---
+Function GetDefContractGUIDByAg(Ag, AgreeRootID, AgreeType)
+	Dim SQL, aPrm, aData, Msc, MscFld, MscRoot, MscRootID
+
+	SQL = "select msc_id from misc where msc_lng1=" & Ag.ID & _
+				" and msc_id in (select id from misc_tree where " & AgreeRootID & " in (p0, p1, p2, p3, p4, p5, p6, p7))" & _
+				" and msc_str3='" & AgreeType & "'"
+
+	GetDefContractGUIDByAg = ""
+	
+	If Not GetRs2(SQL, aData) Then
+		Set MscRoot = Workarea.Misc(AgreeRootID).Children
+
+		MscRootID = MscRoot.Find(Ag.Name, 0, 2) 
+			
+		If MscRootID = 0 Then 
+			Set MscFld = MscRoot.Create(0, Ag.Name)
+		Else
+			Set MscFld = Workarea.Misc(MscRootID)
+		End If 
+
+		Set Msc = MscFld.Children.Create(1, Ag.Name & ":Наличные")
+		Msc.String3 = "1"
+		Msc.Long1 = Ag.ID
+		Msc.Params(prmTMLOrder).Value = TML_FORM_1
+		Msc.Save
+
+		GetDefContractGUIDByAg = Msc.GUID
+
+		Set Msc = MscFld.Children.Create(1, Ag.Name & ":Безналичные")
+		Msc.String3 = "2"
+		Msc.Long1 = Ag.ID
+		Msc.Params(prmTMLOrder).Value = TML_FORM_2
+		Msc.Save
+
+		If AgreeType = 2 Then
+			GetDefContractGUIDByAg = Msc.GUID
+		End If
+	Else
+		Set Msc = Workarea.Misc(aData(0, 0))
+		GetDefContractGUIDByAg = Msc.GUID
+	End If
+End Function
+'---
+'
+'---
+Sub agent_AddNom(aRests, oxml, xmlRoot, ag, elemCount)
+	Dim EntRootID, ElemRoot, i, EntQty, EntSum, AccID
+	Dim defPrice, defPriceID, EntRoot, Ent, dFolders
+	Dim ParentGUID
+
+	Set dFolders = CreateLibObject("Map")
+
+	Set ElemRoot = oxml.xml.createElement("T_NOMENCLATURE")
+	oXml.CreateElem ElemRoot, "N_ID", "000000001"
+	oXml.CreateElem ElemRoot, "N_NAME", "Товары без группы"
+	oXml.CreateElem ElemRoot, "N_ISGROUP", "1"
+	oXml.CreateElem ElemRoot, "N_PARENTID", ""
+	oXml.CreateElem ElemRoot, "N_PACKING", ""
+
+	oXml.CreateElem ElemRoot, "N_BALANCE", ""
+	oXml.CreateElem ElemRoot, "N_SORTORDER", 1
+	oXml.CreateElem ElemRoot, "N_ASSORTMENTID", "000000001"
+
+	xmlRoot.AppendChild ElemRoot
+	elemCount = elemCount + 1
+
+	If UBound(aRests) = -1 Then Exit Sub
+
+	For i = 0 To UBound(aRests, 2)
+		Set Ent = workarea.entity(aRests(0, i))
+
+		If Not Ent.Parent Is Nothing Then
+			With Ent.parent
+				If Not dFolders.Exists(.guid) Then
+					ParentGUID = TruncGuid(.Guid)
+					Set ElemRoot = oxml.xml.createElement("T_NOMENCLATURE")
+					oXml.CreateElem ElemRoot, "N_ID", ParentGUID
+					oXml.CreateElem ElemRoot, "N_NAME", .Name
+					oXml.CreateElem ElemRoot, "N_ISGROUP", "1"
+					oXml.CreateElem ElemRoot, "N_PARENTID", ""
+					oXml.CreateElem ElemRoot, "N_PACKING", ""
+				
+					oXml.CreateElem ElemRoot, "N_BALANCE", ""
+					oXml.CreateElem ElemRoot, "N_SORTORDER", 1
+					oXml.CreateElem ElemRoot, "N_ASSORTMENTID", "000000001"
+				
+					xmlRoot.AppendChild ElemRoot
+					elemCount = elemCount + 1
+					dFolders(.guid) = ParentGUID
+				Else
+					ParentGUID = dFolders(.guid)
+				End If
+			End With
+		Else
+			ParentGUID = "000000001"
+		End If
+
+		Set ElemRoot = oxml.xml.createElement("T_NOMENCLATURE")
+		oXml.CreateElem ElemRoot, "N_PARENTID", ParentGUID
+		oXml.CreateElem ElemRoot, "N_ID", TruncGuid(Ent.guid)
+		oXml.CreateElem ElemRoot, "N_NAME", Ent.name
+		oXml.CreateElem ElemRoot, "N_ISGROUP", 0
+
+		oXml.CreateElem ElemRoot, "N_BARCODE", Ent.nom
+		oXml.CreateElem ElemRoot, "N_PACKING", Ent.Params("Количество в ящике").Value2
+
+		oXml.CreateElem ElemRoot, "N_BALANCE", checknull(aRests(8, i), 0)
+		oXml.CreateElem ElemRoot, "N_SORTORDER", 1
+		oXml.CreateElem ElemRoot, "N_ASSORTMENTID", "000000001"
+		oXml.CreateElem ElemRoot, "N_BASIC_UNIT_NAME", checknull(aRests(6, i), "")
+
+'		oXml.CreateElem ElemRoot, "N_SHOWCASE", checknull(aRests(9, i), 0)
+'
+'		oXml.CreateElem ElemRoot, "N_HIDE_IN_ORDER", 1
+'		oXml.CreateElem ElemRoot, "N_HIDE_IN_STORECHEK", 0
+'		oXml.CreateElem ElemRoot, "N_HIDE_IN_RETURN", 0
+'		oXml.CreateElem ElemRoot, "N_BG_COLOR", 2
+'		oXml.CreateElem ElemRoot, "N_TEXT_COLOR", 1
+'		oXml.CreateElem ElemRoot, "N_TOP_LIST", 1 
+
+		xmlRoot.AppendChild ElemRoot
+		elemCount = elemCount + 1
+	Next
+
+End Sub
+'---
+'
+'---
+Function TruncGuid(Guid)
+	Dim TruncedGuid
+
+	TruncedGuid = Replace(guid, "guid", "")
+	TruncedGuid = Replace(TruncedGuid, "{", "")
+	TruncedGuid = Replace(TruncedGuid, "}", "")
+	TruncedGuid	= Replace(TruncedGuid, " ", "")
+
+	TruncGuid = TruncedGuid
+
+End Function
+'---
+'
+'---
+Function agent_GetAgSettings(oxml, Ag, ClearData)
+	Dim ElemRoot
+	Dim i, aTables
+
+	aTables = Array("T_NOMENCLATURE", "T_CLIENT", "T_PRICE_NAME", "T_PRICE", "T_CONTRACT", "T_DEBTS")
+
+	Set ElemRoot = oXml.xml.CreateElement("settings")
+
+	oXml.CreateElem ElemRoot, "user_name", Ag.Name
+	oXml.CreateElem ElemRoot, "user_guid", TruncGuid(Ag.GUID)
+	oXml.CreateElem ElemRoot, "control_of_packaging", "0"	'iif(com_getlogicparamvalue(Ag, prmAgPackControl, False), 0, 1)
+	oXml.CreateElem ElemRoot, "control_of_receivables", "0"	'iif(com_getlogicparamvalue(Ag, prmAgDebtsControl, False), 0, 1)
+	oXml.CreateElem ElemRoot, "control_of_store_check", "0"	'iif(com_getlogicparamvalue(Ag, prmAgStorCheckControl, False), 0, 1) 
+	oXml.CreateElem ElemRoot, "control_of_price", "0"	'iif(com_getlogicparamvalue(Ag, prmAgBanChengePrice, False), 0, 1) 
+	oXml.CreateElem ElemRoot, "control_of_location", "0"	'iif(com_getparamvalue(Ag, prmAgGetCoordInterval, 0) = 0, 0, 1)
+	oXml.CreateElem ElemRoot, "track_interval", com_getparamvalue(Ag, prmAgGetCoordInterval, 0)
+	oXml.CreateElem ElemRoot, "track_start_time", com_getparamvalue(Ag, prmAgTrackTimeStart, 0)
+	oXml.CreateElem ElemRoot, "track_end_time", com_getparamvalue(Ag, prmAgTrackTimeEnd, 0)
+	oXml.CreateElem ElemRoot, "track_day_of_week", com_getparamvalue(Ag, prmAgTrackDays, "")
+	oXml.CreateElem ElemRoot, "control_of_settings", iif(com_getlogicparamvalue(Ag, prmAgBanSettings, False), 0, 1)
+	oXml.CreateElem ElemRoot, "text_currency", "руб."	'com_getparamvalue(Ag, prmAgCurrencyName, workarea.curs.item(1).Shortname)
+
+	oXml.CreateElem ElemRoot, "ftp_server_name", com_getparamvalue(Ag, prmAgFTPserver, "")
+	oXml.CreateElem ElemRoot, "ftp_server_login", com_getparamvalue(Ag, prmAgFTPLogin, "")
+	oXml.CreateElem ElemRoot, "ftp_server_password", com_getparamvalue(Ag, prmAgFTPPass, "")
+	oXml.CreateElem ElemRoot, "ftp_directory", com_getparamvalue(Ag, prmAgFTPFolder, "")
+
+	oXml.CreateElem ElemRoot, "bussines_name", "Goods&Foods"	'com_getparamvalue(Ag, prmAgPDFCompanyame, com_getparamvalue(workarea.mycompany, prmAgAlterName, workarea.mycompany.Name))
+
+	oXml.CreateElem ElemRoot, "control_price_change", iif(com_getlogicparamvalue(Ag, prmAgBanManualPriceChange, False), 0, 1) 
+	oXml.CreateElem ElemRoot, "control_discount", iif(com_getlogicparamvalue(Ag, prmAgBanDiscountChange, False), 0, 1)
+	oXml.CreateElem ElemRoot, "blocking_priority", iif(com_getlogicparamvalue(Ag, prmAgBlockingPriority, False), 0, 1)
+
+	oXml.CreateElem ElemRoot, "control_upload_documents", com_getparamvalue(Ag, prmAgMaxOrdersNotLoaded, 0) 
+	oXml.CreateElem ElemRoot, "livetime_archive", com_getparamvalue(Ag, prmAgMaxDBLifetime, 0)
+
+	oXml.CreateElem ElemRoot, "easy_storecheck", iif(com_getlogicparamvalue(Ag, prmAgStoreCheckOnTouch, False), 0, 1)
+	oXml.CreateElem ElemRoot, "disable_new_client", "0"	'iif(com_getlogicparamvalue(Ag, prmAgBanNewBuyer, False), 0, 1)
+	oXml.CreateElem ElemRoot, "barcode_title", "1"	'iif(com_getlogicparamvalue(Ag, prmAgEntsShowBar, False), 0, 1)
+	oXml.CreateElem ElemRoot, "control_balance", "1"	'iif(com_getlogicparamvalue(Ag, prmAgNoEntsWORests, False), 0, 1)
+	oXml.CreateElem ElemRoot, "bind_nomenclature_warehouse", "0"
+	oXml.CreateElem ElemRoot, "disable_ordering_on_the_couch", "0"	'iif(com_getlogicparamvalue(Ag, prmAgBanOrdersOutside, True), 0, 1)
+	oXml.CreateElem ElemRoot, "disable_change_coord", iif(com_getlogicparamvalue(Ag, prmAgBanPOSCoord, False), 0, 1)
+	oXml.CreateElem ElemRoot, "disable_edit_client", "0"	'iif(com_getlogicparamvalue(Ag, prmAgBanPOSData, False), 0, 1)
+
+	oXml.CreateElem ElemRoot, "minimum_balance", com_getparamvalue(Ag, prmAgRedAfterCount, 10)
+	oXml.CreateElem ElemRoot, "option_sort_hierarchy", "0"	'iif(com_getlogicparamvalue(Ag, prmAgSortEnts, False), 0, 1)
+
+	oXml.CreateElem ElemRoot, "messages_server_name", com_getparamvalue(Ag, prmAgMsgServerName, "127.0.0.1")
+	oXml.CreateElem ElemRoot, "messages_server_port", com_getparamvalue(Ag, prmAgMsgServerPortNo, 4444)
+	oXml.CreateElem ElemRoot, "email_address", com_getparamvalue(Ag, prmAgFTPEMail, "")
+	oXml.CreateElem ElemRoot, "user_group", com_getparamvalue(Ag, prmAgMsgServerGroup, "")
+	oXml.CreateElem ElemRoot, "one_reason_return", iif(com_getlogicparamvalue(Ag, prmAgBlockingPriority, True), 1, 0)
+	oXml.CreateElem ElemRoot, "guaranteed_delivery", iif(com_getlogicparamvalue(Ag, prmAgUseOneReason, True), 1, 0)
+	oXml.CreateElem ElemRoot, "support_email", com_getparamvalue(Ag, prmAgSupportEMail, "")
+	oXml.CreateElem ElemRoot, "support_tel", com_getparamvalue(Ag, prmAgSupportPhone, "")
+	oXml.CreateElem ElemRoot, "support_skype", com_getparamvalue(Ag, prmAgSupportSkype, "")
+	oXml.CreateElem ElemRoot, "changes_remnants", iif(com_getlogicparamvalue(Ag, prmAgUseInventoryFroUpdatesRest, True), 1, 0)
+	oXml.CreateElem ElemRoot, "control_check_print", iif(com_getlogicparamvalue(Ag, prmAgBanClosedDocs, True), 1, 0)		
+
+	'xmlRoot.AppendChild agent_ClearData(oxml, ClearData)
+
+	For i = 0 To 5
+		If (2^i And ClearData) Then
+			oXml.CreateElem ElemRoot, "clear_table", aTables(i)
+		End If
+	Next
+
+	Set agent_GetAgSettings = ElemRoot
+
+End Function
+'---
+'
+'---

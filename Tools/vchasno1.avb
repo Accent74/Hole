@@ -1,0 +1,389 @@
+Option Explicit
+
+' Class to post arbitrary File and Form data from vbscript using multipart/form-data
+'
+' Usage:
+'
+' Set oPost = new PostMultipartForm
+' oPost.AddField "FIELDNAME", "FIELDVALUE"
+' oPost.AddFile "FIELDNAME", "FILENAME", "FILEPATH"
+' returnvalue = oPost.SendReq(URL)
+' HTTPStatus = oPost.Status
+'
+'For example
+
+Dim file, sURL, oPost, sReturn, sHTTPStatus
+
+file = "40327353_32166808_20191225_ТоварыВозвратПоставщику_23.zip"
+file = "test.zip"
+sURL = "https://vchasno.ua/api/v2/documents"
+
+Set oPost = New PostMultipartForm
+'	oPost.AddField "testfield1", "testvalue1"
+' oPost.AddField "testfield2", "testvalue2"
+	 oPost.AddFile "file", file, "D:\Testing\Hole\PDF\" & file
+' oPost.AddFile "testpdffile", "testdoc.pdf", "C:\temp\MyTest.pdf"
+ sReturn = oPost.SendReq(sURL)
+ sHTTPStatus = oPost.Status
+stop
+
+Class PostMultipartForm
+    Private MULTIPART_BOUNDARY_BASE
+    Private MULTIPART_BOUNDARY
+    Private oStream
+    Private dContentTypes
+    Private sToken
+
+    Public Status
+
+    Private Sub Class_Initialize()
+        MULTIPART_BOUNDARY_BASE = String(6, "-") & Replace(Mid(CreateObject("Scriptlet.TypeLib").Guid, 2, 36), "-", "")
+        MULTIPART_BOUNDARY = "--" & MULTIPART_BOUNDARY_BASE
+
+        ' TO combine Text and Binary file data, an ADODB Stream is used.
+        Set oStream = CreateObject("ADODB.Stream")
+        oStream.Mode = 3
+        oStream.Charset = "Windows-1251"
+        oStream.Open
+        sToken = "ff2c5bc5-f0bc-4db2-8be4-c0ce29c282b0"
+
+    End Sub
+
+    Sub AddField(sField, sValue)
+        oStream.WriteText MULTIPART_BOUNDARY & vbCrLf _
+            & "Content-Disposition: form-data; name=""" & sField & """;" & vbCrLf & vbCrLf _
+            & sValue & vbCrLf
+
+    End Sub
+
+    Sub AddFile(sFieldName, sFileName, sFilePath)
+        Dim oByteArray
+
+        ' ADODB stream object used to read binary file
+        With CreateObject("ADODB.Stream")
+            .Type = 1
+            .Mode = 3
+            .Open
+            .LoadFromFile sFilePath
+            oByteArray = .Read
+        End With      
+
+        'write binary data into output stream
+        With oStream
+            .WriteText MULTIPART_BOUNDARY & vbCrLf
+            .WriteText "Content-Disposition: form-data; name=""" & sFieldName & """; filename=""" & sFileName & """" & vbCrLf
+            .WriteText "Content-Type: """ & GetContentType(sFileName) & """" & vbCrLf & vbCrLf
+            .Position = 0
+            .Type = 1
+            .Position = .Size
+            .Write oByteArray
+            .Position = 0
+            .Type = 2
+            .Position = .Size       
+            .WriteText vbCrLf
+        End With
+
+    End Sub
+
+    Function SendReq(sURL)
+        Dim oXmlHttp, bytData
+
+        'Add end boundary and read as byte array
+        oStream.WriteText MULTIPART_BOUNDARY & "--"
+        oStream.Position = 0
+        oStream.Type = 1
+        bytData = oStream.Read
+
+        On Error Resume Next
+
+        Set oXmlHttp = CreateObject("MSXML2.ServerXMLHTTP")
+        oXmlHttp.SetTimeouts 0, 60000, 300000, 300000
+        oXmlHttp.Open "POST", sURL, False
+			 oXmlHttp.setRequestHeader "Content-type", "application/json; "
+			 oXmlHttp.setRequestHeader "Authorization", sToken
+
+        oXmlHttp.SetRequestHeader "Content-type", "multipart/form-data; boundary=" & MULTIPART_BOUNDARY_BASE
+
+        oXmlHttp.Send bytData
+
+        If Err.Number <> 0 Then
+            Status = Err.Description & " (" & Err.Number & ")"
+        Else
+            Status = oXmlHttp.StatusText & " (" & oXmlHttp.Status & ")"
+        End If
+        If oXmlHttp.Status = "200" Then SendReq = oXmlHttp.ResponseText
+
+        Set oXmlHttp = Nothing
+
+    End Function
+
+    Function GetContentType(sFileName)	
+			Dim strExt
+
+       LoadContentTypesList()
+			strExt = Right(sFileName, InStrRev(sFileName, ".") + 1)
+       GetContentType = dContentTypes.Item(LCase(strExt))
+
+    End Function
+
+    Function LoadContentTypesList()
+        If TypeName(dContentTypes) = "Empty" Then
+
+            Set dContentTypes = CreateObject("Scripting.Dictionary")
+
+            With dContentTypes
+                .Add "php", "application/x-php"
+                .Add "vbs", "application/x-vbs"
+                .Add "jpe", "image/jpeg"
+                .Add "jpg", "image/jpeg"
+                .Add "jpeg", "image/jpeg"
+                .Add "gif", "image/gif"
+                .Add "png", "image/png"
+                .Add "bmp", "image/bmp"
+                .Add "ico", "image/x-icon"
+                .Add "svg", "image/svg+xml"
+                .Add "svgz", "image/svg+xml"
+                .Add "tif", "image/tiff"
+                .Add "tiff", "image/tiff"
+                .Add "pct", "image/x-pict"
+                .Add "psd", "image/vnd.adobe.photoshop"
+                .Add "aac", "audio/x-aac"
+                .Add "aif", "audio/x-aiff"
+                .Add "flac", "audio/x-flac"
+                .Add "m4a", "audio/x-m4a"
+                .Add "m4b", "audio/x-m4b"
+                .Add "mid", "audio/midi"
+                .Add "midi", "audio/midi"
+                .Add "mp3", "audio/mpeg"
+                .Add "mpa", "audio/mpeg"
+                .Add "mpc", "audio/x-musepack"
+                .Add "oga", "audio/ogg"
+                .Add "ogg", "audio/ogg"
+                .Add "ra", "audio/vnd.rn-realaudio"
+                .Add "ram", "audio/vnd.rn-realaudio"
+                .Add "snd", "audio/x-snd"
+                .Add "wav", "audio/x-wav"
+                .Add "wma", "audio/x-ms-wma"
+                .Add "avi", "video/x-msvideo"
+                .Add "divx", "video/divx"
+                .Add "flv", "video/x-flv"
+                .Add "m4v", "video/mp4"
+                .Add "mkv", "video/x-matroska"
+                .Add "mov", "video/quicktime"
+                .Add "mp4", "video/mp4"
+                .Add "mpeg", "video/mpeg"
+                .Add "mpg", "video/mpeg"
+                .Add "ogm", "application/ogg"
+                .Add "ogv", "video/ogg"
+                .Add "rm", "application/vnd.rn-realmedia"
+                .Add "rmvb", "application/vnd.rn-realmedia-vbr"
+                .Add "smil", "application/x-smil"
+                .Add "webm", "video/webm"
+                .Add "wmv", "video/x-ms-wmv"
+                .Add "xvid", "video/x-msvideo"
+                .Add "js", "application/javascript"
+                .Add "xml", "text/xml"
+                .Add "html", "text/html"
+                .Add "css", "text/css"
+                .Add "txt", "text/plain"
+                .Add "py", "text/x-python"
+                .Add "pdf", "application/pdf"
+                .Add "xhtml", "application/xhtml+xml"
+                .Add "zip", "application/x-zip-compressed, application/zip"
+                .Add "rar", "application/x-rar-compressed"
+                .Add "cmd", "application/cmd"
+                .Add "bat", "application/x-bat, application/x-msdos-program"
+                .Add "exe", "application/exe, application/x-ms-dos-executable"
+                .Add "msi", "application/x-msi"
+                .Add "bin", "application/x-binary"
+                .Add "crt", "application/x-x509-ca-cert"
+                .Add "crl", "application/x-pkcs7-crl"
+                .Add "pfx", "application/x-pkcs12"
+                .Add "p12", "application/x-pkcs12"
+                .Add "odc", "application/vnd.oasis.opendocument.chart"
+                .Add "odf", "application/vnd.oasis.opendocument.formula"
+                .Add "odb", "application/vnd.oasis.opendocument.database"
+                .Add "odg", "application/vnd.oasis.opendocument.graphics"
+                .Add "odi", "application/vnd.oasis.opendocument.image"
+                .Add "odp", "application/vnd.oasis.opendocument.presentation"
+                .Add "ods", "application/vnd.oasis.opendocument.spreadsheet"
+                .Add "odt", "application/vnd.oasis.opendocument.tex"
+                .Add "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                .Add "dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+                .Add "potx", "application/vnd.openxmlformats-officedocument.presentationml.template"
+                .Add "ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+                .Add "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                .Add "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                .Add "xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template"
+                .Add "ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12"
+                .Add "ppa", "application/vnd.ms-powerpoint"
+                .Add "potm", "application/vnd.ms-powerpoint.template.macroEnabled.12"
+                .Add "ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12"
+                .Add "xlsm", "application/vnd.ms-excel.sheet.macroEnabled.12"
+                .Add "pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12"
+                .Add "dotm", "application/vnd.ms-word.template.macroEnabled.12"
+                .Add "docm", "application/vnd.ms-word.document.macroEnabled.12"
+                .Add "doc", "application/msword"
+                .Add "dot", "application/msword"
+                .Add "pps", "application/mspowerpoint"
+                .Add "ppt", "application/mspowerpoint,application/powerpoint,application/vnd.ms-powerpoint,application/x-mspowerpoint"
+                .Add "xls", "application/vnd.ms-excel"
+                .Add "xlt", "application/vnd.ms-excel"
+
+            End With
+        End If
+
+    End Function
+
+    Private Sub Class_Terminate
+        oStream.Close
+    End Sub
+
+End Class
+
+Function encode(strRus)
+    Dim i
+    Dim strTemp
+    Dim strLat
+    For i = 1 To Len(strRus)
+        strTemp = Mid(strRus, i, 1)             
+        Select Case strTemp
+            Case "а"
+                strLat = strLat & "a"
+            Case "А"
+                strLat = strLat & "A"
+            Case "б"
+                strLat = strLat & "b"
+            Case "Б"
+                strLat = strLat & "B"
+            Case "в"
+                strLat = strLat & "v"
+            Case "В"
+                strLat = strLat & "V"
+            Case "г"
+                strLat = strLat & "g"
+            Case "Г"
+                strLat = strLat & "G"
+            Case "д"
+                strLat = strLat & "d"
+            Case "Д"
+                strLat = strLat & "D"
+            Case "е"
+                strLat = strLat & "e"
+            Case "Е"
+                strLat = strLat & "E"
+            Case "ё"
+                strLat = strLat & "yo"
+            Case "Ё"
+                strLat = strLat & "Yo"
+            Case "ж"
+                strLat = strLat & "zh"
+            Case "Ж"
+                strLat = strLat & "Zh"
+            Case "з"
+                strLat = strLat & "z"
+            Case "З"
+                strLat = strLat & "Z"
+            Case "и"
+                strLat = strLat & "i"
+            Case "И"
+                strLat = strLat & "I"
+            Case "й"
+                strLat = strLat & "i"
+            Case "Й"
+                strLat = strLat & "I"
+            Case "к"
+                strLat = strLat & "k"
+            Case "К"
+                strLat = strLat & "K"
+            Case "л"
+                strLat = strLat & "l"
+            Case "Л"
+                strLat = strLat & "L"
+            Case "м"
+                strLat = strLat & "m"
+            Case "М"
+                strLat = strLat & "M"
+            Case "н"
+                strLat = strLat & "n"
+            Case "Н"
+                strLat = strLat & "N"
+            Case "о"
+                strLat = strLat & "o"
+            Case "О"
+                strLat = strLat & "O"
+            Case "п"
+                strLat = strLat & "p"
+            Case "П"
+                strLat = strLat & "P"
+            Case "р"
+                strLat = strLat & "r"
+            Case "Р"
+                strLat = strLat & "R"
+            Case "с"
+                strLat = strLat & "s"
+            Case "С"
+                strLat = strLat & "S"
+            Case "т"
+                strLat = strLat & "t"
+            Case "Т"
+                strLat = strLat & "T"
+            Case "у"
+                strLat = strLat & "u"
+            Case "У"
+                strLat = strLat & "U"
+            Case "ф"
+                strLat = strLat & "f"
+            Case "Ф"
+                strLat = strLat & "F"
+            Case "х"
+                strLat = strLat & "kh"
+            Case "Х"
+                strLat = strLat & "Kh"
+            Case "ц"
+                strLat = strLat & "ts"
+            Case "Ц"
+                strLat = strLat & "Ts"
+            Case "ч"
+                strLat = strLat & "ch"
+            Case "Ч"
+                strLat = strLat & "Ch"
+            Case "ш"
+                strLat = strLat & "sh"
+            Case "Ш"
+                strLat = strLat & "Sh"
+            Case "щ"
+                strLat = strLat & "sch"
+            Case "Щ"
+                strLat = strLat & "Sch"
+            Case "ъ"
+                strLat = strLat & ""
+            Case "Ъ"
+                strLat = strLat & ""
+            Case "ы"
+                strLat = strLat & "y"
+            Case "Ы"
+                strLat = strLat & "Y"
+            Case "ь"
+                strLat = strLat & ""
+            Case "Ь"
+                strLat = strLat & ""
+            Case "э"
+                strLat = strLat & "e"
+            Case "Э"
+                strLat = strLat & "E"
+            Case "ю"
+                strLat = strLat & "yu"
+            Case "Ю"
+                strLat = strLat & "Yu"
+            Case "я"
+                strLat = strLat & "ya"
+            Case "Я"
+                strLat = strLat & "Ya"
+            Case Else
+                'unknown symbol
+                strLat = strLat & strTemp
+        End Select
+    Next
+    Encode = strLat
+End Function

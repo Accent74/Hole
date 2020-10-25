@@ -1,0 +1,17 @@
+Option Explicit
+'#include "HL74_xml.avb"
+
+Dim oXml, RootNode
+
+Set oXml = New XML
+
+If oXml.Create() Then
+	oXml.FileName = "test.xml"
+
+	If oXml.xmlFileName <> "" Then
+		If oXml.Load() Then
+			Set RootNode = oXml.RemoveChildren("/REPORT/ATTACHMENT_ISSUE")
+			stop
+		End If	
+	End If
+End If

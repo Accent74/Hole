@@ -1,0 +1,186 @@
+﻿<AccentExportData><AccentOperations/><AccentFolders><folder ID="549" GUID="{guid {E444903A-DDE1-4830-AAAA-5714C3AC79A2}}" Name="Магазин" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="561" GUID="{guid {364DBCAD-4908-473E-92D9-524F2220F29C}}" Name="08. Магазин. Кассовый регистратор" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="562" GUID="{guid {57467141-B5E3-4F4E-BF20-8BCC487EBEDC}}" Name="08.01. Магазин. Касса. Внос денежных средств" FormID="0" FormGUID="" Tag="" TID="1870" TGUID="{guid {92E5E2C5-E18A-42B4-9EC5-012FB97A9273}}" Type="0"/><folder ID="563" GUID="{guid {35C16FF1-04C6-4435-96B9-DC437942DB32}}" Name="09.02. Магазин. Касса. Вывод денежных средств" FormID="0" FormGUID="" Tag="" TID="1871" TGUID="{guid {F395E95D-1D69-4C8D-A052-B6EEDD7EB3A4}}" Type="0"/></folder></folder></AccentFolders><AccentTemplates><template GUID="{guid {34BB6A37-533F-4FA2-8260-2F041795F2EA}}" ID="1854" Memo="" Name="Магазин" Tag="" Type="0" FormID="0" FormGUID="" Script=" "> <template GUID="{guid {8956F03B-3F51-4939-A00A-88CA593AA559}}" ID="1869" Memo="" Name="Магазин. Касса" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {92E5E2C5-E18A-42B4-9EC5-012FB97A9273}}" ID="1870" Memo="" Name="Магазин. Касса. Внос денежных средств" Tag="" Type="1" FormID="818" FormGUID="{guid {3AD2F746-F4B7-4470-B248-05FDD5A9DBB7}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 818
+  op.SetFolder 562
+  op.Name = &quot;Магазин. Касса. Внос денежных средств&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 571
+  op.TransList(1).SetAccCr 211
+  '--Разное--
+  op.TransList(1).SetMisc 13, 159
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {3AD2F746-F4B7-4470-B248-05FDD5A9DBB7}}
+  op.SetFolder {guid {57467141-B5E3-4F4E-BF20-8BCC487EBEDC}}
+  op.Name = "Магазин. Касса. Внос денежных средств"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {A54CDBA2-891D-492F-8750-37604C8CD709}}
+  op.TransList(1).SetAccCr {guid {792CF2CA-10A2-4F3D-A4E9-A6ED0B02A547}}
+  '--Разное--
+  op.TransList(1).SetMisc 13, {guid {E07C5D68-C67F-45E2-8067-D49510A07960}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="11/18/2015 11:48:23 AM"/></parameters></template><template GUID="{guid {F395E95D-1D69-4C8D-A052-B6EEDD7EB3A4}}" ID="1871" Memo="" Name="Магазин. Касса. Вывод денежных средств" Tag="" Type="1" FormID="819" FormGUID="{guid {D0D0013A-E2DD-467A-8B8E-3A9A73809571}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 819
+  op.SetFolder 563
+  op.Name = &quot;Магазин. Касса. Вывод денежных средств&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 211
+  op.TransList(1).SetAccCr 571
+  '--Разное--
+  op.TransList(1).SetMisc 13, 159
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {D0D0013A-E2DD-467A-8B8E-3A9A73809571}}
+  op.SetFolder {guid {35C16FF1-04C6-4435-96B9-DC437942DB32}}
+  op.Name = "Магазин. Касса. Вывод денежных средств"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {792CF2CA-10A2-4F3D-A4E9-A6ED0B02A547}}
+  op.TransList(1).SetAccCr {guid {A54CDBA2-891D-492F-8750-37604C8CD709}}
+  '--Разное--
+  op.TransList(1).SetMisc 13, {guid {E07C5D68-C67F-45E2-8067-D49510A07960}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="11/18/2015 11:50:00 AM"/></parameters></template></template></template></AccentTemplates><AccentEntities/><AccentMiscs><misc ID="157" GUID="{guid {8EBAF842-4FF0-4AB5-A7C8-49B97BEE8DC3}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="13" Name="Торговое оборудование" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"><misc ID="158" GUID="{guid {EA766689-8B93-4BCC-9999-CA573FE816F7}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="13" Name="Кассовые регистраторы" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0"><misc ID="159" GUID="{guid {E07C5D68-C67F-45E2-8067-D49510A07960}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="13" Name="Меркурий 119Ф" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/></misc></misc></AccentMiscs><AccentAgents/><AccentBanks/><AccentAccounts><account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo=""><account ID="208" GUID="{guid {F9ECFAAF-B0FA-472D-8100-1DD191480E94}}" Code="33" Name="Другие денежные средства" PlanID="70" SaldoType="0" Tag="SYS208" Type="0" Memo=""><account ID="211" GUID="{guid {792CF2CA-10A2-4F3D-A4E9-A6ED0B02A547}}" Code="333" Name="Денежные средства в дороге в национальной валюте" PlanID="70" SaldoType="0" Tag="SYS211" Type="0" Memo=""/></account><account ID="200" GUID="{guid {1F72141A-35A6-4109-A5C6-9D1F97649964}}" Code="30" Name="Наличность" PlanID="70" SaldoType="0" Tag="SYS200" Type="0" Memo=""><account ID="201" GUID="{guid {CCEBE0A5-5FD6-4E6B-82EC-D3BA9E55E2D9}}" Code="301" Name="Касса в национальной валюте" PlanID="70" SaldoType="0" Tag="SYS201" Type="0" Memo=""><account ID="571" GUID="{guid {A54CDBA2-891D-492F-8750-37604C8CD709}}" Code="3011" Name="Денежные средства в кассе магазина" PlanID="70" SaldoType="0" Tag="" Type="0" Memo=""/></account></account></account></AccentAccounts><AccentUnits/><AccentCurs/><AccentForms><form ANID="92" FileName="HL74_CashPrintIn.afm" ID="818" Name="Магазин. Касса. Внос денежных средств" ShortName="МКВ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {3AD2F746-F4B7-4470-B248-05FDD5A9DBB7}}"/><form ANID="93" FileName="HL74_CashPrintOut.afm" ID="819" Name="Магазин. Касса. Вывод денежных средств" ShortName="МКД" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {D0D0013A-E2DD-467A-8B8E-3A9A73809571}}"/></AccentForms><AccentAutoNum><AutoNum ID="92" PR="" SF="" NAME="Магазин. Касса. Внос денежных средств"/><AutoNum ID="93" PR="" SF="" NAME="Магазин. Касса. Вывод денежных средств"/></AccentAutoNum>
+
+<AccentWorkarea>
+	<OnProperties>
+		<HL74 cmd="add" kind="5" type="1" module="HL74_TradeEqProps.avb" proc="HL74_CashPrintProps"/>
+	</OnProperties>	
+
+	<parameters>
+		<parameter GUID="{guid {4F5C3E98-5179-433E-85CB-7C9E57345809}}" Name="Торговое оборудование. КР" Type="3" RefKind="5" RefGUID="{guid {EA766689-8B93-4BCC-9999-CA573FE816F7}}" RefValueGUID="{guid {EA766689-8B93-4BCC-9999-CA573FE816F7}}" Value2=""/>
+	</parameters>
+</AccentWorkarea>
+
+
+</AccentExportData>

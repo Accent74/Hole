@@ -1,0 +1,299 @@
+Option Explicit
+'----
+'
+'----
+Sub RT_GetEntRetailPriceDAO(ByRef Qty, ByRef Sum, AccID, EntID, AgToID, OnDate, DocID, MC)
+	Dim SQL, aQueryPrm, aData
+
+	SQL = "Select Qty, Sum from ST7_oddments_of_the_goods where EntID=[Ent_ID] and Qty <> 0 and Sum <> 0"
+	aQueryPrm = Array(AgToID, AccID, DocID, OnDate, "", MC, EntID)
+
+	If DAO_Query(SQL, aQueryPrm, aData) Then
+		Qty = aData(0, 0)
+		Sum = aData(1, 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Function RT_GetPrice(Ag, EntID, OnDate)
+	Dim PriceKind
+
+	RT_GetPrice = 0
+
+	If Not Ag Is Nothing Then
+		With Ag.Params
+			If .Exists(prmAgDefPrice) Then
+				If .Item(prmAgDefPrice).Value2 <> 0 Then
+					Set PriceKind = Workarea.PriceKind(.Item(prmAgDefPrice).Value2)
+					RT_GetPrice = PriceKind.GetEntPrice(EntID, OnDate, WorkArea.DefPriceList)
+				End If
+			End If
+		End With
+	End If
+
+End Function
+'----
+'
+'----
+Sub RT_GetEntRetailPriceOLEDB(ByRef Qty, ByRef Sum, AccID, EntID, AgID, OnDate, DocID, MC)
+	Dim aData, aPrm
+
+	aPrm = Array(Array(AgID, 3, 10), Array(AccID, 3, 10), Array(EntID, 3, 10), _
+						Array(DocID, 3, 10), Array(OnDate, 7, 20), Array(MC, 3, 10))
+
+	If ADO_Query("ST7_GetMidEntPrice", aPrm, aData) Then
+		Qty = aData(0, 0)
+		Sum = aData(1, 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Function RT_GetRTPrice(EntID, AccID, OnDate, AgID, DocID, MC)
+	Dim Qty, Sum, Price
+
+	If App.AppType = "DAO" Then
+		RT_GetEntRetailPriceDAO Qty, Sum, AccID, EntID, AgID, OnDate, DocID, MC
+	Else
+		RT_GetEntRetailPriceOLEDB Qty, Sum, AccID, EntID, AgID, OnDate, DocID, MC
+	End If
+
+	If Qty > 0 Then
+		Price = Sum / Qty
+	Else
+		price = 0
+	End If
+
+	If Price = 0 And AgID <> 0 Then Price = RT_GetPrice(Workarea.Agent(AgID), EntID, OnDate)
+	RT_GetRTPrice = Price
+
+End Function
+
+'----
+'
+'----
+Sub RT_GetEntQtySum(EntID, AccID, AgID, onDate, ByRef Qty, ByRef Sum, DocID, MC)
+
+	If App.AppType = "DAO" Then
+		RT_GetEntRetailPriceDAO Qty, Sum, AccID, EntID, AgID, OnDate, DocID, MC
+	Else
+		RT_GetEntRetailPriceOLEDB Qty, Sum, AccID, EntID, AgID, OnDate, DocID, MC
+	End If
+End Sub
+'----
+'
+'----
+Function RT_GetRestSeriesRetailDAO(EntID, AgID, AccID, DocID, OnDate, MC)
+	Dim SQL, aData, aPrm
+
+	SQL = 	"PARAMETERS EntID Long, AgStorageID Long, AccStorageID Long, DocID Long, OnDate DateTime, MC Long; " & _
+					"Select JOURNAL.SER_ID, Sum([j_qty]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))) AS RestQty, Sum([j_sum]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))) AS RestSum " & _
+					"FROM JOURNAL " & _
+					"WHERE (((JOURNAL.DOC_ID)<>[DocID]) And ((JOURNAL.J_DONE)=2) And ((JOURNAL.MC_ID)=[MC]) And ((JOURNAL.J_DATE)<=[OnDate]) And ((JOURNAL.J_ENT)=[EntID]) And ((([ACC_DB]=[AccStorageID] And [J_AG1]=[AgStorageID]) Or ([ACC_CR]=[AccStorageID] And [J_AG2]=[AgStorageID]))=True)) " & _
+					"GROUP BY JOURNAL.SER_ID " & _
+					"HAVING (((Sum([j_qty]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))))<>0) And ((Sum([j_sum]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))))<>0));"
+
+	aPrm = Array(EntID, AgID, AccID, DocID, OnDate, MC)
+
+	DAO_Query SQL, aPrm, aData
+	RT_GetRestSeriesRetailDAO = aData
+
+End Function
+'----
+'
+'----
+Function RT_GetRestMidRetail(EntID, AgID, AccID, DocID, OnDate, MC)
+	If App.AppType = "DAO" Then
+		RT_GetRestMidRetail = RT_GetRestMidRetailDAO(EntID, AgID, AccID, DocID, OnDate, MC)
+	Else
+		RT_GetRestMidRetail = RT_GetRestMidRetailOLEDB(EntID, AgID, AccID, DocID, OnDate, MC)
+	End If
+End Function
+'----
+'
+'----
+Function RT_GetRestSeriesRetailOLEDB(EntID, AgID, AccID, DocID, OnDate, MC)
+	Dim aPrm, aData
+
+	aPrm = Array(Array(EntID, 3, 10),	Array(AgID, 3, 10),	Array(AccID, 3, 10),_
+		Array(DocID, 3, 10),	Array(OnDate, 7, 20),	Array(MC, 3, 10))
+	
+	ADO_Query "ST7_RestSeriesRetail", aPrm, aData
+	RT_GetRestSeriesRetailOLEDB = aData
+
+End Function
+'----
+'
+'----
+Function RT_GetRestMidRetailDAO(EntID, AgID, AccID, DocID, OnDate, MC)
+	Dim SQL, aPrm, aData
+
+	SQL = 	"PARAMETERS EntID Long, AgStorageID Long, AccStorageID Long, DocID Long, OnDate DateTime, MC Long; " & _
+					"Select 0, Sum([j_qty]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))) AS RestQty, Sum([j_sum]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))) AS RestSum " & _
+					"FROM JOURNAL " & _
+					"WHERE (((JOURNAL.DOC_ID)<>[DocID]) And ((JOURNAL.J_DONE)=2) And ((JOURNAL.MC_ID)=[MC]) And ((JOURNAL.J_DATE)<=[OnDate]) And ((JOURNAL.J_ENT)=[EntID]) And ((([ACC_DB]=[AccStorageID] And [J_AG1]=[AgStorageID]) Or ([ACC_CR]=[AccStorageID] And [J_AG2]=[AgStorageID]))=True)) " & _
+					"HAVING (((Sum([j_qty]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))))<>0) And ((Sum([j_sum]*(IIf([acc_db]=[AccStorageId] And [J_AG1]=[AgStorageID],1,0)-IIf([acc_cr]=[AccStorageId] And [J_AG2]=[AgStorageID],1,0))))<>0));"
+
+	aPrm = Array(EntID, AgID, AccID, DocID, OnDate, MC)
+	DAO_Query SQL, aPrm, aData
+	RT_GetRestMidRetailDAO = aData
+
+End Function
+'----
+'
+'----
+Function RT_GetRestMidRetailOLEDB(EntID, AgID, AccID, DocID, OnDate, MC)
+	Dim aPrm, aData
+
+	aPrm = Array(Array(EntID, 3, 10), Array(AgID, 3, 10), Array(AccID, 3, 10), Array(DocID, 3, 10), _
+						Array(OnDate, 7, 20), Array(MC, 3, 10))
+
+	ADO_Query "ST7_RestMidRetail", aPrm, aData
+	RT_GetRestMidRetailOLEDB = aData
+
+End Function
+'----
+'
+'----
+Sub RT_GetEntRestRetailOLEDB(AgID, EntID, AccID, AccRetailID, OnDate, DocID, MC, ByRef QtyRest, ByRef SumCostRest, ByRef SumAddRest)
+	Dim aData, aPrm
+
+	aPrm = Array(Array(AgID, 3, 10), Array(EntID, 3, 10), Array(AccID, 3, 10), _
+							Array(AccRetailID, 3, 10), Array(DocID, 3, 10), Array(OnDate, 7, 20), _
+							Array(MC, 3, 10))
+
+	If ADO_Query("HL74_get_ent_rest_retail", aPrm, aData) Then
+		SumCostRest = checknull(adata(0, 0), 0)
+		QtyRest = checknull(adata(1, 0), 0)
+		SumAddRest = checknull(adata(2, 0), 0)
+	Else
+		SumCostRest = 0
+		QtyRest = 0
+		SumAddRest = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Sub RT_GetEntRestRetailDAO(AgID, EntID, AccID, AccRetailID, OnDate, DocID, MC, ByRef QtyRest, ByRef SumCostRest, ByRef SumAddRest)
+	Dim aData, aPrm, SQL
+
+	aPrm = Array(AgID, EntID, AccID, AccRetailID, DocID, OnDate, MC)
+
+	SQL = "PARAMETERS AgID long, EntID long, AccID long, AccRetailID long, DocID long, OnDate datetime, MC long; " & _
+				"Select Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS RestQty, " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS RestSum,  " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccRetailID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccRetailID] And J_AG2=[AgID],1,0))) AS RestSumAdd " & _
+				"FROM JOURNAL  " & _
+				"WHERE  " & _
+				"((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID] ) " & _
+				"Or  " & _
+				"(JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) " & _
+				"And  " & _
+				"JOURNAL.J_DONE=2 And JOURNAL.DOC_ID<>[DocID] And JOURNAL.J_DATE<=[OnDate] And JOURNAL.MC_ID=[MC] " & _
+				"And J_ENT = [EntID] "
+
+	If DAO_Query(SQL, aPrm, aData) Then
+		SumCostRest = checknull(adata(1, 0), 0)
+		QtyRest = checknull(adata(0, 0), 0)
+		SumAddRest = checknull(adata(2, 0), 0)
+	Else
+		SumCostRest = 0
+		QtyRest = 0
+		SumAddRest = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Sub RT_GetEntRestRetail(AgID, EntID, AccID, AccRetailID, OnDate, DocID, MC, ByRef QtyRest, ByRef SumCostRest, ByRef SumAddRest)
+
+	If App.AppType = "DAO" Then
+		RT_GetEntRestRetailDAO AgID, EntID, AccID, AccRetailID, OnDate, DocID, MC, QtyRest, SumCostRest, SumAddRest
+	Else
+		RT_GetEntRestRetailOLEDB AgID, EntID, AccID, AccRetailID, OnDate, DocID, MC, QtyRest, SumCostRest, SumAddRest
+	End If
+
+End Sub
+'----
+'	
+'----
+Sub RT_GetRestSeries(EntID, SeriesID, AccID, AgID, AccIDRetail, OpDate, OpID, MC, ByRef RestSum, ByRef RestAddSum, ByRef RestCost, ByRef RestQty)
+	If App.AppType = "DAO" Then
+		RT_GetRestSeriesDAO EntID, SeriesID, AccID, AgID, AccIDRetail, OpDate, OpID, MC, RestSum, RestAddSum, RestCost, RestQty
+	Else
+		RT_GetRestSeriesOLEDB EntID, SeriesID, AccID, AgID, AccIDRetail, OpDate, OpID, MC, RestSum, RestAddSum, RestCost, RestQty
+	End If
+End Sub
+'----
+'	
+'----
+Sub RT_GetRestSeriesOLEDB(EntID, SeriesID, AccID, AgID, AccIDRetail, OpDate, OpID, MC, ByRef RestSum, ByRef RestAddSum, ByRef RestCost, ByRef RestQty)
+	Dim aData, aPrm
+
+	aPrm = Array(Array(AgID, 3, 10), Array(AccID, 3, 10), Array(AccIDRetail, 3, 10), _
+							Array(EntID, 3, 10), Array(SeriesID, 3, 10), Array(OpID, 3, 10), _
+							Array(OpDate, 7, 20), Array(MC, 3, 10))
+
+
+	If ADO_Query("HL74_GetRestSeriesRT",  aPrm, aData) Then
+		RestSum = aData(0, 0)
+		RestAddSum = aData(1, 0)
+		RestQty = aData(2, 0)
+		RestCost = aData(3, 0)
+	Else
+		RestSum = 0
+		RestAddSum = 0
+		RestCost = 0
+		RestQty = 0
+	End If
+
+End Sub
+'----
+'	
+'----
+Sub RT_GetRestSeriesDAO(EntID, SeriesID, AccID, AgID, AccIDRetail, OpDate, OpID, MC, ByRef RestSum, ByRef RestAddSum, ByRef RestCost, ByRef RestQty)
+	Dim aData, aPrm, SQL
+
+	SQL = "PARAMETERS AgID long, AccID long, AccRetailID long, EntID long, SeriesID Long, DocID long, OnDate datetime, MC long; " & _
+				"Select Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS RestQty, " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS RestSum,  " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccRetailID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccRetailID] And J_AG2=[AgID],1,0))) AS RestSumAdd " & _
+				"FROM JOURNAL  " & _
+				"WHERE  " & _
+				"((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID] ) " & _
+				"Or  " & _
+				"(JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) " & _
+				"And  " & _
+				"JOURNAL.J_DONE=2 And JOURNAL.DOC_ID<>[DocID] And JOURNAL.J_DATE<=[OnDate] And JOURNAL.MC_ID=[MC] " & _
+				"And J_ENT = [EntID] AND SER_ID=[SeriesID]"
+
+	aPrm = Array(AgID, AccID, AccIDRetail, EntID, SeriesID, OpID, OpDate, MC)
+
+	If DAO_Query(SQL,  aPrm, aData) Then
+		RestSum = aData(0, 0)
+		RestAddSum = aData(1, 0)
+		RestQty = aData(2, 0)
+		RestCost = aData(3, 0)
+	Else
+		RestSum = 0
+		RestAddSum = 0
+		RestCost = 0
+		RestQty = 0
+	End If
+
+End Sub
+'----
+'
+'----

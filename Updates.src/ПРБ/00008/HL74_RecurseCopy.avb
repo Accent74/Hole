@@ -1,0 +1,153 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Копирование элементов"
+
+Sub HL74_PasteCheck
+	Workarea.Map("IsEnabled") = Workarea.Map.Exists("ElemCopy")
+End Sub
+
+Sub HL74_RecurseCopy
+	Dim WM, Done, Elem
+
+	Set WM = workarea.Map
+	Done = True
+
+	With Workarea.Site
+	
+		Set Elem = LoadElemByID(.ID, .Kind)
+
+		If Not Elem Is Nothing Then
+			WM("ElemCopyKind") = .Kind
+			Set WM.Item("ElemCopy") = Elem
+		Else
+			WM.Remove "ElemCopy"
+			WM.Remove "ElemCopyKind"
+			Done = False
+		End If
+
+		If Done Then 
+			MsgBox "Элемент скопирован в буфер" & vbNewLine & .Name, vbInformation, MSG_BOX_CAPTION
+		End If
+	End With
+
+End Sub
+
+Function LoadElemByID(ID, Kind)
+	Select Case Kind
+		Case acFolder 
+			Set LoadElemByID = workarea.folder(ID)
+		Case acAccount
+			Set LoadElemByID = workarea.account(ID)
+		Case acAgent
+			Set LoadElemByID = workarea.Agent(ID)
+		Case acEntity
+			Set LoadElemByID = workarea.Entity(ID)
+		Case acMisc
+			Set LoadElemByID = workarea.Misc(ID)
+		Case acBinder
+			Set LoadElemByID = workarea.Binder(ID)
+		Case acTemplate
+			Set LoadElemByID = workarea.Template(ID)
+		Case Else
+			Set LoadElemByID = Nothing
+	End Select 
+End Function
+
+Function LoadElemRoot(Kind)
+	Select Case Kind
+		Case acFolder 
+			Set LoadElemRoot = workarea.folders
+		Case acAccount
+			Set LoadElemRoot = workarea.accounts
+		Case acAgent
+			Set LoadElemRoot = workarea.Agents
+		Case acEntity
+			Set LoadElemRoot = workarea.Entities
+		Case acMisc
+			Set LoadElemRoot = workarea.Miscs
+		Case acBinder
+			Set LoadElemRoot = workarea.Binders
+		Case acTemplate
+			Set LoadElemRoot = workarea.Templates
+		Case Else
+			Set LoadElemRoot = Nothing
+	End Select 
+End Function
+
+
+Sub HL74_RecursePaste
+	Dim WM, Elem, CurrentElem
+
+	Set WM = workarea.Map
+
+	If WM.Exists("ElemCopy") Then
+		With Workarea.Site
+			Set Elem = WM.Item("ElemCopy")
+
+			If Not Elem Is Nothing Then
+				If Elem.ID <> .ID And WM("ElemCopyKind") = .Kind Then	
+					If .ID = 0 Then
+						Set CurrentElem = LoadElemRoot(.Kind)
+					Else
+						Set CurrentElem = LoadElemByID(.ID, .Kind).Children
+					End If
+
+					If MsgBox("Вставить из буфера элемент ?" & vbNewLine & _
+									Elem.Name,_
+									vbOKCancel + vbQuestion, MSG_BOX_CAPTION) = vbOK Then
+
+						CreateElem CurrentElem, Elem, .Kind
+						workarea.window.refresh
+					End If
+				End If
+			End If
+		End With
+
+		WM.Remove "ElemCopy"
+	Else
+		MsgBox "Нет данных для копирования", vbExclamation
+	End If
+	
+End Sub
+
+Sub CreateElem(Root, Elem, Kind)
+	Dim i, NewElem
+
+	Select Case Kind
+		Case acFolder
+			Set NewElem = Root.Create("Копия " & Elem.Name)
+		Case acAccount
+			Set NewElem = Root.Create(Elem.Type, "Копия " & Elem.Code, "Копия " & Elem.Name)
+		Case Else
+			Set NewElem = Root.Create(Elem.Type, "Копия " & Elem.Name)
+	End Select 
+
+	If Not NewElem Is Nothing Then 
+		AddElemProps Elem, NewElem, Kind
+		If NewElem.Modified Then NewElem.Save
+	End If
+
+	If Elem.HasChildren Then
+		With Elem.Children
+			For i = 1 To .Count
+				CreateElem NewElem.Children, .Item(i), Kind
+			Next
+		End With
+	End If
+
+End Sub
+
+Sub AddElemProps(Elem, NewElem, Kind)
+	Select Case Kind
+		Case acFolder
+			NewElem.FormID Elem.FormID	
+			NewElem.TemplateID Elem.TemplateID	
+			NewElem.Memo Elem.Memo
+
+		Case acTemplate
+			NewElem.SetScript Elem.GetScript
+			NewElem.Memo Elem.Memo
+			NewElem.FormID Elem.FormID
+
+	End Select
+End Sub

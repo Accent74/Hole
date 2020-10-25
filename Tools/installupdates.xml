@@ -1,0 +1,108 @@
+<accentsolution>
+	<folders>
+		<folder id="" name="" guid="" memo="" tag="" tguid="" fguid="">
+			<folder id="" name="" guid="" memo="" tag="" tguid="" fguid=""/>
+		</folder>
+		<params>
+			<param id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</params>
+
+		<reports>
+			<report filename="" id="" guid="" kind="" kindguid="" memo="" name="" type=""/>
+		</reports>
+
+	</folders>
+
+	<accounts>
+		<account id="" name="" code="" memo="" tag="" type="" saldotype="" guid="">
+			<account id="" name="" code="" memo="" tag="" type="" saldotype="" guid=""/>
+		</account>
+
+		<params>
+			<param id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</params>
+
+		<reports>
+			<report filename="" id="" guid="" kind="" kindguid="" memo="" name="" type=""/>
+		</reports>
+	</accounts>
+
+	<agents>
+		<agent id="" name="" guid="" memo="" tag="" type="">
+			<agent id="" name="" guid="" memo="" tag="" type=""/>
+		</agent>
+
+		<params>
+			<param id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</params>
+
+		<facts>
+			<fact id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</facts>
+
+		<reports>
+			<report filename="" id="" guid="" kind="" kindguid="" memo="" name="" type=""/>
+		</reports>
+	</agents>
+
+	<entities>
+		<entity id="" name="" guid="" memo="" tag="" type="">
+			<entity id="" name="" guid="" memo="" tag="" type=""/>
+		</entity>
+
+		<params>
+			<param id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</params>
+
+		<facts>
+			<fact id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</facts>
+
+		<reports>
+			<report filename="" id="" guid="" kind="" kindguid="" memo="" name="" type=""/>
+		</reports>
+	</entities>
+
+	<miscs>
+		<misc id="" mscno="" guid="" memo="" tag="" type="">
+			<fields>
+				<long1="" name="" refkind="" value=""/>
+				<long2="" name="" refkind="" value=""/>
+				<long3="" name="" refkind="" value=""/>
+				<str1="" name="" refkind="" value=""/>
+				<str2="" name="" refkind="" value=""/>
+				<str3="" name="" refkind=" value=""/>
+				<curs1="" name="" refkind="" value=""/>
+				<curs2="" name="" refkind=" value=""/>
+				<curs3="" name="" refkind="" value=""/>
+				<data1="" name="" refkind="" value=""/>
+				<data2="" name="" refkind="" value=""/>
+				<data3="" name="" refkind="" value=""/>
+			</fields>
+			
+			<misc id="" mscno="" guid="" memo="" tag="" type=""/>			
+
+		<params>
+			<param id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</params>
+
+		<facts>
+			<fact id="" guid="" name="" type="" nodetype="" refkid="" refkindguid="">
+		</facts>
+
+		<reports>
+			<report filename="" id="" guid="" kind="" kindguid="" memo="" name="" type=""/>
+		</reports>
+
+		<misc/>
+
+	<miscs/>
+
+	<binders/>
+	<templates/>
+	<projitems/>
+	<workarea/>
+
+
+		
+</accentsolution>

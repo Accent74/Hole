@@ -1,0 +1,20 @@
+Option Explicit
+
+Const prmTrWidth = "Ширина"
+Const prmTrHeight = "Высота"
+Const prmTrKind = "Вид"
+Const prmTrFreza = "Фреза"
+Const prmTrTor = "Торец"
+
+Dim Op
+
+Set Op = Workarea.CreateOperation
+
+With Op.Trans(1).Params
+	If Not .exists(prmTrWidth) Then .Create vbLong, prmTrWidth
+	If Not .exists(prmTrHeight) Then .Create vbLong, prmTrHeight
+	If Not .exists(prmTrKind) Then .Create vbString, prmTrKind
+	If Not .exists(prmTrFreza) Then .Create  vbString, prmTrFreza
+	If Not .exists(prmTrTor) Then .Create  vbString, prmTrTor
+End With
+

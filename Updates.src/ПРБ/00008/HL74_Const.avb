@@ -1,0 +1,89 @@
+'--- наименование переменных в Workarea.Map
+Const mapWACurrentOperation = "CurrentOperation"
+
+'--- параметры базы данных
+Const prmDBCostItem 		= "Статья затрат"
+Const prmDBAgree 			= "Договора"
+Const prmDBCond 				= "Причины списания"
+Const prmDBOrder 			= "Приказы"
+Const prmDBMovingType 	= "Вид перевозок"
+Const prmDBBudget			=	"Статьи бюджета"
+Const prmDBPositionList	=	"Штатное расписание"
+Const prmDBIncomeStat		=	"Статьи декларации о прибыли"
+Const prmDBObj 				= "Объекты СМР"
+Const prmDBCashPrint		= "Торговое оборудование. КР"
+Const prmDBAgRoot			= "Папка для новых корреспондентов"
+Const prmDBEntRoot			= "Папка для новых объектов учета"
+	
+'--- параметры корреспондентов
+Const prmAgDefPrice 		= "Цена по умолчанию"
+Const prmAgBossName 		= "Генеральный директор"
+Const prmAgBuhame 			= "Главный бухгалтер"
+Const prmAgCashier 			= "Кассир"
+Const prmAgAlterName 		= "Полное наименование"
+
+'--- факты корреспондентов
+Const fctAgPosition = "Должность"
+Const fctAgAlterName = "Полное наименование"
+Const fctAgSalary = "Оклад"
+'--- типы корреспондента
+Const atWorker				= 3
+
+'--- параметры Разного
+Const prmMscCostAcc = "Счет затрат"
+
+'---- параметры шаблона
+Const prmTMLPriority = "Приоритет проведения"
+Const prmTMLCaption = "Шаблон заголовка"
+
+'--- параметры проводки
+Const prmTrMemo 				= "Примечание"
+Const prmTrDataDocOsn		= "Дата документа-основания"
+Const prmTrSum 				= "Сумма"
+Const prmTrAddPrice 		= "Наценка"
+Const prmTrPercent 			= "Процент"
+Const prmTrPrice 			= "Цена"
+Const prmTrWeight 			= "Вес"
+Const prmTrCode 				= "Код"
+Const prmTrQty 				= "Количество"
+Const prmTrSign 				= "Признак"
+Const prmTrSumDown			=	"Уценка"
+Const prmTrSumCostDown	=	"Ниже себест."
+Const prmTrPriceBefore	=	"До переоценки"
+Const prmTrPriceAfter		=	"После переоценки"
+Const prmTrPriceCust		= "Таможенная цена"
+Const prmTrPercentCust	= "% таможенной цены"
+
+'--- наименование логотипа в документах по умолчанию
+Const LogoFileName = "logo.gif"
+'--- наименование скана печати в документах по умолчанию
+Const StampFileName = "stamp.gif"
+
+'--- параметры объектов учета
+Const prmEntAlterName 		= "Наименование для документов"
+Const prmEntWeight 				= "Вес"
+Const prmEntFoldPercent 	= "Процент наценки"
+Const prmEntCashName 			= "Наименование для ЭККА"
+Const prmEntTruncBefore 	= "Округлять цены до"				' папки, товар
+
+'--- факты ОУ
+Const prmEntPriceLimit		=	"Регулируемая цена"				' товар. используется в аптеках
+
+'--- параметры элемента проекта ФОРМА
+Const prmFormColontiTles 	= "Колонтитулы"
+Const prmFormPrintMargin 	= "Границы печати"
+Const prmFormMargin 			= "Границы колонтитулов"
+Const prmFormSettings 		= "Установки"
+Const prmPItemCaption 		= "Шаблон заголовка"
+
+'--- параметры счетов
+Const prmAccAnalitics = "Аналитика"
+Const prmAccCurrency		= "Валюта"
+
+'--- счета для учета исходящих и входящих счет-фактур
+Const ACC_INVOIVE_OUT = "СФИ"
+Const ACC_INVOIVE_INP = "СФВ"
+
+'--- константа для контекстного меню по уммолчанию
+Const FORM_CTXT_MENU = "1:Печать:301|1:-:0|1:Проводки:402|1:Шаблон:401"
+

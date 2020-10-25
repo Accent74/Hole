@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="Шаблон по умолчанию">
+	<doc_date row="" col="" expr="" />
+	<doc_no row="13" col="2" expr="token(cellval, 3, space(1))" />
+	<doc_sum row="" col="" expr="" />
+	<doc_memo row="" col="" expr="" />
+	<agent kind="from">
+		<code row="8" col="4" expr="" />
+		<name row="9" col="2" expr="" />
+		<address row="15" col="5" expr="token(cellval, 5, chr(44))+chr(44)+token(cellval, 6, chr(44))+chr(44)+token(cellval, 7, chr(44))+chr(44)+token(cellval, 8, chr(44))" />
+		<bankacc row="" col="" expr="" />
+		<bankmfo row="" col="" expr="" />
+		<bankname row="" col="" expr="" />
+	</agent>
+	<agree>
+		<name row="20" col="5" expr="" />
+		<number row="20" col="5" expr="token(cellval, 2, space(1))" />
+		<date row="20" col="5" expr="token(cellval, 4, space(1))" />
+	</agree>
+	<rows row="23" col="2" while="" findfield="cat">
+		<nom col="" expr=""/> 
+		<cat col="4" expr="com_strzero(cellval, 11)"/>
+		<bar col="" expr=""/>
+		<art col="" expr=""/>
+		<tag col="" expr=""/>
+		<name col="5" expr=""/>
+		<unit col="7" expr=""/>
+		<qty col="6" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="8" expr=""/>
+		<sum col="9" expr=""/>
+	</rows>
+</documentimport>

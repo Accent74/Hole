@@ -1,0 +1,55 @@
+Option Explicit
+
+Const MY_EMAIL = "power@accent.ua"
+Const MY_EMAIL_PASSWORD = "rYjAVE3B"
+Const MY_EMAIL_PORT = 2525
+Const MY_EMAIL_SSL = False
+Const MY_EMAIL_CONN_TIMEOUT = 600
+Const MY_EMAIL_TO = "info@accent.ua"
+Const SMTP_NAME = "mail.accent.ua"
+
+Const REP_FILE_NAME = "c:\res.txt"
+
+Dim objMessage, FSO, RepFile, RepBuffer
+
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set RepFile = FSO.OpenTextFile(REP_FILE_NAME, 1)
+
+RepBuffer = RepFile.ReadAll
+RepFile.Close
+
+If Trim(RepBuffer) <> "" Then
+	Set objMessage = CreateObject("CDO.Message") 
+
+ 	objMessage.Subject = "Отчет по отрицательным остаткам по счету"
+ 	objMessage.From = MY_EMAIL
+ 	objMessage.To = MY_EMAIL_TO
+	objMessage.TextBody = RepBuffer
+	objMessage.Configuration.Fields.Item _
+				 ("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2 
+	 
+	objMessage.Configuration.Fields.Item _
+	 				("http://schemas.microsoft.com/cdo/configuration/smtpserver") = SMTP_NAME
+	 
+ 	objMessage.Configuration.Fields.Item _
+	 				("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
+	 
+	objMessage.Configuration.Fields.Item _
+	 				("http://schemas.microsoft.com/cdo/configuration/sendusername") = MY_EMAIL
+	 
+	objMessage.Configuration.Fields.Item _
+		 		("http://schemas.microsoft.com/cdo/configuration/sendpassword") = MY_EMAIL_PASSWORD
+	 
+	objMessage.Configuration.Fields.Item _
+				("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = MY_EMAIL_PORT
+	 
+	objMessage.Configuration.Fields.Item _
+	 			("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = MY_EMAIL_SSL
+	 
+ 	objMessage.Configuration.Fields.Item _
+			 ("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = MY_EMAIL_CONN_TIMEOUT
+	 
+	objMessage.Configuration.Fields.Update				 
+	 	objMessage.Send	
+End If
+

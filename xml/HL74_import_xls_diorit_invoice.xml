@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="Диорит счет на оплату">
+	<doc_date row="" col="" expr="" />
+	<doc_no row="11" col="2" expr="token(cellval, 5, space(1))" />
+	<doc_sum row="" col="" expr="" />
+	<doc_memo row="" col="" expr="" />
+	<agent kind="from">
+		<code row="6" col="4" expr="" />
+		<name row="7" col="2" expr="" />
+		<address row="13" col="8" expr="token(cellval, 4, chr(44))+chr(44)+token(cellval, 5, chr(44))+chr(44)+token(cellval, 6, chr(44))+chr(44)+token(cellval, 7, chr(44)+chr(44)+token(cellval, 6, chr(44))+chr(44)+token(cellval, 8, chr(44))" />
+		<bankacc row="6" col="23" expr="" />
+		<bankmfo row="3" col="23" expr="" />
+		<bankname row="3" col="2" expr="" />
+	</agent>
+	<agree>
+		<name row="" col="" expr="" />
+		<number row="" col="" expr="" />
+		<date row="" col="" expr="" />
+	</agree>
+	<rows row="23" col="2" while="" findfield="cat">
+		<nom col="" expr=""/> 
+		<cat col="4" expr="com_strzero(cellval, 11)"/>
+		<bar col="" expr=""/>
+		<art col="" expr=""/>
+		<tag col="" expr=""/>
+		<name col="8" expr=""/>
+		<unit col="28" expr=""/>
+		<qty col="25" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="30" expr=""/>
+		<sum col="34" expr=""/>
+	</rows>
+</documentimport>

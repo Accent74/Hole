@@ -1,0 +1,222 @@
+Option Explicit
+'---------------------------------------------------
+' процедура формирует серии партионного учета (розница)
+' для объектов проводки. Используется в типовых шаблонах
+' 
+' Свойства партии товара формируются следующим образом
+' Код партии			ID строки документа, по которой серия была зарегистрирована
+' Наименование			Дата документа + № документа
+' Поставщик				поставщик товара
+' Приходная цена		Приходная цена товара
+' Дата						Дата создания серии
+' Номер						Код приходного документа
+'
+'---------------------------------------------------
+
+Sub MakeSeriesRetail(Op, TrNo, TrNoAdd)
+	Dim i
+	Dim NewSeries
+	Dim Mtr
+	Dim OpTrans			' проводка хозяйственной операции для объектов которой формируются партии
+	Dim SeriesName		' наименование партии
+	Dim SeriesDate		' дата поступления для партий
+	Dim seriesCode
+	Dim OpID
+	Dim WinAPI
+	Dim MCID
+
+	If Not TestData(Op, TrNo, TrNoAdd) Then 
+		Op.Done = False
+		Exit Sub
+	End If
+
+
+	Set WinAPI = CreateLibObject("WinAPI")
+	MCID = Workarea.MyCompany.ID
+
+	Set OpTrans = Op.TransList(TrNo)
+
+	Op.TransList(TrNoAdd).Rows = 1
+
+	With Op.Trans(TrNoAdd, 1)
+		.EntID = 0
+		.Sum = 0
+	End With
+
+	SeriesName = CStr(Op.Date) & " № " & IIf (Op.DocNo = "", "<Без номера>", Op.DocNo)
+	SeriesDate = Op.Date
+	OpID = Op.ID
+
+	Set Mtr = PrepareMeter(OpTrans.Rows)
+
+		' цикл по всем объектам учета
+		For i = 1 To OpTrans.Rows
+			' переместить показатель прогресса
+			Mtr.StepIt
+
+			With OpTrans(i)
+				If .EntID <> 0 Then
+					' если объект учета указан
+					If .SeriesID = 0 Then
+						'  если у него нет партии, то добавляем ее 
+						SeriesCode = WinApi.NewGUID
+						SeriesCode  = Replace(Replace(Replace(Replace(SeriesCode, "{", ""), "}", ""), "guid", ""), " ", "")
+						Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+
+					Else
+
+						' если есть, то загружаем ее
+						Set NewSeries = .Entity.SeriesColl.ItemID(.SeriesID)
+							If NewSeries Is Nothing Then
+								' Если текущая партия не соответствует объекту учета, создаем новую
+								SeriesCode = WinApi.NewGUID
+								SeriesCode  = Replace(Replace(Replace(Replace(SeriesCode, "{", ""), "}", ""), "guid", ""), " ", "")
+								Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+							Else
+								' партия существует, обновляем ее свойства 
+								With Newseries
+									.Name 		= SeriesName					' наименование партии
+									.DateIn		= SeriesDate					' дата поступления партии
+									.Number		= CStr(OpID)					' номер партии
+								End With
+							End If
+					End If
+
+					' обновляем остальные свойства партии
+					NewSeries.AgFromID = 	.AgFromID							' поставщик партии
+					NewSeries.PriceIn = .Price									' приходная цена партии
+					NewSeries.PriceOut = .Params("Цена").Value2		' цена реализации партии
+
+					' сохранили свойства партии
+					NewSeries.Save										
+
+					' запомнили ID партии в проводке
+					.SeriesID = NewSeries.ID
+
+					SetAddValues Op.Trans(TrNo, i), Op.Trans(TrNoAdd, i), Op.Date, Op.ID, MCID
+				End If
+			End With
+		Next
+		
+	' выключили индикатор
+	Mtr.Close
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function PrepareMeter(Rows)
+	Dim Mtr
+
+	' создали индикатор прогресса
+	Set Mtr = Meter	
+
+	' сформировали индикатор прогресса
+	With Mtr
+		.Caption = "Создание партий ..."
+		.Max = Rows
+		.Min = 1
+		.Open
+	End With
+
+	Set PrepareMeter = Mtr
+End Function
+
+'---
+'
+'---
+Sub SetAddValues(Tr, TrAdd, OnDate, DocID, MCID)
+	Dim CurrPrice
+	Dim PriceKind, RetailPrice
+
+	CurrPrice = GetEntRetailPrice(Tr.AccDbID, Tr.EntID, Tr.AgToID, OnDate, DocID, MCID)
+
+	If CurrPrice = 0 Then
+		If Tr.AgToID <> 0 Then
+			With Tr.AgTo.Params
+				If .Exists("Цена по умолчанию") Then
+					If .Item("Цена по умолчанию").Value2 <> 0 Then
+						Set PriceKind = Workarea.PriceKind(.Item("Цена по умолчанию").Value2)
+						CurrPrice = PriceKind.GetEntPrice(Tr.EntID, OnDate, WorkArea.DefPriceList)
+						RetailPrice = Tr.Params("Розничная цена").Value
+
+						If RetailPrice <> 0 And RetailPrice <> CurrPrice Then
+							CurrPrice = RetailPrice
+							PriceKind.SetEntPrice Tr.EntID, OnDate, CurrPrice, WorkArea.DefPriceList
+						End If
+					End If
+				End If
+			End With
+		End If
+	End If
+
+	Tr.Params("Розничная цена").Value = CurrPrice
+	TrAdd.EntID = Tr.EntID
+	TrAdd.Sum = (CurrPrice - Tr.Price) * Tr.Qty
+	TrAdd.Qty = 0
+	TrAdd.SeriesID = Tr.SeriesID
+	TrAdd.AgToID = Tr.AgToID
+		
+End Sub
+'---
+'
+'---
+Function GetEntRetailPrice(AccID, EntID, AgID, OnDate, DocID, MC)
+	Dim Cn, Cmd, Rs
+
+	Set Cn = WorkArea.AdoConnection
+	Cn.CursorLocation = 2 'курсор на нашей стороне
+
+	Set Cmd = CreateObject("ADODB.Command")
+	Set Cmd.ActiveConnection = Cn 
+
+	' строим остатки
+	Cmd.CommandText = "st7_RestEntRetail"
+
+	AddParameters Cmd, AgID, 3, 10
+	AddParameters Cmd, AccID, 3, 10
+	AddParameters Cmd, EntID, 3, 10
+	AddParameters Cmd, DocID, 3, 10
+	AddParameters Cmd, OnDate, 7, 20
+	AddParameters Cmd, MC, 3, 10
+
+	' сообщаем, что команда это инструкция хранимая процедура
+	Cmd.CommandType = 4	
+	' выполнили запрос
+	Set Rs = Cmd.Execute	' выполняем команду 
+
+	If Rs.EOF Then
+		GetEntRetailPrice = 0
+	ElseIf rs.Fields(0).Value <> 0 Then
+		GetEntRetailPrice = rs.Fields(1).Value / rs.Fields(0).Value
+	End If
+
+End Function
+'---
+'
+'---
+Function TestData(Op, TrNo, TrNoAdd)
+	Dim Tr, TrAdd
+
+	Set Tr = Op.Translist(TrNo).Item(1)
+	Set TrAdd = Op.Translist(TrNoAdd).Item(1)
+
+	TestData = (Tr.AgToID <> 0 And Tr.AgFromID <> 0 And TrAdd.AgToID <> 0) And (TrNo <> TrNoAdd)
+
+End Function
+
+'---
+'
+'---
+Sub AddParameters(Cmd, ArgValue, ArgType, ArgLong)
+	Dim Prm
+
+	' устанавливаем параметры
+	Set Prm = Cmd.CreateParameter(, ArgType, 1, ArgLong)	' 	создаем параметр 
+	Prm.Value = ArgValue														'	присваиваем значение
+	Cmd.Parameters.Append Prm												'	добавляем параметр в коллекцию параметров команды
+
+End Sub
+'---
+'
+'---

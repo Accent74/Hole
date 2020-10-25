@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<excelimport version="0.1" name="Экспорт данных по товару без групп" index="cat" startrow="3">
+	<field name="cat" fieldno="1"/>
+	<field name="name" fieldno="2"/>
+	<field name="memo" fieldno="20"/>
+	<field name="bar" fieldno="14"/>
+
+	<field name="weight" fieldno="8"/>
+	<field name="brutto" fieldno="9"/>
+	<field name="vedcode" fieldno="17"/>
+
+</excelimport>

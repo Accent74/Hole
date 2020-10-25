@@ -1,0 +1,119 @@
+Option Explicit
+'------------------
+'
+'------------------
+Function Ag_GetSighName(ByRef AgPosition, DelimLeft, DelimRight, OnDate)
+	Dim NewName 
+
+	NewName = Ag_GetEmployerName(AgPosition, OnDate)
+
+	If NewName = "" Then
+		Ag_GetSighName = ""
+	Else
+		Ag_GetSighName = DelimLeft & NewName & DelimRight
+	End If
+
+End Function
+'------------------
+'
+'------------------
+Function Ag_GetEmployerName(ByRef AgPosition, CaptionText, OnDate)
+	Dim AgID, Ag
+
+	Ag_GetEmployerName = ""
+	AgPosition = ""
+
+	AgID = WorkArea.Browse(acAgent,, Op.Trans(1).AgFromID, 1, CaptionText)
+
+	If AgID <> 0 Then
+		Set Ag = WorkArea.Agent(AgBossID)
+
+		If Not Ag Is Nothing Then
+			If Ag.Type = 3 Then 
+				Ag_GetEmployerName = Ag_GetAgShortName(Ag)
+
+				With Ag.facts(OnDate)
+					If .Exists(prmAgPosition) Then
+						AgPosition = .Item(prmAgPosition).Value2	
+					End If
+				End With
+			End If
+		End If
+	End If
+
+End Function
+'----
+'
+'----
+Function Ag_GetBossName(Ag, prmName, ByRef AgPosition, OnDate)
+	Dim BossName, AgPerson, AgPersonID
+
+	BossName = ""
+	AgPosition = ""
+
+	If Not Ag Is Nothing Then
+		If Ag.Params.Exists(prmName) Then
+			AgPersonID = Ag.Params(prmName).Value2
+			If AgPersonID <> 0 Then
+				Set AgPerson = Workarea.Agent(AgPersonID)
+				If Not AgPerson Is Nothing Then
+					BossName = Ag_GetAgShortName(AgPerson) 
+
+					With AgPerson.Facts(OnDate)
+						If .Exists(fctAgPosition) Then
+							AgPosition = .Item(fctAgPosition).Value2	
+						End If
+					End With
+				End If
+			End If
+		End If
+	End If
+
+	Ag_GetBossName = BossName 
+End Function
+'----
+'
+'----
+Function Ag_GetAgShortName(Ag)
+	Dim Name1, Name2, Name3, Name
+
+	If Ag Is Nothing Then
+		Ag_GetAgShortName = ""
+	Else
+		Name = Ag_GetAgName(Ag)
+
+		If Name <> "" Then
+			Name1 = Token(Name, 1, " ")
+			Name2 = Token(Name, 2, " ")
+			Name3 = Token(Name, 3, " ")
+	
+			If Name2 <> "" Then Name1 = Name1 & " " & UCase(Left(Name2, 1)) & "."
+			If Name3 <> "" Then Name1 = Name1 & " " & UCase(Left(Name3, 1)) & "."
+	
+		End If
+	
+		Ag_GetAgShortName = Name1
+	End If
+
+End Function
+'---
+'
+'---
+Function Ag_GetAgName(Ag)
+	If Ag Is Nothing Then 
+		Ag_GetAgName = ""
+	Else
+		With Ag.Params
+			Ag_GetAgName = Ag.Name
+
+			If .Exists(prmAgAlterName) Then
+				If .Item(prmAgAlterName).Value2 <> "" Then
+					Ag_GetAgName = .Item(prmAgAlterName).Value2
+				End If
+			End If
+		End With
+	End If
+End Function
+'---
+'
+'---

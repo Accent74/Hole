@@ -1,0 +1,24 @@
+SELECT 
+	SERIES.SER_ID, 
+	Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30) AS EntSerName, 
+	Sum(ST7_oddments_of_the_goods_basic.Qty), 
+	Sum([Sum])/Sum([Qty]) AS EntPrice, 
+	FIRST((select top 1 p.prc_value 
+		from prc_contents as p 
+		where p.ent_id = EntID 
+				and p.prl_id = [pID]
+				and p.prc_id = [pKindID] 
+				and p.prc_date <= [DocDate] 
+		order by p.prc_date desc)) AS EntityPrice, 
+	Sum([Sum]) AS eSum, 
+	ST7_oddments_of_the_goods_basic.EntID AS EntID
+FROM ENTITIES 
+	RIGHT JOIN (ST7_oddments_of_the_goods_basic 
+	LEFT JOIN SERIES ON ST7_oddments_of_the_goods_basic.SER_ID = SERIES.SER_ID) ON ENTITIES.ENT_ID = SERIES.ENT_ID
+GROUP BY 
+	SERIES.SER_ID, 
+	Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30),
+	ST7_oddments_of_the_goods_basic.EntID
+HAVING 	
+Sum([Sum]) > 0 and 
+Sum([Qty])> 0, 

@@ -1,0 +1,419 @@
+Option Explicit
+
+Sub LoadSGrids(FrmPage, aSgrdHeigtDiff)
+	Dim Control, Pos
+
+	For Each Control In FrmPage.ControlArray
+		With Control
+			If .Visible And .TypeName = "FrmScrollGrid" Then
+				If .PrintText Then
+					Pos = UBound(aSgrdHeigtDiff, 2) + 1
+					ReDim Preserve aSgrdHeigtDiff(1, Pos)
+					aSgrdHeigtDiff(0, Pos) = .Top + .Height
+					aSgrdHeigtDiff(1, Pos) = .RowHeight * .Rows - .Height
+				End If
+			End If
+		End With
+	Next
+End Sub
+
+Sub AddFrmLine(Control, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI)
+	Dim Diff, i
+
+	If Control.PrintLine And (Control.X1 = Control.X2 Or Control.Y1 = .Y2) Then
+		Diff = 0
+						
+		For i = 0 To UBound(aSgrdHeigtDiff, 2)
+			If Min(Control.Y1, Control.Y2) >= aSgrdHeigtDiff(0, i) Then Diff = Diff + aSgrdHeigtDiff(1, i)
+		Next
+
+		ControlDict(Control) = Diff
+		ColDict(Round2(Control.X1 * XDPI)) = 0
+		RowDict(Round2((Control.Y1 + Diff) * YDPI)) = 0
+		ColDict(Round2(Control.X2 * YDPI)) = 0
+		RowDict(Round2((Control.Y2 + Diff) * YDPI)) = 0
+	End If
+End Sub
+
+Sub AddGridColumns(ByRef nLen, Dict, n, Expr, DPI)
+	Dim i
+
+	For i = 1 To n
+		nLen = nLen + Eval(Expr)
+		Dict(Round2(nLen * DPI)) = 0
+	Next
+End Sub
+
+Function IsPrint(Control)
+	If Control.TypeName = "FrmRect" Then 
+		IsPrint = Control.PrintBorder 
+	Else 
+		IsPrint = Control.PrintText Or Control.PrintBorder
+	End If
+End Function
+
+Function CalcDiff(Control, aSgrdHeigtDiff)
+	Dim Diff, i
+
+	Diff = 0
+
+	For i = 0 To UBound(aSgrdHeigtDiff, 2)
+		If Control.Top >= aSgrdHeigtDiff(0, i) Then 
+			Diff = Diff + aSgrdHeigtDiff(1, i)
+		End If
+	Next
+
+	CalcDiff = Diff
+End Function
+
+Sub AddCoordinates(Control, ByRef FrmLeft, ColDict, XDPI, ByRef FrmTop, RowDict, YDPI)
+	FrmLeft = FrmLeft + Control.Width
+	ColDict(Round2(FrmLeft * XDPI)) = 0
+
+	FrmTop = FrmTop + Control.Height
+	RowDict(Round2(FrmTop * YDPI)) = 0
+End Sub
+
+Sub AddOtherControls(Control, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI)
+	Dim Print, Diff, i
+	
+	If Not IsPrint(Control) Then Exit Sub
+	Diff = CalcDiff(Control, aSgrdHeigtDiff)
+	ControlDict(Control) = Diff
+			
+	FrmLeft = Control.Left 
+	ColDict(Round2(FrmLeft * XDPI)) = 0
+
+	FrmTop = Control.Top + Diff
+	RowDict(Round2(FrmTop * YDPI)) = 0
+
+	Select Case Control.TypeName
+		Case "FrmScrollGrid"
+			AddGridColumns FrmLeft, ColDict, Control.Columns, "Control.Column(i).ColumnWidth", XDPI
+			AddGridColumns FrmTop, RowDict, Control.Rows, "Control.RowHeight", YDPI
+
+		Case "FrmGrid"
+			AddGridColumns ColDict, Control.Columns, "Control.EntireColumn(i).ColumnWidth", XDPI
+			AddGridColumns RowDict, Control.Rows, "Control.EntireColumn(i).RowHeight", YDPI
+
+		Case "FrmCheckBox"
+			ColDict(Round2((FrmLeft + Min(IIf(Control.Flat, Control.Height, 50), Control.Width)) * XDPI)) = 0
+			AddCoordinates Control, FrmLeft, ColDict, XDPI, FrmTop, RowDict, YDPI
+
+		Case "FrmRadio"
+			ColDict(Round2((FrmLeft + Min(50, Control.Width)) * XDPI)) = 0
+			AddCoordinates Control, FrmLeft, ColDict, XDPI, FrmTop, RowDict, YDPI
+
+		Case "FrmLabel", "FrmEdit", "FrmSelector", "FrmDate", "FrmComboBox", "FrmRect"
+			AddCoordinates Control, FrmLeft, ColDict, XDPI, FrmTop, RowDict, YDPI
+
+	End Select
+End Sub
+
+Sub DataInit(XDPI, YDPI, ColDict, RowDict, ControlDict, aSgrdHeigtDiff)
+
+	With CreateObject("HtmlFile").parentWindow.screen
+		XDPI = .deviceXDPI / 254
+		YDPI = .deviceYDPI / 254
+	End With
+
+	Set ControlDict = CreateObject("Scripting.Dictionary")
+	Set ColDict = CreateObject("Scripting.Dictionary")
+	Set RowDict = CreateObject("Scripting.Dictionary")
+
+	ColDict(0) = 0
+	RowDict(0) = 0
+
+	ReDim aSgrdHeigtDiff(1, -1)
+End Sub
+
+Sub SheetInit(Sheet, FrmPag, BookCol, aColLeft, ColDict, BookRow, aRowTop, RowDict)
+	Dim fpSetup
+
+	With Sheet
+		.Caption = FrmPage.Caption
+		If Left(.Parent.Caption, 5) = "Sheet" Then .Parent.Caption = .Caption
+
+		.Columns = ColDict.Count - 1
+		.Rows = RowDict.Count - 1
+
+		With .PageSetup
+			Set fpSetup = FrmPage.PageSetup 
+			.PaperSize = fpSetup.PaperSize
+			.Orientation = fpSetup.Orientation
+			.LeftMargin = fpSetup.LeftMargin
+			.TopMargin = fpSetup.TopMargin
+			.RightMargin = fpSetup.RightMargin
+			.BottomMargin = fpSetup.BottomMargin
+
+			.LeftHeader = ""
+			.CenterHeader = ""
+			.RightHeader = ""
+			.LeftFooter = ""
+			.CenterFooter = ""
+			.RightFooter = ""
+		End With
+
+		aColLeft = SortArray(ColDict.Keys())
+		.Columns = ColDict.Count - 1
+
+		For BookCol = 1 To .Columns
+			.EntireColumn(BookCol).ColumnWidth = aColLeft(BookCol) - BookLeft
+			BookLeft = BookLeft + .EntireColumn(BookCol).ColumnWidth
+		Next
+
+		aRowTop = SortArray(RowDict.Keys())
+		.Rows = RowDict.Count - 1
+		
+		For BookRow = 1 To .Rows
+			.EntireRow(BookRow).RowHeight = aRowTop(BookRow) - BookTop
+			BookTop = BookTop + .EntireRow(BookRow).RowHeight
+		Next
+
+	End With
+End Sub
+
+Sub LoadOther(FrmPage, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI)
+	Dim Control
+
+	For Each Control In FrmPage.ControlArray
+		With Control
+			If .Visible Then
+				Select Case .TypeName
+					Case "FrmButton", "FrmActiveX", "FrmPicture"
+					Case "FrmLine"
+						AddFrmLine Control, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI
+
+					Case Else
+						AddOtherControls Control, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI
+
+				End Select
+			End If
+		End With
+	Next
+End Sub
+
+Sub FrmPageToSheet(FrmPage, Sheet)
+	Dim XDPI, YDPI, ColDict, RowDict
+	Dim FrmRow, FrmCol
+	Dim FrmLeft, FrmTop, FrmRight, FrmBottom
+	Dim Control, ControlDict 
+	Dim Diff
+	Dim aSgrdHeigtDiff()
+	Dim i, j
+	Dim BookCol, BookRow
+	Dim BookLeft, BookTop
+	Dim aColLeft, aRowTop
+
+	DataInit XDPI, YDPI, ColDict, RowDict, ControlDict, aSgrdHeigtDiff
+	LoadSGrids FrmPage, aSgrdHeigtDiff
+	LoadOther FrmPage, aSgrdHeigtDiff, ControlDict, ColDict, RowDict, XDPI, YDPI
+	SheetInit Sheet, FrmPag, BookCol, aColLeft, ColDict, BookRow, aRowTop, RowDict
+
+	Dim BookMergeRow, BookMergeCol
+	Dim FrmMergeRow, FrmMergeCol
+	Dim FrmMergeRight, FrmMergeBottom
+
+	For Each Control In ControlDict.Keys()
+		Diff = ControlDict(Control)
+		With Control
+			If .TypeName <> "FrmRadio" And .TypeName <> "FrmComboBox" And .TypeName <> "FrmRect" And .TypeName <> "FrmLine" Then .Recalc
+
+			Select Case .TypeName
+				Case "FrmScrollGrid"
+					Dim BorderSpans : ReDim BorderSpans(2, -1)
+					Dim BorderSpan : For Each BorderSpan In Split(.Tag, ";")
+						j = UBound(BorderSpans, 2) + 1
+						ReDim Preserve BorderSpans(UBound(BorderSpans, 1), j)
+						For i = 0 To UBound(BorderSpans, 1)
+							BorderSpans(i, j) = Str2Long(Token(BorderSpan, i + 1, ","))
+						Next
+					Next
+
+					Dim BookFitRow : BookFitRow = False
+					Dim BookFirstCol, BookLastCol
+
+					FrmTop = .Top + Diff
+					For FrmRow = 1 To .Rows
+						FrmBottom = FrmTop + .RowHeight
+
+						FrmLeft = .Left
+						For FrmCol = 1 To .Columns
+							If .Column(FrmCol).ColumnWidth > 0 Then
+								FrmRight = FrmLeft + .Column(FrmCol).ColumnWidth
+	
+								If .Column(FrmCol).ColumnWidth <> 0 Then
+									BookRow = FindInArray(aRowTop, Round2(FrmTop * YDPI)) + 1
+									BookCol = FindInArray(aColLeft, Round2(FrmLeft * XDPI)) + 1
+		
+									BookMergeRow = FindInArray(aRowTop, Round2(FrmBottom * YDPI))
+									BookMergeCol = FindInArray(aColLeft, Round2(FrmRight * XDPI))
+									If BookRow <> BookMergeRow Or BookCol <> BookMergeCol Then Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).MergeCells = True
+	
+									If .PrintGrid Then
+										Sheet.Cell(BookRow, BookCol).SetBorder acBrdGrid
+									Else
+										For j = 0 To UBound(BorderSpans, 2)
+											If FrmCol >= BorderSpans(0, j) And FrmCol <= BorderSpans(1, j) Then _
+												Sheet.Cell(BookRow, BookCol).SetBorder BorderSpans(2, j) : Exit For
+										Next
+									End If
+	
+									If .PrintText Then
+										Dim Value : Value = .Cell(FrmRow, FrmCol).Value
+										With .Column(FrmCol)
+											FillSheetCell Sheet.Cell(BookRow, BookCol), IIf(.CellType = acCombo, "", Value), .CellDataType, .Format, .Multiline, .Alignment, .Font 
+										End With
+									End If
+	
+									If BookFirstCol = 0 Then BookFirstCol = BookCol
+									BookLastCol = BookCol
+									If .Column(FrmCol).Multiline Then BookFitRow = True
+								End If
+	
+								FrmLeft = FrmRight
+							End If
+						Next
+
+						If BookFitRow Then Sheet.Range(BookFirstCol, BookRow, BookLastCol, BookRow).AutoFit acRows
+
+						FrmTop = FrmBottom
+					Next
+				Case "FrmGrid"
+					Dim BorderRanges : ReDim BorderRanges(4, -1)
+					Dim BorderRange : For Each BorderRange In Split(.Tag, ";")
+						j = UBound(BorderRanges, 2) + 1
+						ReDim Preserve BorderRanges(UBound(BorderRanges, 1), j)
+						For i = 0 To UBound(BorderRanges, 1)
+							BorderRanges(i, j) = Str2Long(Token(BorderRange, i + 1, ","))
+						Next
+					Next
+
+					FrmTop = .Top + Diff
+					For FrmRow = 1 To .Rows
+						If .EntireRow(FrmRow).RowHeight > 0 Then
+							FrmBottom = FrmTop + .EntireRow(FrmRow).RowHeight
+	
+							FrmLeft = .Left
+							For FrmCol = 1 To .Columns
+								If .EntireColumn(FrmCol).ColumnWidth > 0 Then
+									FrmRight = FrmLeft + .EntireColumn(FrmCol).ColumnWidth
+		
+									If .Cell(FrmRow, FrmCol).MergeHeight <> 0 Then
+										BookRow = FindInArray(aRowTop, Round2(FrmTop * YDPI)) + 1
+										BookCol = FindInArray(aColLeft, Round2(FrmLeft * XDPI)) + 1
+			
+										FrmMergeBottom = FrmBottom
+										For FrmMergeRow = FrmRow + 1 To FrmRow + .Cell(FrmRow, FrmCol).MergeHeight - 1
+											FrmMergeBottom = FrmMergeBottom + .EntireRow(FrmMergeRow).RowHeight
+										Next
+										FrmMergeRight = FrmRight
+										For FrmMergeCol = FrmCol + 1 To FrmCol + .Cell(FrmRow, FrmCol).MergeWidth - 1
+											FrmMergeRight = FrmMergeRight + .EntireColumn(FrmMergeCol).ColumnWidth
+										Next
+										BookMergeRow = FindInArray(aRowTop, Round2(FrmMergeBottom * YDPI))
+										BookMergeCol = FindInArray(aColLeft, Round2(FrmMergeRight * XDPI))
+										If BookRow <> BookMergeRow Or BookCol <> BookMergeCol Then Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).MergeCells = True
+			
+										If .PrintGrid Then
+											Sheet.Cell(BookRow, BookCol).SetBorder acBrdGrid
+										Else
+											For j = 0 To UBound(BorderRanges, 2)
+												If FrmRow >= BorderRanges(1, j) And FrmRow <= BorderRanges(3, j) And FrmCol >= BorderRanges(0, j) And FrmCol <= BorderRanges(2, j) Then _
+													Sheet.Cell(BookRow, BookCol).SetBorder BorderRanges(4, j) : Exit For
+											Next
+										End If
+		
+										If .PrintText Then
+											With .Cell(FrmRow, FrmCol)
+												FillSheetCell Sheet.Cell(BookRow, BookCol), IIf(.CellType = acCombo, "", .Value), .CellDataType, .Format, .Multiline, .Alignment, .Font 
+											End With
+										End If
+									End If
+		
+									FrmLeft = FrmRight
+								End If
+							Next
+	
+							FrmTop = FrmBottom
+						End If
+					Next
+				Case "FrmCheckBox", "FrmRadio"
+					Dim Flat : If .TypeName = "FrmRadio" Then Flat = False Else Flat = .Flat
+
+					BookRow = FindInArray(aRowTop, Round2((.Top + Diff) * YDPI)) + 1
+					BookCol = FindInArray(aColLeft, Round2(.Left * XDPI)) + 1
+
+					FrmLeft = .Left + Min(IIf(Flat, .Height, 50), .Width)
+					FrmRight = .Left + .Width
+
+					BookMergeRow = FindInArray(aRowTop, Round2((.Top + Diff + .Height) * YDPI))
+					BookMergeCol = FindInArray(aColLeft, Round2(FrmLeft * XDPI))
+					If BookRow <> BookMergeRow Or BookCol <> BookMergeCol Then Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).MergeCells = True
+
+					Sheet.Cell(BookRow, BookCol).SetBorder IIf(Flat, acBrdGrid, Str2Long(.Tag) And &HFFFFFFB)
+
+					If .PrintText Then
+						FillSheetCell Sheet.Cell(BookRow, BookCol), .Checked, vbBoolean, "", False, acCenter, .Font
+					End If
+
+					If FrmLeft < FrmRight Then
+						BookCol = FindInArray(aColLeft, Round2(FrmLeft * XDPI)) + 1
+
+						BookMergeCol = FindInArray(aColLeft, Round2(FrmRight * XDPI))
+						If BookRow <> BookMergeRow Or BookCol <> BookMergeCol Then Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).MergeCells = True
+
+						Sheet.Cell(BookRow, BookCol).SetBorder Str2Long(.Tag) And &HFFFFFFE
+
+						If .PrintText Then
+							FillSheetCell Sheet.Cell(BookRow, BookCol), .Caption, vbString, "", .Multiline, .Alignment, .Font
+						End If
+					End If
+				Case "FrmLabel", "FrmEdit", "FrmSelector", "FrmDate", "FrmComboBox"
+					BookRow = FindInArray(aRowTop, Round2((.Top + Diff) * YDPI)) + 1
+					BookCol = FindInArray(aColLeft, Round2(.Left * XDPI)) + 1
+
+					BookMergeRow = FindInArray(aRowTop, Round2((.Top + Diff + .Height) * YDPI))
+					BookMergeCol = FindInArray(aColLeft, Round2((.Left + .Width) * XDPI))
+					If BookRow <> BookMergeRow Or BookCol <> BookMergeCol Then Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).MergeCells = True
+
+					Sheet.Cell(BookRow, BookCol).SetBorder Str2Long(.Tag)
+
+					If .PrintText Then
+						Select Case .TypeName
+							Case "FrmLabel", "FrmEdit"
+								FillSheetCell Sheet.Cell(BookRow, BookCol), .Value, .DataType, .Format, .Multiline, .Alignment, .Font
+							Case "FrmSelector"
+								FillSheetCell Sheet.Cell(BookRow, BookCol), .Text, vbString, "", .Multiline, .Alignment, .Font
+							Case "FrmDate"
+								FillSheetCell Sheet.Cell(BookRow, BookCol), .Date, vbDate, .Format, .Multiline, .Alignment, .Font
+							Case "FrmComboBox"
+								FillSheetCell Sheet.Cell(BookRow, BookCol), "", vbString, "", .Multiline, .Alignment, .Font
+						End Select
+					End If
+				Case "FrmRect"
+					BookRow = FindInArray(aRowTop, Round2((.Top + Diff) * YDPI)) + 1
+					BookCol = FindInArray(aColLeft, Round2(.Left * XDPI)) + 1
+
+					BookMergeRow = FindInArray(aRowTop, Round2((.Top + Diff + .Height) * YDPI))
+					BookMergeCol = FindInArray(aColLeft, Round2((.Left + .Width) * XDPI))
+
+					Sheet.Range(BookCol, BookRow, BookMergeCol, BookMergeRow).SetBorder Str2Long(.Tag) And &HFFFFFCF
+				Case "FrmLine"
+					BookRow = FindInArray(aRowTop, Round2((Min(.Y1, .Y2) + Diff) * YDPI)) + 1
+					BookCol = FindInArray(aColLeft, Round2(Min(.X1, .X2) * XDPI)) + 1
+
+					If .X1 = .X2 Then
+						BookMergeRow = FindInArray(aRowTop, Round2((Max(.Y1, .Y2) + Diff) * YDPI))
+
+						Sheet.Range(BookCol, BookRow, BookCol, BookMergeRow).SetBorder acBrdLeft, .LineStyle
+					Else
+						BookMergeCol = FindInArray(aColLeft, Round2(Max(.X1, .X2) * XDPI))
+
+						Sheet.Range(BookCol, BookRow, BookMergeCol, BookRow).SetBorder acBrdTop, .LineStyle
+					End If
+			End Select
+		End With
+	Next
+
+End Sub

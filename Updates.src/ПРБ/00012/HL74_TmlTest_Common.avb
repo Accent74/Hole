@@ -1,0 +1,211 @@
+'--------------
+'	модуль проверяет все шаблоны на наличие ошибочных ссылок на 
+'	корреспонденты, объекты учета, счета, валюту, разное и налоговые отчеты
+'	по результатам обработки можно сформировать отчет и откорректировать шаблоны
+'
+'	А. Гринев
+'	27/12/2004
+'	26/01/2005
+'	09/06/2005	проверяет формы/диалоги и папки документов
+'	16/06/2005	показывает шаблоны с пустым кодом
+'	19/11/2007	ошибка, если шаблон был с пустым кодом
+'
+'	(c) 2004 Impact Ltd. 
+'--------------
+
+Option Explicit
+
+'------------
+'
+'------------
+Sub TestTemplates(Tmls)
+	Dim i
+
+	With Tmls
+		For i = 1 To .Count
+			With .Item(i)
+				If .Type = 1 Then
+					TestTemplate .GetScript, .Name, .ID
+					'TestVBS .Name, .ID
+				Else
+					If .HasChildren Then TestTemplates .Children
+				End If
+			End With
+		Next
+	End With
+
+End Sub
+'------------
+'
+'------------
+Sub TestVBS(Name, ID)
+	Dim Op
+	Dim cancel
+
+	Set Op = Workarea.CreateOperation
+
+	Op.TemplateID = ID
+
+	On Error Resume Next
+	Op.TemplateInvoker2.FireAll
+
+	If Err.Number <> 0 Then MsgBox "Error 1"
+	Err.Clear
+
+	cancel = False
+	Op.Done = False
+	On Error Resume Next
+	Op.TemplateInvoker2.FireBeforeSave cancel
+
+	If Err.Number <> 0 Then MsgBox "Error 2"
+	Err.Clear
+
+	Op.Done = False
+	On Error Resume Next
+	Op.TemplateInvoker2.FireAfterSave
+
+	If Err.Number <> 0 Then MsgBox "Error 2"
+	Err.Clear	
+	
+End Sub
+'------------
+'
+'------------
+Sub TestTemplate(Script, Name, ID)
+	Dim i
+	Dim StartPos
+	Dim StrID
+	Dim TestCmd
+	Dim TestObj
+	Dim j
+	Dim aScript
+	Dim NewKey
+
+	If Script = "" Then
+		Errors.Add Errors.Count + 1, Array(10, Name, ID, "", 0)
+	Else
+		Script = UCase(Script)
+		aScript = Split(Script, vbCrLf)
+
+		If UBound(aScript) < 2 Then aScript = Split(Script, vbLf)
+
+		For i = 0 To UBound(CommandArray)
+			For j = 0 To UBound(aScript)
+				StartPos = InStr(aScript(j), CommandArray(i))
+
+				If StartPos <> 0 Then
+					StrID = Token(Mid(aScript(j), StartPos + Len(CommandArray(i)) + 1), IIF( i < 2, 2, 1), ",")
+					StrID = Trim(Replace(StrID, "=", ""))
+
+					If StrID <> "0" Then
+						TestCmd = "WorkArea." & ObjArray(i) & "(" & StrID & ")"
+						Set TestObj = Eval(TestCmd)
+						If TestObj Is Nothing Then Errors.Add Errors.Count + 1, Array(i, Name, ID, StrID, j)
+					End If
+				End If
+			Next
+		Next
+	End If
+End Sub
+
+'---------------
+'
+'---------------
+Sub ViewErrors
+	Dim Shb
+	Dim Sh
+	Dim i
+	Dim ErrorsID
+	Dim aType
+	Dim ErrArray
+	Dim StringScript
+
+	aType = Array("Разное", "Валюта", "Объект учета", "Налоговый отчет", "Счет по дебету", "Счет по кредиту", "Корреспондент Кто", "Корреспондент Кому", "Форма/Диалог", "Папка документов", "Пустой шаблон")
+
+	Set Shb = App.CreateBook
+	Shb.Caption = "Результаты тестирования шаблонов на " & Date
+	
+	Set Sh = Shb.Sheet(1)
+
+	Sh.Cell(1, 1).Value = "Отчет на " & CStr(Now)
+	Sh.Range(1, 1, 3, 1).MergeCells = True
+	Sh.Cell(2, 1).Value = "Найдено ошибок : " & CStr(Errors.Count)
+	Sh.Cell(3, 1).Value = "Объект"
+	Sh.Cell(3, 2).Value = "Код"
+	Sh.Cell(3, 3).Value = "Наименование шаблона"
+
+	Sh.Rows = Errors.Count + 3
+	Sh.Columns = 4
+	Sh.DisplayHeadings = False
+
+	StringScript =	 _
+								"Sub Sheet1_OnCellNavigate(Row, Column)" & vbCrLf & _
+								"	Dim aScript" & vbCrLf & _
+								"	If Sheet1.Cell(Row, Column).CellParam = 0 Then Exit Sub" & vbCrLf & _
+								"	Select Case Column" & vbCrLf & _
+								"		Case 3" & vbCrLf & _
+								"			Hyperlink.Navigate " & Chr(34) & Chr(34) & ", " & Chr(34) & "Main!Template=" & Chr(34) & " & CStr(Sheet1.Cell(Row, Column).CellParam)" & vbCrLf & _
+								"		Case 4" & vbCrLf & _
+								"			With Workarea.Template(Sheet1.Cell(Row, 3).CellParam)" & vbCrLf & _
+								"				aScript = Split(.GetScript, vbCrLf)" & vbCrLf & _
+								"				aScript(Sheet1.Cell(Row, 4).CellParam) = """"" & vbCrLf & _
+								"				.SetScript Join(aScript, vbCrLf)" & vbCrLf & _
+								"				.Save" & vbCrLf & _
+								"			End With" & vbCrLf & _
+								"			Sheet1.Cell(Row, 4).Value = ""Исправлено""" & vbCrLf & _
+								"			Sheet1.Cell(Row, 4).HLink = False" & vbCrLf & _
+								"			recalc" & vbCrLf & _
+								"	End Select" & vbCrLf & _
+								"End Sub" & vbCrLf
+
+	shb.SetScript StringScript
+
+	ErrorsID = Errors.Keys
+
+	For i = 0 To UBound(ErrorsID)
+		ErrArray = Errors.Item(ErrorsID(i))
+		Sh.Cell(i + 4, 1).Value = aType(ErrArray(0))
+		Sh.Cell(i + 4, 2).Value = ErrArray(3)
+
+		With Sh.Cell(i + 4, 3)
+			.Value = ErrArray(1)
+			.CellParam = ErrArray(2)
+			.HLink = True
+		End With
+
+		With Sh.Cell(i + 4, 4)
+			.Value = "Исправить"
+			.CellParam = ErrArray(4)
+			.HLink = True
+		End With
+
+	Next
+
+	Sh.AutoFit
+	shb.Recalc
+
+End Sub
+
+'---------------
+'
+'---------------
+
+'Dim CommandArray
+'Dim ObjArray
+'Dim Errors
+'
+'Set Errors = CreateObject("Scripting.Dictionary")
+'
+'CommandArray = Array("SETMISC", "SETCUR", "SETENT", "SETTAX", "SETACCDB", "SETACCCR", "SETAGFROM", "SETAGTO", "FORMID", "SETFOLDER")
+'ObjArray = Array("Misc", "Cur", "Entity", "TaxReport", "Account", "Account", "Agent", "Agent", "ProjectItem", "Folder")
+'
+'TestTemplates WorkArea.templates
+'
+'If Errors.Count > 0 Then 
+'	If MsgBox("Обнаружено " & CStr(Errors.Count) & " ошибок !" & vbCrLf & "Показать отчет ?", vbCritical + vbYesNo, "Акцент " & App.Version) = vbYes Then ViewErrors
+'Else
+'	MsgBox "Ошибки не обнаружены.", vbInformation, "Акцент " & App.Version
+'End If
+'------------
+'
+'------------

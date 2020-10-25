@@ -1,0 +1,224 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<meta content="True" name="vs_showGrid">
+		<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+		<LINK href="default.css" type="text/css" rel="stylesheet">
+			<SCRIPT language="vbScript">
+			
+Dim wa
+Dim HTMLPages
+Dim repDict
+Dim IsLoaded
+	
+Set repDict = CreateObject("Scripting.Dictionary")
+HTMLPages = Array("folders.htm", "accounts.htm", "agents.htm", "entities.htm", "miscs.htm", "binders.htm", "templates.htm")
+IsLoaded = False
+		
+function window_onload()
+	Dim Name
+	
+	set wa = window.external.Application.Workarea
+	
+	If wa.site is nothing then exit function
+	
+	IF Not wa.map.exists("tblPropsVisible") then wa.map("tblPropsVisible") = 11
+	IF Not wa.map.exists("tblReportsVisible") then wa.map("tblReportsVisible") = 31
+		
+	showtable(wa.map("tblPropsVisible"))
+	showtable(wa.map("tblReportsVisible"))
+		
+	With wa.site
+
+		If .Kind <> 4 then window.document.location.assign HTMLPages(.Kind - 1)
+		If Not IsLoaded then Loadreports .repelems
+		
+		If .ID = 0 then 
+			Name = "Корень объектов учета"
+		Else
+			Name = .Name
+			If .IsShortCut then Name = Name & " (ярлык)"
+			
+			If .Type = 0 then
+				EntType.InnerHTML = "Папка объектов учета"
+			Elseif .Type = 1 then
+				EntType.InnerHTML = "Группа объектов учета"
+			Else
+				EntType.InnerHTML = "Объект учета"
+				With wa.Entity(.ID)
+
+					If .UnitID <> 0 then EntUnit.InnerHTML = "<b>" & wa.unit(.UnitID).Name & "</b>"
+					If .AccID <> 0 then EntBalAcc.InnerHTML = "<b><a onclick = 'vbscript:moveaccount(" & .AccID & ")' href='account.htm'>" & wa.account(.AccID).Code & "</a></b>"
+					
+					EntCat.InnerHTML = "<b>" & .Cat & "</b>"
+					EntNom.InnerHTML = "<b>" & .Nom & "</b>"
+					EntArt.InnerHTML = "<b>" & .Art & "</b>"
+					EntBar.InnerHTML = "<b>" & .Bar & "</b>"
+				end With
+			end If
+			
+		end if
+	end With
+	
+	EntName.InnerHTML = Name
+	
+End function
+
+function moveaccount(ID)
+	wa.application.global.Hyperlink.Navigate "", "Main!Account=" & ID
+end function
+
+sub LoadReports(repElems)
+	Dim i
+
+	IsLoaded = true
+	repDict.REmoveAll
+
+	For i = 1 To repelems.count
+		Addreport i, repelems.Item(i)
+		With repelems.Item(i)
+			repDict.Add .ID, repelems.Item(i)
+		end With
+	Next
+	
+end sub
+
+sub Addreport(Row, report)
+	Dim NewRow
+	Dim NewCell
+	
+	Set NewRow = Reports.insertrow(Row)
+	Set NewCell = NewRow.InsertCell(0)
+	Reports.Rows(NewRow.RowIndex).Cells(0).InnerHTML = "<a href='entities.htm' onclick='vbscript:reportstart(" & report.ID & ")'>" & "<IMG alt='' border='0' src='images\SendChat.gif'></a>"
+	Set NewCell = NewRow.InsertCell(1)
+	Reports.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = "<a href='entities.htm' onclick='vbscript:reportstart(" & report.ID & ")'>" & report.name & "</a>"
+end sub
+
+function showtable(Mode)
+	Dim TableNo, OnOff
+	
+	TableNo = Int(Mode / 10)
+	OnOff = Mode - TableNo * 10
+	
+	select Case TableNo
+		Case 1
+			If OnOff = 0 then
+				tblProps.style.display = "none"
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(11)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				tblProps.style.display = ""
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(10)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblPropsVisible") = TableNo * 10 + OnOff
+			
+		Case 3
+			If OnOff = 0 then
+				reports.style.display = "none"
+				reportspicture.innerhtml = "<a onclick='vbscript:showtable(31)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				reports.style.display = ""
+				reportspicture.innerhtml = "<a onclick='vbscript:showtable(30)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblReportsVisible") = TableNo * 10 + OnOff
+
+	end select
+end function
+
+function reportstart(ID)
+	RepDict.Item(ID).RunReport
+end function
+
+			</SCRIPT>
+	</head>
+	<body onload="vbscript:window_onload()">
+		<TABLE id="Table2" cellSpacing="1" cellPadding="1" width="240" border="0" height="274">
+			<TR>
+				<TD width="9" height="45">
+					<H3 align="center"><IMG alt="" src="images\entities.bmp"></H3>
+				</TD>
+				<TD height="45">
+					<H3 align="left">Объекты учета</H3>
+				</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2" height="147">
+					<P>
+						<HR width="100%" SIZE="1" align="left">
+						В этом режиме осуществляется работа относительно объектов учета.<BR>
+						В <STRONG>Информационном окне</STRONG>
+					отображаются только те документы, в которых присутствует текущий объект учета.
+				</TD>
+			</TR>
+			<TR>
+				<TD align="left" colSpan="2">
+					<HR width="100%" SIZE="1">
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="Table3" height="27" cellSpacing="3" cellPadding="0" width="240" bgColor="#009900"
+			border="0">
+			<TR>
+				<TD id="propspicture" width="20"><A onclick="vbscript:showtable(11)"><IMG id="tblPropsShow" alt="" src="images\up-arrow-green.GIF"></A></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Свойства</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="tblProps" height="249" cellSpacing="2" cellPadding="0" width="240" border="0">
+			<TR>
+				<TD id="EntType" colSpan="2">Текущая папка:</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2">
+					<H4 id="EntName">наименование объекта учета</H4>
+				</TD>
+			</TR>
+			<TR>
+				<TD width="81">Ед.изм</TD>
+				<TD id="EntUnit"></TD>
+			</TR>
+			<TR>
+				<TD width="81">Бал. счет</TD>
+				<TD id="EntBalAcc"></TD>
+			</TR>
+			<TR>
+				<TD colSpan="2">
+					<P align="center">Кодировка</P>
+				</TD>
+			</TR>
+			<TR>
+				<TD width="81">Кат. №</TD>
+				<TD id="EntCat"></TD>
+			</TR>
+			<TR>
+				<TD width="81">Ном. №</TD>
+				<TD id="EntNom"></TD>
+			</TR>
+			<TR>
+				<TD width="81">Артикул</TD>
+				<TD id="EntArt" width="270"></TD>
+			</TR>
+			<TR>
+				<TD width="81">Бар. код</TD>
+				<TD id="EntBar"></TD>
+			</TR>
+		</TABLE>
+		<HR align="left" width="240" SIZE="1">
+		<TABLE id="tblReps" height="27" cellSpacing="3" cellPadding="0" width="240" bgColor="#009900"
+			border="0">
+			<TR>
+				<TD id="reportspicture" width="20"><A onclick="vbscript:showtable(31)"><IMG id="tblReports" alt="" src="images\up-arrow-green.GIF"></A></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Отчеты</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="reports" height="24" cellSpacing="1" cellPadding="1" width="240" border="0">
+			<TR>
+				<TD width="24"></TD>
+				<TD width="270"></TD>
+			</TR>
+		</TABLE>
+		<HR align="left" width="240" SIZE="1">
+	</body>
+</html>

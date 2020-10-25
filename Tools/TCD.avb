@@ -1,0 +1,27 @@
+Option Explicit
+
+'#include "HL74_const.avb"
+'#include "HL74_common.avb"
+'#include "cipher_class.avb"
+'#include "HL74_AssistantLog.avb"
+
+
+Dim TCD, Msc, dData
+
+Set TCD = New Cipher
+TCD.SetHLog (New htmlog)
+
+Set Msc = Workarea.Misc(325)
+
+If TCD.CheckParams(Msc) Then
+	If TCD.Connect(Empty, Empty, Empty) Then
+		Set dData = TCD.ReadDBMap(3, 6)
+
+		If Not dData Is Nothing Then
+			MsgBox dData.count
+			stop
+		Else
+			MsgBox "Fail"
+		End If
+	End If
+End If

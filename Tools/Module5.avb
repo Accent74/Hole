@@ -1,0 +1,68 @@
+Option Explicit
+
+Dim FilePath, ConnectionString, Rs
+
+FilePath = "d:\temp\Ents.xls"
+ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=@Path;Extended Properties=""Excel 8.0;HDR=Yes;"";"
+
+stop
+
+On Error Resume Next
+
+Const adOpenStatic = 3
+Const adLockOptimistic = 3
+Const adCmdText = &H0001
+
+Dim objConnection, objRecordSet
+
+Set objConnection = CreateObject("ADODB.Connection")
+Set objRecordSet = CreateObject("ADODB.Recordset")
+
+objConnection.Open "Provider=Microsoft.Jet.OLEDB.4.0;" & _
+    "Data Source=d:\temp\Ents.xls;Extended Properties=""Excel 8.0;HDR=No;IMEX=1;""" 
+stop
+objRecordset.Open "Select * FROM [Sheet1$]", _
+    objConnection, adOpenStatic, adLockOptimistic, adCmdText
+
+MsgBox err.description
+stop
+'If OpenXLSFile(FilePath, ConnectionString, "Sheet1$", Rs) Then
+'	stop
+'End If
+'
+'---
+'
+'---
+Function OpenXLSFile(FilePath, ConnectionString, tablename, Rs)
+	Dim RowNo, Conn, Cmd
+
+	ConnectionString = Replace(ConnectionString, "@Path", FilePath)
+	RowNo = 1
+
+	Set Conn = CreateObject("ADODB.Connection")
+	Set Cmd = CreateObject("ADODB.Command")
+
+	Conn.ConnectionString = ConnectionString
+	Conn.Open
+
+	Set Cmd.ActiveConnection = Conn
+	Cmd.CommandType = 1
+	Cmd.CommandText = "Select * from [" & tablename & "]"
+
+	On Error Resume Next
+	Set Rs = Cmd.Execute
+
+	If Err.Number <> 0 Then
+		MsgBox "Ошибка : ошибка выполнения запроса к файлу выписки " & err.description
+	Else
+		While RowNo > 0 And Not Rs.eof
+			Rs.MoveNext
+			RowNo = RowNo - 1
+		Wend
+	End If
+
+	OpenXLSFile = (Err.Number = 0)
+	err.Clear
+	
+End Function
+

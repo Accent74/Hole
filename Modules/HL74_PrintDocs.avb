@@ -1,0 +1,65 @@
+Option Explicit
+
+Dim Frm
+
+PrintDocs
+
+'---
+'
+'---
+Sub PrintDocs
+	Dim i, Mtr
+
+	With Workarea.Site.selected
+		Set Mtr = Meter()
+		Mtr.Open "Печать документов ...", 1, .Count
+
+		For i = 1 To .Count
+			If .Item(i).FormID <> 0 Then
+				If Not PrintCurrentDoc(.Item(i)) Then
+					If MsgBox("В процессе печати возникли проблемы. Продолжить ?", vbQuestion + vbYesNo, "Внимание !") = vbNo Then
+						Exit For
+					End If
+				End If
+			End If
+		Next
+
+		Mtr.Close
+	End With
+
+End Sub
+'---
+'
+'---
+Function PrintCurrentDoc(Op)
+	Set Frm = App.CreateForm(Op.FormID, Op.ID)
+
+'	On Error Resume Next
+
+	If Not Frm Is Nothing Then
+		' подождать, пока форма загрузится и напечатать
+		Frm.DeferExec "PrintDoc"
+		' подождать, пока форма напечатается и закрыть ее
+		Frm.DeferExec "CloseDoc"
+		Set Frm = Nothing
+
+	End If
+
+	PrintCurrentDoc = (Err.Number = 0)
+
+End Function
+'---
+'
+'---
+Sub PrintDoc
+	Frm.Print
+End Sub
+'---
+'
+'---
+Sub CloseDoc
+	Frm.Close
+End Sub
+'---
+'
+'---

@@ -1,0 +1,11 @@
+Option Explicit
+
+Dim WizardDlg
+
+	Set WizardDlg = App.CreatePropSheet
+	WizardDlg.AddPage "ST7_ftpupdate1.adc"
+	WizardDlg.AddPage "ST7_ftpupdate2.adc"
+	WizardDlg.AddPage "ST7_ftpupdate3.adc"
+	WizardDlg.WizardMode = True
+	
+	WizardDlg.DoModal

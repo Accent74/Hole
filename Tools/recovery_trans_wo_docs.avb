@@ -1,0 +1,33 @@
+Option Explicit
+
+'#include "HL74_ADO.avb"
+
+Dim SQL, aData, i, DocID, Op, ErrorMsg
+
+SQL = "SELECT [JOURNAL].[J_DATE], journal.doc_id, j_id " & _
+		"FROM JOURNAL Left Join DOCUMENTS On [JOURNAL].[DOC_ID] = [DOCUMENTS].[DOC_ID] " & _
+		"WHERE ([DOCUMENTS].[DOC_ID] Is Null) " & _
+		"order by journal.doc_id"
+
+If GetRs2(SQL, aData) Then
+	DocID = -1
+
+	For i = 0 To UBound(aData, 2)
+		If aData(1, i) <> DocID Then
+			Set Op = Workarea.CreateOperation
+			Op.Name = "Восстановление данных"
+			Op.Date = aData(0, i)
+			Op.Save
+			DocID = aData(1, i)
+		End If
+
+		SQL = "update journal set doc_id=" & Op.ID & " where j_id =" & aData(2, i)
+
+		If ExecQuery(SQL, ErrorMsg) <> 0 Then
+			MsgBox ErrorMsg
+			Exit For
+		End If
+
+	Next
+End If
+

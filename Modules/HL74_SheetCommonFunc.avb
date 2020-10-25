@@ -1,0 +1,199 @@
+Option Explicit
+'================================================='
+' модуль для работы с функциями, связанными с оборотами по счетам
+' 13-Apr-2005                                     ' 
+' Copyright (c) 2001-2005 by Impact Group.             '
+'================================================='
+' ОСОБЕННОСТИ отчета.
+' В этом отчете используется возможность "перехватывать"
+' формулы перед их вычислением
+' Для построения данных баланса используется отчет RepCommon
+'
+' Формулы, которые может вводить бухгалтер, представляют собой 
+' простые выражения (без скобок), каждый элемент которых состоит из:
+'    1) Символа начала (Н), конца К), оборотов(О)
+'    2) Символа дебета (Д) или кредита (К)
+'    3) Номера счета. Звездочка в конце означает учет субсчетов
+' Дополнительно, поддерживается возможность получения взаимных оборотов
+' между счетами (из шахматной ведомости), элемент которых состоит из:
+'    1) Символа взаимных оборотов (В)
+'    2) Номера счета по дебету (возможно со звездочкой)
+'    3) Разделителя в виде двоеточия (:)
+'    4) Номера счета по кредиту (возможно со звездочкой)
+'
+' Например, формула
+'    =НД10* + КК11 - НС12* + В14*:15*
+' означает, что нужно к начальному сальдо по дебету 10-x счетов прибавить
+' конечное сальдо по кредиту 11 счета, вычесть из него сальдо 12-x счетов, а затем
+' прибавить обороты с дебета 14-x счетов в кредит 15-x счетов
+' 
+' Для разбора формул используется специальный объект "Parser",
+'
+
+Const TDC_DELIM = ":" ' разделитель для взаимных оборотов
+
+Const TDC_CHAR   = "В" ' взаимные обороты
+Const ST_CHAR    = "Н" ' на начало
+Const EN_CHAR    = "К" ' на конец 
+Const TR_CHAR    = "О" ' обороты за период
+Const CHECK_STR  = "ВНКО@" ' строка для проверки первого символа
+
+Const DB_CHAR   = "Д" ' Дебет
+Const CR_CHAR   = "К" ' Кредит
+Const SL_CHAR   = "С" ' Сальдо
+
+'-------
+'
+'-------
+Sub CommonFunctionInit(ByRef Rep, ByRef prs)
+
+	' объект "универсальный отчет"
+	Set rep = Workarea.CreateReport("RepCommon")
+
+	' Создать разборщик выражений
+	Set prs = CreateLibObject("Parser")
+	' и установить для него разделители "+" и "-"
+	prs.SetDelimiter "+-"
+End Sub
+
+'-------
+' функция возвращает сумму или сальдо по одному счету
+'-------
+Function GetRepSum(rep, acc,se,dc)
+	Dim sac    ' учитывать ли субсчета
+	Dim result 
+	acc = Trim(acc)
+	' если счет заканчивается *, то нужно учитывать субсчета
+	sac = 0 ' без субсчетов
+	If Right(acc,1) = "*" Then 
+		acc = Left(acc,Len(acc)-1)
+		sac = 1
+	End If
+	If se = ST_CHAR Then
+		Select Case dc
+			' остатки на начало
+			' всегда на начало года
+			Case DB_CHAR
+				result = rep.StartDb(acc, ,sac)
+			Case SL_CHAR 
+				result = rep.StartSaldo(acc, ,sac)
+			Case CR_CHAR
+				result = rep.StartCr(acc, ,sac)
+		End Select
+	ElseIf se = TR_CHAR Then
+		' обороты за период
+		Select Case dc
+			Case DB_CHAR
+				result = rep.TurnDb(acc, ,sac)
+			Case CR_CHAR
+				result = rep.TurnCr(acc, ,sac)
+		End Select
+	ElseIf se = EN_CHAR Then
+		Select Case dc 
+			' остатки на конец
+     	Case DB_CHAR 
+				result = rep.EndDb(acc, ,sac)
+			Case SL_CHAR
+				result = rep.EndSaldo(acc, ,sac)
+			Case CR_CHAR
+				result = rep.EndCr(acc, ,sac)
+		End Select
+	Else
+		result = ERR_STRING
+	End If 
+	GetRepSum = result
+End Function
+
+'-------
+' функция вернет значение из шахматной ведомости
+'-------
+Function GetChessSum(Rep, Fla)
+	Dim result
+	Dim dba ' строка счета по дебету
+	Dim cra ' строка счета по кредиту
+	Dim sdb
+	Dim scr
+	' сначала результат равен нулю
+	result = 0.0
+	' разобъем на части
+	dba = Token(Fla,1,TDC_DELIM)
+	cra = Token(Fla,2,TDC_DELIM)
+	sdb = 0 ' без субсчетов
+	scr = 0 ' без субсчетов
+	If Right(dba,1) = "*" Then 
+		dba = Left(dba,Len(dba)-1)
+		sdb = 1 ' 1 это флажок для rep.TurnDbCr
+	End If
+	If Right(cra,1) = "*" Then 
+		cra = Left(cra,Len(cra)-1)
+		scr = 2 ' 2 это флажок для rep.TurnDbCr 
+	End If
+	result = rep.TurnDbCr(dba,cra, , sdb + scr)
+	GetChessSum = result
+End Function
+
+'-------
+' функция вычисляет одну часть формулы
+'-------
+Function GetOneSum(rep, fla)
+	' <Н|K|О><Д|K|C><acc>[*] | <В<acc>[*]:<acc>[*]
+	Dim dc
+	Dim se
+	Dim ac
+	se = UCase(CharAt(Fla,1))
+	If se = TDC_CHAR Then
+		' взаимные обороты за период
+		ac = Mid(Fla, 2)
+		GetOneSum = GetChessSum(rep, ac)
+	Else
+		' вычислить на начало, на конец или обороты
+		dc = UCase(CharAt(Fla,2))
+		ac = Mid(Fla, 3)
+		GetOneSum = GetRepSum(rep, ac,se,dc)
+	End If
+End Function
+
+'-------
+'
+'-------
+Function CalcResult(Prs, Formula, Rep)
+	Dim result
+	Dim i   ' счетчик
+	Dim val ' промежуточная переменная
+	Dim mi  ' знак (Boolean, False - плюс, True - минус)
+
+	With prs
+		If .Parse(Formula) Then
+			' разобрали
+			mi = False
+			For i=1 To .Count
+				' есть несколько лексем, разделенных знаками "+" и "-"
+				Select Case .Token(i)
+					Case "+"
+						mi = False
+					Case "-"
+						mi = True
+					Case Else
+						val = GetOneSum(rep, .Token(i))
+						If IsNumeric(val) Then
+							result = result + IIF(mi, -val, val)
+						Else 
+							CalcResult = ERR_STRING
+							Exit Function
+						End If
+				End Select
+			Next
+			' чтобы правильно работал формат,
+			' результат должен быть Currency
+			result = CCur(Round2(result, 2))
+		Else
+			' ошибка в формуле
+			result = ERR_STRING
+		End If
+	End With
+	
+	CalcResult = result
+
+End Function
+
+'-------

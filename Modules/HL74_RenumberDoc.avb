@@ -1,0 +1,116 @@
+Option Explicit
+
+'---
+'
+'---
+Sub RenumberDocs
+	Dim DictOp, i, FormID
+	Dim DocNo, Mtr
+
+	Set DictOp = CreateObject("Scripting.Dictionary")
+
+	With Workarea.Site
+		If .kind <> acFolder Then Exit Sub
+			FormID = GetFormID(.ID)
+
+			If FormID = 0 Then
+				MsgBox "Для папки документов не установлен шаблон или форма документа по умолчанию", vbExclamation, "Внимание !"
+				Exit Sub
+			End If
+
+			With .Selected
+
+				If .Count = 0 Then Exit Sub
+
+				.Sort 5, 2
+				DocNo = 0
+				Set Mtr = Meter()
+				Mtr.Open "Обработка ...", 1, .Count
+				
+				For i = 1 To .Count 
+					Mtr.Pos = i
+					With .Item(i)
+						If .FormID = FormID Then
+							If DocNo = 0 Then
+								DocNo = GetFirstDocNo(.DocNo)
+								If DocNo < 0 Then Exit Sub
+							Else
+								DocNo = DocNo + 1
+							End If
+
+							.DocNo = DocNo
+							.Save 8 + 16			' никаких событий не вызываем
+
+						End If
+					End With
+				Next	
+
+				If DocNo <> 0 Then
+					SaveAutoNum DocNo, FormID
+				End If
+
+				Mtr.Close
+			End With
+	End With
+End Sub
+'---
+'
+'---
+Function GetFormID(FldID)
+	Dim Fld
+
+	Set Fld = Workarea.Folder(FldID)
+
+	If Fld.FormID <> 0 Then
+		GetFormID = Fld.FormID
+	ElseIf Fld.TemplateID <> 0 Then
+		GetFormID	= Workarea.Template(Fld.TemplateID).FormID
+	Else
+		GetFormID	= 0
+	End If
+
+End Function
+'---
+'
+'---
+Function GetFirstDocNo(DocNo)
+	Dim FirstDocNo
+
+	If IsNumeric(DocNo) Then
+		FirstDocNo = CLng(DocNo)
+	Else
+		FirstDocNo = 0
+	End If
+
+	FirstDocNo = InputBox("Введите номер первого документа из выбранных ", "Номер документа", FirstDocNo)
+	
+	If FirstDocNo = "" Then
+		GetFirstDocNo = -1
+	ElseIf Not IsNumeric(FirstDocNo) Then
+		MsgBox "Номер документа должен быть целым положительным числом", vbCritical, "Ошибка"
+		GetFirstDocNo = -2
+	Else
+		GetFirstDocNo = CLng(FirstDocNo)
+	End If
+
+End Function
+'---
+'
+'---
+Sub SaveAutoNum(DocNo, FormID)
+	Dim AutoNum, Frm
+
+	Set Frm = Workarea.ProjectItem(FormID)
+
+	If Not Frm.AutoNum Is Nothing Then
+		If MsgBox("Сохранить последний номер в автонумерации документа ?", vbQuestion + vbYesNo, "Автонумерация") = vbYes Then
+			Set AutoNum = Frm.AutoNum
+			AutoNum.Number = DocNo
+			AutoNum.Save
+		End If
+	End If
+
+End Sub
+'---
+'
+'---

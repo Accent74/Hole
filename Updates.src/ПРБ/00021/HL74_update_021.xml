@@ -1,0 +1,33 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs>
+			<misc ID="546" GUID="{guid {1461E5B8-0297-46F7-8683-1E999EBBBA2E}}" visible="1537" Date1="Дата начала" Date2="Дата окончания" Date3="" Long1="" Long2="" Long3="" Memo="" MscNo="36" Name="Календарь рабочего времени" RefFolderID="0" RefKind="0" String1="График рабочего времени" String2="" String3="" Sum1="" Sum2="" Sum3="" Tag="" Type="-1">
+			<misc ID="547" GUID="{guid {63653F41-A630-4D0E-8980-514F7E359A2C}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="2019" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0">
+				<misc ID="555" GUID="{guid {1542BDDE-1E21-4920-BA05-9829CA3D28C8}}" Date1="8/1/2019" Date2="8/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Август 2019" RefFolderID="0" RefKind="0" String1="8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="551" GUID="{guid {C7E28E93-CECF-45AE-8716-3C8C2F949ED8}}" Date1="4/1/2019" Date2="4/30/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Апрель 2019" RefFolderID="0" RefKind="0" String1="8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="559" GUID="{guid {3DC7E092-274C-4ADB-9FDE-993CA647AD35}}" Date1="12/1/2019" Date2="12/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Декабрь 2019" RefFolderID="0" RefKind="0" String1="В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="554" GUID="{guid {89E08471-9090-439B-81CA-9A034B15BB99}}" Date1="7/1/2019" Date2="7/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Июль 2019" RefFolderID="0" RefKind="0" String1="8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="553" GUID="{guid {A9791C66-7F22-46B8-8960-F8934A7A50B3}}" Date1="6/1/2019" Date2="6/30/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Июнь 2019" RefFolderID="0" RefKind="0" String1="В;В;8;8;8;8;8;В;В;8;8;П;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="552" GUID="{guid {663D46A0-9934-431D-B54D-F7753282AD30}}" Date1="5/1/2019" Date2="5/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Май 2019" RefFolderID="0" RefKind="0" String1="П;П;П;В;В;8;8;8;П;П;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="550" GUID="{guid {3229B698-7787-4912-AE64-3950BA177F45}}" Date1="3/1/2019" Date2="3/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Март 2019" RefFolderID="0" RefKind="0" String1="8;В;В;8;8;8;8;П;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="558" GUID="{guid {307BE95D-AA8F-40DA-81A6-783348015E7A}}" Date1="11/1/2019" Date2="11/30/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Ноябрь 2019" RefFolderID="0" RefKind="0" String1="8;В;В;П;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="557" GUID="{guid {939E3860-066D-4668-831E-87D56CBA7C3A}}" Date1="10/1/2019" Date2="10/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Октябрь 2019" RefFolderID="0" RefKind="0" String1="8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="556" GUID="{guid {AF00C4DB-602D-4CC8-A2EF-67EC2B8AEC16}}" Date1="9/17/2019" Date2="9/30/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Сентябрь 2019" RefFolderID="0" RefKind="0" String1="В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="549" GUID="{guid {8D1DE911-EFAD-457C-A2EE-24FA12DC2A3A}}" Date1="2/1/2019" Date2="2/28/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Февраль 2019" RefFolderID="0" RefKind="0" String1="8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;П;В;8;8;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+				<misc ID="548" GUID="{guid {F9D59A8F-D26C-424C-9F81-95A79A0441D2}}" Date1="1/1/2019" Date2="1/31/2019" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="36" Name="Январь 2019" RefFolderID="0" RefKind="0" String1="П;П;П;П;П;П;П;П;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+			</misc>
+		</misc>
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums/>
+	<AccentWorkarea/>
+</AccentExportData>

@@ -1,0 +1,74 @@
+﻿<OnAllTaskMenu ident="guid">
+	<HL74 kind="1" type="root" check="HL74_PasteCheck" module="HL74_RecurseCopy.avb" proc="HL74_RecursePaste" name="Вставить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="1" type="0" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="1" type="0" module="HL74_ResaveDocs.avb" proc="HL74_ResaveDocs" name="Провести повторно" menulevel="1"/>
+	<HL74 kind="1" type="0" module="HL74_DocsToExite.avb" proc="HL74_DocsToExite" name="Экспорт документов для Exite" menulevel="1"/>
+	<HL74 kind="1" type="0" module="HL74_RecurseCopy.avb" proc="HL74_RecurseCopy" name="Копировать элемент и вложенные" menulevel="1"/>
+	<HL74 kind="1" type="0" check="HL74_PasteCheck" module="HL74_RecurseCopy.avb" proc="HL74_RecursePaste" name="Вставить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="3" type="0" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="3" type="5" module="HL74_ResaveDocs.avb" proc="HL74_ResaveDocs" name="Провести повторно" menulevel="1"/>
+
+	<HL74 kind="4" type="root" module="HL74_SetPriceKindsDisc.avb" proc="HL74_SetPriceKindsDisc" name="Сформировать скидки" menulevel="1"/>
+
+	<HL74 kind="4" type="0" module="HL74_SetPriceKindsDisc.avb" proc="HL74_SetPriceKindsDisc" name="Сформировать скидки" menulevel="1"/>
+	<HL74 kind="4" type="0" module="" proc="" name="-" menulevel="1"/>
+
+	<HL74 kind="4" type="0" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="4" type="0" module="HL74_RecurseCopy.avb" proc="HL74_RecurseCopy" name="Копировать элемент и вложенные" menulevel="1"/>
+	<HL74 kind="4" type="0" module="" proc="" name="-" menulevel="1"/>
+	<HL74 kind="4" type="0" check="HL74_PasteCheck" module="HL74_RecurseCopy.avb" proc="HL74_RecursePaste" name="Вставить элемент и вложенные" menulevel="1" />
+
+	<HL74 kind="4" type="1" module="HL74_SetPriceKindsDisc.avb" proc="HL74_SetPriceKindsDisc" name="Сформировать скидки" menulevel="1"/>
+	<HL74 kind="4" type="1" module="" proc="" name="-" menulevel="1"/>
+
+	<HL74 kind="4" type="1" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="4" type="1" module="HL74_RecurseCopy.avb" proc="HL74_RecurseCopy" name="Копировать элемент и вложенные" menulevel="1"/>
+	<HL74 kind="4" type="1" module="" proc="" name="-" menulevel="1"/>
+	<HL74 kind="4" type="1" check="HL74_PasteCheck" module="HL74_RecurseCopy.avb" proc="HL74_RecursePaste" name="Вставить элемент и вложенные" menulevel="1"/>
+
+	<HL74 kind="4" type="1001" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1002" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1003" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1004" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1005" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1006" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1007" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1008" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1009" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1010" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1011" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1012" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1013" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1014" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1015" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+	<HL74 kind="4" type="1016" module="HL74_EntCopy.avb" proc="HL74_EntityCopy" name="Копировать" menulevel="1"/>
+
+	<HL74 kind="4" type="1004" module="HL74_ResaveDocs.avb" proc="HL74_ResaveDocs" name="Провести повторно" menulevel="1"/>
+
+
+	<HL74 kind="5" type="-1" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="5" type="0" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="5" type="2" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="7" type="1" module="HL74_Workarea.avb" proc="HL74_TemplateProps" name="Дополнительные свойства шаблона" menulevel="1"/>
+	<HL74 kind="7" type="1" module="" proc="" name="-" menulevel="1"/>
+	<HL74 kind="7" type="1" module="HL74_RecurseCopy.avb" proc="HL74_RecurseCopy" name="Копировать элемент и вложенные" menulevel="1"/>
+	<HL74 kind="7" type="0" module="HL74_Workarea.avb" proc="HL74_DeleteElemRecursive" name="Удалить элемент и вложенные" menulevel="1"/>
+	<HL74 kind="7" type="0" module="HL74_RecurseCopy.avb" proc="HL74_RecurseCopy" name="Копировать элемент и вложенные" menulevel="1"/>
+	<HL74 kind="7" type="0" check="HL74_PasteCheck" module="HL74_RecurseCopy.avb" proc="HL74_RecursePaste" name="Вставить элемент и вложенные" menulevel="1"/>
+	<HL74 menulevel="1" name="Копировать" proc="HL74_EntityCopy" module="HL74_EntCopy.avb" type="1017" kind="4"/>
+	<HL74 menulevel="1" name="Импорт из клиент банка" proc="HL74_RunClientBank" module="HL74_ClientBank.avb" type="0" kind="1" id="{guid {0A89B988-DAF8-4993-8341-219D4ADC2185}}"/>
+
+	<HL74 menulevel="1" name="Загрузить прайс в ЭККА" proc="HL74_LoadEntsPrices" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="Загрузить остатки в ЭККА" proc="" module="" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="2" name="Загрузить остатки по цене прайса в ЭККА" proc="HL74_LoadEntsRestPrice" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="2" name="Загрузить остатки в ЭККА" proc="HL74_LoadEntsRest" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="-" proc="" module="" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="Загрузить продажи из ЭККА" proc="HL74_LoadSales" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="Загрузить продажи из файла" proc="HL74_LoadSalesFromFile" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="-" proc="" module="" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="Сброс артикулов" proc="HL74_ClearArticles" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="-" proc="" module="" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+	<HL74 menulevel="1" name="Настройка ЭККА" proc="HL74_M130_Config" module="HL74_MercuryOffLine.avb" type="1" kind="5" id="{guid {0E8BE948-738A-4CF2-852C-008421F15F1A}}"/>
+
+	<HL74 kind="7" type="1" module="HL74_AddOpToBinder.avb" proc="HL74_SetBindersDlg" name="Связать шаблон и подшивки" menulevel="1"/>
+</OnAllTaskMenu>

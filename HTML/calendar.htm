@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Untitled Page</title>
+    <style type="text/css">
+        .style6
+        {
+            width: 22px;
+        }
+        .style8
+        {
+            width: 87px;
+        }
+        .style9
+        {
+            width: 70px;
+        }
+        .style10
+        {
+            width: 231px;
+        }
+    </style>
+    <script language="vbscript" >
+        Dim CurrDate
+        
+        function OnLoad()       
+            CurrDate = cdate("1/" & month(date) & "/" & year(date))
+            ShowCalendar
+        end function
+
+        function year_add(offset)
+            CurrDate = dateadd("yyyy", offset, CurrDate)
+            ShowCalendar
+        end function
+
+        function month_add(offset)
+        
+            CurrDate = dateadd("m", offset, CurrDate)
+            ShowCalendar
+        end function
+
+        Sub ShowCalendar
+           Dim i, dStart, nMonth
+           Dim Row, RowNo, Cell
+
+           tdyear.innerHTML = year(CurrDate)
+           nMonth = month(CurrDate)
+           tdmonth.innerHTML = monthname(nMonth)
+           dStart = CurrDate
+           Row = 0
+
+           while tbCalendar.rows.length > 1
+                tbCalendar.deleterow tbCalendar.rows.length - 1
+           wend
+                      
+           While month(dStart) = nMonth
+                Col = Weekday(dStart, 2) - 1
+
+                if RowNo = 0 or Col = 0 then
+                    set Row = tbCalendar.insertrow
+                    
+                    for i = 1 to 7
+                        set Cell = Row.insertcell
+                        Cell.align = "center"
+                        if i > 5 then
+                            cell.style.color = "#FF0000"
+                        end if
+                    next 
+
+                    RowNo = RowNo + 1
+                end if
+
+                with tbcalendar.rows(RowNo).cells(Col)
+                    .InnerHTML = "<a style='cursor: pointer' onclick='vbscript:dayclick(" & day(dstart) & ")'>" & day(dStart) & "</a>"
+                    .style.textdecoration = "underline"
+                end with
+
+                dStart = DateAdd("d", 1, dStart)
+           Wend
+
+        end sub
+        function dayclick(cellday)
+            msgbox cellday
+        end function
+    </script>
+</head>
+<body onload = vbscript:OnLoad()>
+
+    <table style="width: 40%;">
+        <tr>
+            <td class="style9" align="right" onclick = vbscript:year_add(-1) style="cursor: pointer">
+                &lt;&lt;</td>
+            <td class="style8" id="tdyear" align="center">
+                &nbsp;</td>
+            <td class="style10" onclick = vbscript:year_add(1) style="cursor: pointer">
+                &gt;&gt;</td>
+        </tr>
+        <tr>
+            <td class="style9">
+                &nbsp;</td>
+            <td class="style8">
+                <table id="tbcalendar" style="width:100%;">
+                    <tr>
+                        <td class="style6" 
+                            style="font-weight: bold;">
+                            Пн</td>
+                        <td class="style6" 
+                            style="font-weight: bold;">
+                            Вт</td>
+                        <td class="style6" 
+                            style="font-weight: bold;">
+                            Ср</td>
+                        <td class="style6" 
+                            style="font-weight: bold;">
+                            Чт</td>
+                        <td class="style6" 
+                            style="font-weight: bold;">
+                            Пт</td>
+                        <td class="style6" 
+                            style="font-weight: bold; color: #FF0000;">
+                            Сб</td>
+                        <td class="style6" 
+                            style="font-weight: bold; color: #FF0000;">
+                            Вс</td>
+                    </tr>
+                    </table>
+            </td>
+            <td class="style10">
+                &nbsp;</td>
+        </tr>
+        <tr>
+            <td class="style9" align="right" onclick = vbscript:month_add(-1) style="cursor: pointer">
+                &lt;&lt;</td>
+            <td class="style8" id="tdmonth" align="center">
+                &nbsp;</td>
+            <td class="style10" onclick = vbscript:month_add(1) style="cursor: pointer">
+                &gt;&gt;</td>
+        </tr>
+    </table>
+
+</body>
+</html>

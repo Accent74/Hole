@@ -1,0 +1,36 @@
+Option Explicit
+
+'#include "HL74_Const.avb"
+
+Dim Op, Msc, Ag
+
+Set Op = Workarea.CreateOperation
+
+With Op.Trans(1).Params
+	If Not .Exists(prmTrMemo) Then .Create vbString, prmTrMemo
+	If Not .Exists(prmTrSign) Then .Create vbLong, prmTrSign
+End With
+
+If workarea.miscs.Find(prmDBMovingType) = 0 Then
+	Set Msc = workarea.miscs.Create(-1, prmDBMovingType)
+	If Not workarea.params.exists(prmDBMovingType) Then workarea.params.CreateRef prmDBMovingType, acMisc, Msc.ID
+End If
+
+If workarea.miscs.Find(prmDBBudget) = 0 Then
+	Set Msc = workarea.miscs.Create(-1, prmDBBudget)
+	If Not workarea.params.exists(prmDBBudget) Then workarea.params.CreateRef prmDBBudget, acMisc, Msc.ID
+End If
+
+If workarea.miscs.Find(prmDBPositionList) = 0 Then
+	Set Msc = workarea.miscs.Create(-1, prmDBPositionList)
+	Set Ag = Workarea.Agents.Create(3, "test")
+	If Not Ag.facts.exists(prmAgPosition) Then Ag.facts.CreateRef prmAgPosition, acMisc, Msc.ID
+	workarea.removeelem acAgent, Ag.ID
+
+End If
+
+If workarea.miscs.Find(prmDBIncomeStat) = 0 Then
+	Set Msc = workarea.miscs.Create(-1, prmDBIncomeStat)
+	If Not workarea.params.exists(prmDBIncomeStat) Then workarea.params.CreateRef prmDBIncomeStat, acMisc, Msc.ID
+End If
+

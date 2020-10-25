@@ -1,0 +1,154 @@
+Option Explicit
+
+Class grdFinder
+	Private TrList, sgrd, grd
+	Private dCol
+
+	Private Sub Class_initialize
+		Set grd = Nothing
+		Set sgrd = Nothing
+		Set dCol = CreateLibObject("Map")
+	End Sub
+
+	Public Sub Init(oGrd, oSGrd, oTrList)
+		Set grd = oGrd
+		Set sgrd = osgrd
+		Set TrList = oTrList
+	End Sub
+
+	Public Sub AddColumn(RowNo, ColNo, DataType, refFunc, EvalCmd)
+		If Not grd Is Nothing Then grd.Cell(RowNo, ColNo).HLink = True
+		dCol(ColNo) = Array(DataType, refFunc, EvalCmd)
+	End Sub
+
+	Public Function Exec(ColNo)
+		Dim WinAPI, IsSort, IsRev
+
+		If Not dCol.exists(ColNo) Or _
+				TrList Is Nothing Or  _
+				sgrd Is Nothing Then 
+			Exec = False
+			Exit Function
+		End If
+
+		Set WinAPI = CreateLibObject("WinAPI")
+
+		IsSort = WinAPI.GetKeyState(16)
+		IsRev = WinAPI.GetKeyState(17)
+
+		If Not IsSort Then
+			Exec = Find(ColNo)
+		Else
+			Exec = DoSort(ColNo, IsRev)
+		End If
+	End Function
+
+	Public Function DoSort(ColNo, IsRev)
+		Dim aPrmCol, aPrm
+
+		aPrmCol = dCol(ColNo)
+		aPrm = Array(IsRev, TrList, aPrmCol(2))
+		QuickSort GetRef("sort_compare"), GetRef("sort_swap"), TrList.rows, aPrm
+
+		sgrd.SetFocus
+		sgrd.recalc
+
+	End Function
+
+	Public Function Find(ColNo)
+		Dim aPrm, SearchText, refFunc, DataType, EvalCmd, aPrmCol
+
+		aPrmCol = dCol(ColNo)
+		DataType = aPrmCol(0)
+		Set refFunc = aPrmCol(1)
+		EvalCmd = aPrmCol(2)
+
+		SearchText = InputBox("Введите значения для поиска:", "Поиск в таблице", sgrd.Cell(sgrd.Row, ColNo).Value)
+ 
+		If SearchText <> "" Then
+			aPrm = Array(0, UCase(SearchText), ColNo, DataType, EvalCmd)
+
+			If refFunc Is Nothing Then
+				TrList.EnumTrans GetRef("Form_sgrdFindOneRow"), aPrm
+			Else
+				TrList.EnumTrans refFunc, aPrm
+			End If
+	
+			Find = (aPrm(0) <> 0)
+
+			If aPrm(0) = 0 Then 	
+				MsgBox "Ничего не найдено", vbExclamation, "Поиск в таблице"
+			Else
+				sgrd.SetFocus
+				sgrd.DeferSetPos aPrm(0), ColNo
+				sgrd.recalc
+			End If
+		End If
+	End Function
+End Class
+'---
+'
+'---
+Function Sort_Compare(Row1, Row2, aPrm)
+	Dim Res, TrList, Tr, RowVal1, RowVal2, EvalCmd
+
+	Set TrList = aPrm(1)
+	EvalCmd = aPrm(2)
+
+	Set Tr = TrList.Item(Row1 + 1)
+	RowVal1 = Eval(EvalCmd)
+
+	Set Tr = TrList.Item(Row2 + 1)
+	RowVal2 = Eval(EvalCmd)
+
+	Res = (RowVal2 > RowVal1)
+
+	'If aPrm(0) Then Res = Not Res
+	Sort_Compare = Res
+End Function 
+'---
+'
+'---
+Sub Sort_swap(Row1, Row2, aPrm)
+	Dim TrList
+
+	Set TrList = aPrm(1)
+	TrList.SwapRows Row1 + 1, Row2 + 1
+End Sub
+'---
+'
+'---
+Function Form_sgrdFindOneRow(Tr, ByRef aPrm)
+	Dim EvalCmd, IsFind
+
+	EvalCmd = aPrm(4)
+	Form_sgrdFindOneRow = True
+
+	Select Case aPrm(3)
+		Case vbString
+			IsFind = (InStr(UCase(Eval(EvalCmd)), aPrm(1)) > 0)
+
+		Case vbDate
+			If IsDate(CDate(aPrm(1))) Then
+				IsFind = (Eval(EvalCmd) = CDate(aPrm(1)))
+			Else
+				IsFind = False
+			End If
+
+		Case vbLong
+			IsFind = (Eval(EvalCmd) = str2Long(aPrm(1)))
+
+		Case vbCurrency, vbDouble
+			IsFind = (Eval(EvalCmd) = str2dbl(aPrm(1)))
+
+	End Select
+
+	If IsFind Then
+		aPrm(0) = Tr.RowNo2
+		Form_sgrdFindOneRow = False
+	End If
+
+End Function
+'---
+'
+'---

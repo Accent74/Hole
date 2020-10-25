@@ -1,0 +1,40 @@
+Option Explicit
+
+Function IsUserInGroup(GroupName)
+	Dim i, aGrps, Grp
+
+	IsUserInGroup = False
+	aGrps = Workarea.UserGroups
+
+	If UBound(aGrps) = -1 Then 
+		IsUserInGroup = True
+	Else
+		For Each Grp In aGrps
+			If UCase(Grp) = UCase(GroupName) Or UCase(Grp) = "ADMINS" Then
+				IsUserInGroup = True
+				Exit Function
+			End If
+		Next
+	End If
+End Function
+
+Function IsUserNotInGroup(GroupName)
+	Dim i, aGrps, Grp
+
+	IsUserNotInGroup = True
+	aGrps = Workarea.UserGroups
+
+	If UBound(aGrps) <> -1 Then 
+		For Each Grp In aGrps
+
+			If UCase(grp) = "ADMINS" Then 
+				IsUserNotInGroup = True
+				Exit For
+			End If
+
+			If UCase(Grp) = UCase(GroupName) Then
+				IsUserNotInGroup = False
+			End If
+		Next
+	End If
+End Function

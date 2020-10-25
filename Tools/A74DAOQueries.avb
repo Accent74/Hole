@@ -1,0 +1,65 @@
+Option Explicit
+
+'#include "ST74_XML.avb"
+
+
+Sub SaveQueries
+	Dim oXml, xmlRoot, i, QD, xmlQuery
+	
+	Set oXml = New XML
+	
+	If oXml.Create() Then 
+		Set xmlRoot = oXml.xml.CreateElement("queries")
+		
+		With Workarea.DAODataBase.QueryDefs
+			For i = 0 To .count - 1
+				Set QD = .Item(i)
+			
+				Set xmlQuery = oXml.xml.CreateElement("query")
+				xmlQuery.SetAttribute "name", QD.name
+				xmlQuery.text = QD.SQL
+		
+				xmlRoot.AppendChild xmlQuery
+			Next
+		End With
+		
+		oXml.xml.InsertBefore xmlRoot, Null
+		oXml.Save "A74Queries.xml", "*.xml"
+	End If
+End Sub
+
+Sub RepairQueries
+	Dim oXml, xmlRoot, i, QD, DB, xmlQuery, dQueries
+	
+	Set oXml = New XML
+	
+	If oXml.Create() Then 
+		oXml.xmlFileName = "A74Queries.xml"
+
+		If oXml.Load() Then
+			Set dQueries = CreateLibObject("Map")
+
+			Set DB = workarea.DAODAtabase
+
+			With DB.QueryDefs
+				For i = 0 To .Count - 1
+					With .Item(i)
+						dQueries(.Name) = .SQL
+					End With
+				Next
+			End With
+
+			Set xmlRoot = oXml.xml.ChildNodes.item(0).ChildNodes
+
+			For i = 0 To xmlRoot.Length - 1
+				Set xmlQuery = xmlRoot.Item(i)
+				If Not dQueries.exists(xmlQuery.GetAttribute("name")) Then
+					Set QD = DB.CreateQueryDef(xmlQuery.GetAttribute("name"), xmlQuery.text)
+				End If
+			Next
+		End If
+
+	End If	
+End Sub
+
+RepairQueries

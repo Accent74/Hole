@@ -1,0 +1,126 @@
+<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders>
+		<folder ID="583" GUID="{guid {C1B4CA87-87FB-4F2C-8C89-566CF75F7888}}" Name="Основные средства" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="588" GUID="{guid {932035E2-7C84-4A9D-BD3A-249EE3460868}}" Name="6. ОС. Вывод из эксплуатации" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+				<folder ID="613" GUID="{guid {CD74217A-95EB-448D-A702-ADCF21720EA7}}" Name="6.1. ОС. Вывод из эксплуатации для продажи" FormID="0" FormGUID="" Tag="" TID="1928" TGUID="{guid {F37E3ED9-2D18-44FF-86A3-71984B102290}}" Type="0"/>
+			</folder>
+		</folder>
+	</AccentFolders>
+	<AccentTemplates>
+		<template GUID="{guid {10608E95-1D21-431D-9F0E-B1240B23EBCE}}" ID="1901" Memo="" Name="ОС. Основные средства" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+			<template GUID="{guid {B90CBA49-3AC0-4FD9-A19E-B1CD28422086}}" ID="1927" Memo="" Name="ОС. Вывод из эксплуатации" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+				<template GUID="{guid {F37E3ED9-2D18-44FF-86A3-71984B102290}}" ID="1928" Memo="" Name="ОС. Вывод ОС из эксплуатации для продажи" Tag="" Type="1" FormID="929" FormGUID="{guid {98D0CD2E-DA6C-4FB2-AE37-8735B521D904}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 929
+  op.SetFolder 613
+  op.Name = &quot;ОС. Вывод ОС из эксплуатации для продажи&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 522
+  op.TransList(2).SetAccCr 142
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {98D0CD2E-DA6C-4FB2-AE37-8735B521D904}}
+  op.SetFolder {guid {CD74217A-95EB-448D-A702-ADCF21720EA7}}
+  op.Name = "ОС. Вывод ОС из эксплуатации для продажи"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {D01D1A88-B7FB-4FC2-9964-D7C298FA4869}}
+  op.TransList(2).SetAccCr {guid {D9D0C650-AD87-470C-A4CE-B412C10D7634}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+					<parameters>
+						<parameter Name="Изменен" Type="7" RefKind="0" Value2="4/26/2017 11:51:33 AM"/>
+					</parameters>
+				</template>
+			</template>
+		</template>
+	</AccentTemplates>
+	<AccentEntities/>
+	<AccentMiscs/>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts>
+		<account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo="">
+			<account ID="194" GUID="{guid {BB96D902-589B-43FA-807E-AA98A421C219}}" Code="28" Name="Товары" PlanID="70" SaldoType="0" Tag="SYS194" Type="0" Memo="">
+				<account ID="522" GUID="{guid {D01D1A88-B7FB-4FC2-9964-D7C298FA4869}}" Code="286" Name="Необоротные активы и группы выбытия,предназначенные для продажи" PlanID="70" SaldoType="0" Tag="" Type="1" Memo=""/>
+			</account>
+			<account ID="140" GUID="{guid {C13EB2D8-2AAD-4691-BE58-61D64A4682F8}}" Code="13" Name="Износ (амортизация) необоротных активов" PlanID="70" SaldoType="0" Tag="SYS140" Type="1" Memo="">
+				<account ID="141" GUID="{guid {7D1FE7F5-1BD4-4DA1-9704-20BB4EA89370}}" Code="131" Name="Износ основных средств" PlanID="70" SaldoType="0" Tag="SYS141" Type="1" Memo="">
+					<account ID="142" GUID="{guid {D9D0C650-AD87-470C-A4CE-B412C10D7634}}" Code="1313" Name="Износ ОС по счету 103" PlanID="70" SaldoType="0" Tag="SYS142" Type="1" Memo=""/>
+				</account>
+			</account>
+		</account>
+	</AccentAccounts>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms>
+		<form ANID="96" FileName="HL74_AssetsInternalMoving.afm" ID="929" Name="ОС. Акт приема передачи основных средств" ShortName="ОАП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {98D0CD2E-DA6C-4FB2-AE37-8735B521D904}}"/>
+	</AccentForms>
+	<AccentAutoNum>
+		<AutoNum ID="96" PR="" SF="" NAME="ОС. Акт приема-передачи"/>
+	</AccentAutoNum>
+</AccentExportData>

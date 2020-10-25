@@ -1,0 +1,37 @@
+Option Explicit
+
+'#include "HL74_Const.avb"
+
+Sub HL74_CashPrintProps()
+	Dim MscID, Msc, Dlg, MscIDEQ, MscEQ
+
+	If CreateLibObject("WinAPI").GetKeyState(16) Then Exit Sub ' 16 - acShift
+
+	Workarea.Map("Result") = False
+	MscID = Workarea.Map("KindID")
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+
+		If Not Msc Is Nothing Then
+			With Workarea.Params
+				If .Exists(prmDBCashPrint) Then
+					MscIDEQ = .Item(prmDBCashPrint)
+
+					If MscIDEQ <> 0 Then
+						Set MscEQ = Workarea.Misc(MscIDEQ)
+
+						If Not MscEQ Is Nothing Then
+							If MscEQ.MscNo = Msc.MscNo Then
+								Set Dlg = App.CreateDialog("HL74_CashPrint.adg")
+								Dlg.DoModal
+								Workarea.Map("Result") = True
+							End If
+						End If
+					End If
+				End If
+			End With
+		End If
+	End If
+
+End Sub

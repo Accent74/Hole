@@ -1,0 +1,40 @@
+'#include "HL74_XML.avb"
+
+Option Explicit
+
+Dim Order, Tml, TmlXml, oXML
+Dim TasksNode, NextTasksNode
+	
+Set Order = Workarea.misc(Workarea.Site.ID)
+
+If Order.String2 <> "" Then
+	'	статус поменялся, нужно обработать
+	Set Tml = Workarea.Template(Order.Long3)
+	
+	TmlXml = LCase(Tml.GetScript)
+	
+	Set oXML = New XML
+	
+	If oXml.Create() Then
+		oXml.Xml.LoadXML TmlXml
+		
+		If oXml.xml.ParseError.errorcode = 0 Then
+			' текущая задача с определенным статусом
+			Set TasksNode = oXml.xml.selectnodes("//process/tasks/task[@id='" & Order.String3 & "']").item(0)
+
+			If Not TasksNode Is Nothing Then
+				' ищем статус
+				Set NextTasksNode = TasksNode.SelectNodes("//task/if[@stat='" & Order.String2 & "']").Item(0)
+				If Not NextTasksNode Is Nothing Then
+					stop
+
+					Select Case NextTasksNode.GetAttribute("stat")
+						Case "check"
+							
+					End Select
+
+				End If
+			End If
+		End If
+	End If
+End If

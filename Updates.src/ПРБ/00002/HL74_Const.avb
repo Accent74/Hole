@@ -1,0 +1,59 @@
+'--- наименование переменных в Workarea.Map
+Const mapWACurrentOperation = "CurrentOperation"
+
+'--- параметры базы данных
+Const prmDBCostItem 		= "Статья затрат"
+Const prmDBAgree 			= "Договора"
+Const prmDBCond 				= "Причины списания"
+Const prmDBOrder 			= "Приказы"
+Const prmDBMovingType 	= "Вид перевозок"
+Const prmDBBudget			=	"Статьи бюджета"
+Const prmDBPositionList	=	"Штатное расписание"
+Const prmDBIncomeStat		=	"Статьи декларации о прибыли"
+Const prmDBObj = "Объекты СМР"
+	
+'--- параметры корреспондентов
+Const prmAgDefPrice 	= "Цена по умолчанию"
+Const prmAgBossName 	= "Генеральный директор"
+Const prmAgBuhame 		= "Главный бухгалтер"
+Const prmAgCashier 		= "Кассир"
+Const prmAgAlterName 	= "Полное наименование"
+
+'--- факты корреспондентов
+Const fctAgPosition = "Должность"
+Const fctAgAlterName = "Полное наименование"
+Const fctAgSalary = "Оклад"
+'--- типы корреспондента
+Const atWorker				= 3
+
+'---- параметры шаблона
+Const prmTMLPriority = "Приоритет проведения"
+
+
+'--- параметры проводки
+Const prmTrMemo 				= "Примечание"
+Const prmTrDataDocOsn		= "Дата документа-основания"
+Const prmTrSum 				= "Сумма"
+Const prmTrAddPrice 		= "Наценка"
+Const prmTrPercent 			= "Процент"
+Const prmTrPrice 			= "Цена"
+Const prmTrWeight 			= "Вес"
+Const prmTrCode 				= "Код"
+Const prmTrQty 				= "Количество"
+Const prmTrSign 				= "Признак"
+
+'--- наименование логотипа в документах по умолчанию
+Const LogoFileName = "logo.gif"
+
+'--- параметры объектов учета
+Const prmEntAlterName = "Наименование для документов"
+Const prmEntWeight = "Вес"
+
+Const prmFormColontiTles = "Колонтитулы"
+Const prmFormPrintMargin = "Границы печати"
+Const prmFormMargin = "Границы колонтитулов"
+
+'--- счета для учета исходящих и входящих счет-фактур
+Const ACC_INVOIVE_OUT = "СФИ"
+Const ACC_INVOIVE_INP = "СФВ"
+

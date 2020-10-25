@@ -1,0 +1,12 @@
+Option Explicit
+
+Dim Dlg
+
+Set Dlg = App.CreatePropSheet
+
+Dlg.WizardMode = True
+Dlg.AddPage "ST7_StartBalance1.adg"
+Dlg.AddPage "ST7_StartBalance2.adg"
+Dlg.AddPage "ST7_StartBalance3.adg"
+
+Dlg.DoModal

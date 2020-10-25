@@ -1,0 +1,38 @@
+Option Explicit
+
+Workarea.DAODataBase.QueryDefs.Delete "St7_TaxOutDocs"
+Workarea.DAODataBase.QueryDefs.Delete "St7_TaxInDocs"
+
+AddQueryDAO "St7_TaxOutDocs", _
+					"PARAMETERS Acc361ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;" & _
+					"Select AG_CODE, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM) " & _
+					"FROM ((JRN_TAX AS JT INNER Join JOURNAL AS J On J.J_ID = JT.J_ID) INNER Join DOCUMENTS AS D On D.DOC_ID = J.DOC_ID) INNER Join AGENTS AS A On A.AG_ID = J.J_AG1 " & _
+					"WHERE JT.TX_ID = TaxRepID And JT_ADDR1 = 'Д.А.' And J.MC_ID = MCID  And J_DATE >= StartDate And J_DATE < EndDate And  J_DONE = 2 And ACC_DB in (select id from acc_tree where Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7)) " & _
+					"GROUP BY AG_CODE, AG_NAME, J_DATE, DOC_NO;"
+
+AddQueryDAO "ST7_TaxInDocs", _
+					"PARAMETERS Acc631ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;" & _
+					"Select AG_CODE, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM) " & _
+					"FROM ((JRN_TAX AS JT INNER Join JOURNAL AS J On J.J_ID = JT.J_ID) INNER Join DOCUMENTS AS D On D.DOC_ID = J.DOC_ID) INNER Join AGENTS AS A On A.AG_ID = J.J_AG2 " & _
+					"WHERE JT.TX_ID = TaxRepID And JT_ADDR1 = 'Д.А.' And J.MC_ID = MCID And J_DATE >= StartDate And J_DATE < EndDate And  J_DONE = 2 And ACC_CR in (select id from acc_tree where Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7)) " & _
+					"GROUP BY AG_CODE, AG_NAME, J_DATE, DOC_NO;"
+
+'---
+'
+'---
+Sub AddQueryDAO(QueryName, QueryText)
+	Dim QD
+
+	On Error Resume Next
+
+	Set QD = Workarea.DAODAtaBase.CreateQueryDef(QueryName, QueryText)
+
+	If Err.Number = 0 Then
+		MsgBox Join(Array("В базу данных добавлена процедура:", QueryName, "SQL:", QueryText), " "), vbInformation, "Добавление запроса"
+	Else
+		MsgBox Join(Array("Ошибка", Err.Description, "(", Err.Number, ")", "при добавлении процедуры в базу данных:", QueryName, "SQL:", QueryText), " "), vbCritical, "Внимание !"
+	End If
+
+	Err.Clear
+End Sub
+

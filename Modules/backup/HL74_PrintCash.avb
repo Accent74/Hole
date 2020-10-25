@@ -1,0 +1,77 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Печать чека на ЭККА"
+Const MSG_ERROR_NO_PROCEDURE = "Не указана процедура для печати чека"
+
+Dim PrintCash_MscNo
+
+'---
+'
+'---
+Sub PrintCash_PrintCheck(Op, Msc)
+	Dim prm, prmData, prmPrinter
+
+	If Msc.String1 <> "" Then
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, 1, 3)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_DoPrintCheck", prm
+	Else
+		MsgBox "Не указана процедура для печати чека", vbCritical, "Печать чека на ЭККА"
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_CheckToolBar(Tr, Toolbar, PrintCash_MscNo)
+	Dim Btn
+
+	Set Btn  = Toolbar.ItemByCommand(9)
+
+	If Not Btn Is Nothing Then
+		Btn.Enabled = False
+
+		If PrintCash_MscNo <> 0 Then
+			If Tr.MiscID(PrintCash_MscNo) <> 0 Then
+				Btn.Enabled = True
+			End If
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_MakeReport(RepType, RepPeriod, IsFullPeriod, IsFullView, StartNo, EndNo, Msc)
+	Dim prm
+
+	If Msc.String1 <> "" Then
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(RepType, IsFullView, IsFullPeriod, RepPeriodStart, StartNo, EndNo)
+
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_PrintReport", prm
+	Else
+		MsgBox MSG_ERROR_NO_PROCEDURE, vbCritical, MSG_BOX_CAPTION
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintNullCheck(Msc)
+	Dim prmPrinter
+
+	If Msc.String1 <> "" Then
+		prmPrinter = Array(Msc, "", 0)
+		App.RunModule Msc.String1, "PrintCash_PrintNullCheck", prmPrinter
+	End If
+End Sub
+'---
+'
+'---
+
+

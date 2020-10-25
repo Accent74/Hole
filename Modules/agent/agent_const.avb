@@ -1,0 +1,102 @@
+Option Explicit
+
+Const EXPORT_PATH = "\\win1\Dropbox\Dropbox\Приложения\MobileSales\"
+'Const EXPORT_PATH = "d:\Dropbox\Dropbox\Apps\MobileSales\"
+
+Const TML_FORM_1 = 3221
+Const TML_FORM_2 = 3222 
+Const prmTMLOrder = "Агент:Шаблон для заказов"
+
+Const MSC_AGREE_ROOT = 8198			'	корень договоров для мобильной торговли
+'Const MSC_AGREE_ROOT = 8152			'	корень договоров для мобильной торговли
+Const MSC_AGENT_ROOT = 72
+Const MSC_REAL_AGREE_ROOT = 6368			'	корень договоров для мобильной торговли
+
+
+'---- ОУ
+Const prmEntHideInOrder = "Агент:не показывать в заказе"
+Const prmEntHideInStorcheck ="Агент:не показывать в сторчеке"
+Const prmEntHideInreturn ="Агент:не показывать в возвратах"
+Const prmEntBGColor ="Агент:цвет фона"
+Const prmEntTextColor ="Агент:цвет текста"
+Const prmEntInTopList ="Агент:показывать как приоритетный"
+
+'---- корреспондент
+	'---- Шаблоны
+Const prmAgTasks = "Агент:Шаблон.Задачи"
+Const prmAgOrders = "Агент:Шаблон.Заказы"
+Const prmAgReturns = "Агент:Шаблон.Возвраты"
+Const prmAgRests = "Агент:Шаблон.Остатки"
+Const prmAgInvent = "Агент:Шаблон.Инвентаризация"
+Const prmAgCash = "Агент:Шаблон.Кассовые ордера"
+Const prmAgStorCheck = "Агент:Шаблон.Сторчеки"
+
+'---- Справочники
+Const prmAgEntsRoot = "Агент:Папка ОУ"
+Const prmAgAgsRoot = "Агент:Папка покупателей"
+Const prmAgStoreRoot = "Агент:Папка складов"
+Const prmAgAgreeRoot = "Агент:Папка договоров"
+Const prmAgAccStore = "Агент:Счет для остатков"
+
+'---- Подшивки
+Const prmAgBinderCredit = "Агент:кредитовые договора"
+Const prmAgBinderOrders = "Агент:заказы"
+Const prmAgBinderCashOrders = "Агент:кассовые ордера"
+Const prmAgBinderStorCheck = "Агент:сторчеки"
+Const prmAgBinderReturns = "Агент:возвраты"
+
+'---- GPS
+Const prmAgGetCoordInterval = "Агент:Интервал снятие координат"
+Const prmAgTrackTimeStart = "Агент:время начала трека"
+Const prmAgTrackTimeEnd = "Агент:время окончания  трека"
+Const prmAgTrackDays = "Агент:дни недели для снятия трека"
+
+'---- Запреты/Разрешения
+Const prmAgPackControl = "Агент:Контроль фасовки"
+Const prmAgDebtsControl = "Агент:Контроль задолженности"
+Const prmAgStorCheckControl = "Агент:Контроль снятия сторчека"
+Const prmAgBanChengePrice = "Агент:Запрет изменения цены"
+Const prmAgBanSettings = "Агент:запрет на изменение настроек"
+Const prmAgBanNewBuyer = "Агент:запретить создание новых контрагентов"
+Const prmAgBanClosedDocs = "Агент:запретить изменять документы с чеком"
+Const prmAgUseInventoryFroUpdatesRest = "Агент:разрешить акту инвентаризации менять остатки"
+
+'---- Общие
+Const prmAgPDFCompanyame = "Агент:наименование фирмы для вывода в PDF"
+Const prmAgCurrencyName = "Агент:название валюты"
+Const prmAgBlockingPriority = "Агент:блокирующий приоритет"
+Const prmAgMaxDBLifetime = "Агент:макс. время жизни архивных копий БД"
+Const prmAgStoreCheckOnTouch = "Агент:снимать сторчек в одно касание"
+Const prmAgUseOneReason = "Агент:использовать одну причину возврата на документ"
+Const prmAgGarantDelivery = "Агент:гарантированная доставка"
+
+
+'---- Связь
+Const prmAgFTPserver = "Агент:имя сервера FTP"
+Const prmAgFTPLogin = "Агент:имя пользователя FTP"
+Const prmAgFTPPass = "Агент:пароль пользователя FTP"
+Const prmAgFTPFolder = "Агент:директория FTP"
+Const prmAgMsgServerName = "Агент:имя сервера сообщений"
+Const prmAgMsgServerPortNo = "Агент:порт сервера сообщений"
+Const prmAgFTPEMail = "Агент:резервный Email для FTP"
+Const prmAgMsgServerGroup = "Агент:имя сервера сообщений"
+
+'---- Номенклатура
+Const prmAgEntsShowBar = "Агент:показывать штрих код в названии номенклатуры"
+Const prmAgNoEntsWORests = "Агент:пропускать номенклатуру без остатка"
+Const prmAgBanManualPriceChange = "Агент:запретить ручное изменение цен"
+Const prmAgBanDiscountChange = "Агент:запретить ручное изменение скидки"
+Const prmAgMaxOrdersNotLoaded = "Агент:макс. кол-во невыгруженных заказов"
+Const prmAgRedAfterCount = "Агент:остаток меньше которого отображать красным"
+Const prmAgSortEnts = "Агент:сортировать номенклатуру на устройстве"
+
+'---- POS
+Const prmAgBanOrdersOutside = "Агент:запретить оформлять заказы не в POS"
+Const prmAgBanPOSCoord = "Агент:запретить изменять координаты POS"
+Const prmAgBanPOSData = "Агент:запретить изменять данные POS"
+
+'---- Поддержка
+Const prmAgSupportEMail = "Агент:EMail поддержки приложения"
+Const prmAgSupportPhone = "Агент:телефон поддержки приложения"
+Const prmAgSupportSkype = "Агент:скайп поддержки приложения"
+

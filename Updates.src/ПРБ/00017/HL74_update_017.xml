@@ -1,0 +1,21 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs>
+		<misc ID="191" GUID="{guid {EC90E60D-6460-4AD9-A465-B5B84DA13434}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="28" Name="Виды налогообложения" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1">
+			<misc ID="192" GUID="{guid {CE1F9FD7-3244-483F-953E-BA5C10015DA6}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="28" Name="Единый налог 1 группа" RefFolderID="0" RefKind="0" String1="ЕН1" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+			<misc ID="193" GUID="{guid {98C74F78-CB96-4C3B-8C8E-99AC6C7A2A51}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="6" Long2="10" Long3="0" Memo="" MscNo="28" Name="Единый налог 2 группа" RefFolderID="0" RefKind="0" String1="ЕН2" String2="" String3="" Sum1="1000000" Sum2="0" Sum3="0" Tag="" Type="1"/>
+			<misc ID="194" GUID="{guid {B067A687-905A-4577-A19B-94B29F83521F}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="3" Long2="0" Long3="0" Memo="" MscNo="28" Name="Единый налог 3 группа" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+			<misc ID="195" GUID="{guid {52A8B0FE-F109-4A03-9D65-6122478F0C46}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="28" Name="Общая система налогообложения" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/>
+		</misc>
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+</AccentExportData>

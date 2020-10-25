@@ -1,0 +1,18 @@
+Option Explicit
+
+Dim PropSheet
+
+Set PropSheet = App.CreatePropSheet
+
+	With PropSheet
+		.Caption = "Свойства предприятия " & WorkArea.Agent(WorkArea.map("MyCompanyID")).Name & ", от имени которого ведется учет"
+		.WizardMode = False
+
+		.AddPage "HL74_MC_1.adg"
+		.AddPage "HL74_MC_2.adg"
+		.AddPage "HL74_MC_3.adg"
+
+		.DoModal
+	End With
+
+WorkArea.Window.Refresh

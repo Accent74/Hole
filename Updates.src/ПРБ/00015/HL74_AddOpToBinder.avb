@@ -1,0 +1,26 @@
+'#include "HL74_ADO.avb"
+Option Explicit
+
+Sub HL74_AddOpToBinder(Op)
+	Dim aData, SQL, i, Bnd
+
+	SQL = "select bind_id from bind_tml where tml_id=" & Op.TemplateID
+
+	If GetRs2(SQL, aData) Then
+		For i = 0 To UBound(aData, 2)
+			Set Bnd = Workarea.Binder(aData(0, i))
+			If Not Bnd Is Nothing Then
+				Bnd.AddOperation Op.ID
+			End If
+		Next
+	End If
+End Sub
+
+Sub HL74_SetBindersDlg
+	Dim Dlg
+
+	Set Dlg = App.CreateDialog("HL74_SetBinders.adg")
+	Dlg.Map("TmlID") = workarea.Map("KindID")
+	Dlg.DoModal		
+	
+End Sub

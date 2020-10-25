@@ -1,0 +1,69 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+
+Sub Log_CreateItem()
+	If workarea.map("LOG") Then Log_AddEvent "I" 
+End Sub
+
+Sub Log_UpdateItem()
+	If workarea.map("LOG") Then Log_AddEvent "U" 
+End Sub
+
+Sub Log_AddEvent(EventAction)
+	Dim KindID, SQL, Kind, aKinds, ErrorMsg
+	Dim System
+
+	Set System = CreateLibObject("System")
+	Kind = CLng(workarea.map("Kind"))
+	KindID = CLng(workarea.map("KindID"))
+	Workarea.Map("Result") = True
+
+	aKinds = Array("", "F", "A", "G", "E", "M", "B", "T", "D")
+
+	If App.AppType = "DAO" Then
+		SQL = "insert into sys_log (log_date, uid, item, action, item_id, item_str2, item_str1, item_name) values (now(), '"
+		SQL = SQL & workarea.dbuser() & "', '" & aKinds(Kind) & "', '" & EventAction & "', " & KindID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						GetKindName(aKinds(Kind), KindID) & "')"
+	Else
+		SQL = "insert into sys_log (log_date, uid, item, sys_action, item_id, item_str2, item_str1, item_name) values (getdate(), "
+		SQL = SQL & "1 , '" & aKinds(Kind) & "', '" & EventAction & "', " & KindID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						GetKindName(aKinds(Kind), KindID) & "')"
+	End If
+
+	ExecQuery SQL, ErrorMsg
+
+End Sub
+
+Function GetKindName(ItemCode, ItemID)
+	Dim El
+
+	GetKindName = ""
+
+	If ItemID = 0 Then Exit Function
+		
+	Select Case ItemCode
+		Case "F"
+			Set El = workarea.folder(ItemID)
+		Case "A"
+			Set El = workarea.Account(ItemID)
+		Case "G"
+			Set El = workarea.Agent(ItemID)
+		Case "E"
+			Set El = workarea.Entity(ItemID)
+		Case "M"
+			Set El = workarea.Misc(ItemID)
+		Case "B"
+			Set El = workarea.Binder(ItemID)
+		Case "T"
+			Set El = workarea.template(ItemID)
+		Case "D"
+			Set El = workarea.Operation(ItemID)
+	End Select
+
+	If el Is Nothing Then
+		GetKindName = "ID: " & ItemID
+	Else
+		GetKindName = El.Name
+	End If
+
+End Function

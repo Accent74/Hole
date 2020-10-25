@@ -1,0 +1,95 @@
+Option Explicit
+
+Const CHECK_TEXT = "' копируем аналитику, если она есть"
+Const END_TEXT = "'}} END_BEFORESAVE"
+
+Dim i, j, Tml, TmlRoot
+
+With workarea.templates
+	For i = 1 To .Count
+		Set TmlRoot = .Item(i)
+
+		If TmlRoot.Type = 0 Then 
+			With TmlRoot.Nested
+				For j = 1 To .count
+					Set Tml = .Item(j)
+					If Tml.Type = 1 Then UpdateScript Tml
+				Next
+			End With
+		Else
+			UpdateScript TmlRoot
+		End If
+	Next
+End With
+
+Sub UpdateScript(Tml)
+	Dim TmlScript, pos
+
+	TmlScript = Tml.GetScript
+
+	If InStr(TmlScript, CHECK_TEXT) = 0 Then
+		Pos = InStr(TmlScript, END_TEXT)
+
+		If Pos = 0 Then 
+			TmlScript = TmlScript & GetAddScript(1)
+		Else
+			Pos = Pos + Len(END_TEXT)
+
+			TmlScript = Left(TmlScript, Pos) & vbNewLine & _
+									GetAddScript(2) & vbNewLine & _
+								Mid(TmlScript, Pos + 1)
+		End If
+
+		Tml.SetScript TmlScript
+
+	End If
+End Sub
+
+Function GetAddScript(Mode)
+	Select Case Mode
+		Case 1
+			GetAddScript = _
+			"Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)"& vbCrLf & _
+			"  '{{ BEGIN_BEFORESAVE" & vbCrLf & _
+			"  '}} END_BEFORESAVE" & vbCrLf & _
+			"	' копируем аналитику, если она есть" & vbCrLf & vbCrLf & _
+			"	Dim i, j, nTransList, MscID" & vbCrLf & vbCrLf & _
+			"	With workarea.miscs" & vbCrLf & _
+			"		nTransList = Op.TransCount" & vbCrLf & _
+			"		For i = 1 To .count" & vbCrLf & _
+			"			With .Item(i)" & vbCrLf & _
+			"				MscID = Op.Trans(1).MiscID(.MscNo)" & vbCrLf & _
+			"				If MscID <> 0 Then" & vbCrLf & _
+			"					For j = 2 To nTransList" & vbCrLf & _
+			"						Op.TransList(j).SetMisc .MscNo, MscID" & vbCrLf & _
+			"					Next" & vbCrLf & _
+			"				End If" & vbCrLf & _
+			"			End With" & vbCrLf & _
+			"		Next" & vbCrLf & _
+			"	End With" & vbCrLf & vbCrLf & _
+			"	If not Workarea.Map(""OpTagEval"") then exit Sub" & vbCrLf & _
+			" 	With Workarea.Template(Op.TemplateID)" & vbCrLf & _
+			"		If .Memo <> """" Then Op.Tag = Eval(.Memo)" & vbCrLf & _
+			" 	End With" & vbCrLf & _
+			"End Sub"& vbCrLf
+
+		Case 2
+			GetAddScript = vbCrLf & _
+			"	' копируем аналитику, если она есть" & vbCrLf & vbCrLf & _
+			"	Dim i, j, nTransList, MscID" & vbCrLf & vbCrLf & _
+			"	With workarea.miscs" & vbCrLf & _
+			"		nTransList = Op.TransCount" & vbCrLf & _
+			"		For i = 1 To .count" & vbCrLf & _
+			"			With .Item(i)" & vbCrLf & _
+			"				MscID = Op.Trans(1).MiscID(.MscNo)" & vbCrLf & _
+			"				If MscID <> 0 Then" & vbCrLf & _
+			"					For j = 2 To nTransList" & vbCrLf & _
+			"						Op.TransList(j).SetMisc .MscNo, MscID" & vbCrLf & _
+			"					Next" & vbCrLf & _
+			"				End If" & vbCrLf & _
+			"			End With" & vbCrLf & _
+			"		Next" & vbCrLf & _
+			"	End With" & vbCrLf & vbCrLf
+
+	End Select
+End Function

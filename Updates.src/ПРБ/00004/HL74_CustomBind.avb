@@ -1,0 +1,125 @@
+Option Explicit
+
+Class CustomBind
+	Private IsAppTypeDAO, QueryType, Columns
+	Public size, GetDataRef, MaxRows, Query
+
+	Private Sub Class_Initialize
+		IsAppTypeDAO = (App.AppType = "DAO")
+		QueryType = 1
+		size = "900;500"
+		MaxRows = 20
+
+		If IsAppTypeDAO Then
+			Query = GetQueryTextDAO()
+		Else
+			Query = ""
+		End If
+
+		Set Columns = CreatelibObject("Map")
+		Set GetDataRef = Nothing
+	End Sub
+
+	Public Sub AddColumn(ColName, ColWidth, ColAlign, ColFormat)
+		If ColWidth = 0 Then ColWidth = 100
+		If ColAlign = 0 Then ColAlign = acLeft
+		
+		Columns(Columns.Count + 1) = Array(ColName, ColWidth, ColAlign, ColFormat)
+	End Sub
+
+	Public Property Set TypeQuery(QueryTypeValue)
+		QueryType = QueryTypeValue
+
+		If IsAppTypeDAO Then
+			Query = GetQueryTextDAO()
+		Else
+			Query = ""
+		End If
+
+	End Property
+
+	Public Sub OnCustomBind(Command, Param, ByRef RetValue)
+		Select Case LCase(Command)
+			Case "size"
+	       RetValue = size
+			Case "columns"
+	       RetValue = JoinMap()
+			Case "data"
+				If Right(Param, 1) = " " Then
+					Param = RTrim(Param)
+
+					If GetDataRef Is Nothing Then
+						RetValue = GetDataStd(Param)
+					Else
+		  				RetValue = GetDataRef(Param)
+					End If
+				End If
+		End Select
+	End Sub
+	
+	Private Function JoinMap()
+		Dim i, keys, RetValue
+
+		keys = Columns.Keys
+		RetValue = ""
+
+		For i = 1 To Columns.Count
+			If RetValue <> "" Then RetValue = RetValue & ";"
+			RetValue = RetValue & Join(Columns(i), ":")
+		Next
+
+		JoinMap = RetValue
+
+	End Function
+
+	Private Function GetQueryTextDAO()
+		Select Case QueryType
+			Case 1
+				GetQueryTextDAO	= "PARAMETERS EntName Text ( 255 );" & _
+										"Select TOP 20 ENTITIES.ENT_NAME AS EntityName " &_
+										"FROM ENTITIES " &_
+										"WHERE (((ENTITIES.ENT_NAME) Like '*' & [EntName] & '*')) " &_
+										"ORDER BY ENTITIES.ENT_NAME;"
+		End Select
+	End Function
+
+	Private Function GetDataStd(Text)
+		Dim QD, Rs, MaxRec, aData
+
+		If IsAppTypeDAO Then
+			Set QD = WorkArea.DAODataBase.CreateQuerydef("")
+			QD.SQL = GetQueryTextDAO()
+
+			Select Case QueryType	
+				Case 1
+					QD.Parameters(0).Value = Text
+			End Select
+
+			Set Rs = QD.OpenRecordSet
+
+			If Not Rs.EOF Then
+				Rs.MoveLast
+				MaxRec = Rs.RecordCount
+				Rs.MoveFirst
+				aData = Rs.GetRows(MaxRec)
+			Else
+				aData = Array()
+			End If
+
+		Else
+			Select Case QueryType
+			End Select
+		End If
+
+		If UBound(aData) <> -1 Then
+			If UBound(aData, 2) = MaxRows  Then aData(0, MaxRows) = "..."
+		End If
+
+		GetDataStd = aData
+	End Function
+
+	Private Sub Class_Terminate
+		
+	End Sub
+
+End Class

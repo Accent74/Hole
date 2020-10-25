@@ -1,0 +1,64 @@
+Option Explicit
+
+Class DummyAg
+	Public Ag
+
+	Private Sub Initialize()
+		Set Ag = Nothing
+
+	End Sub
+
+	Public Property Let ID(AgID)
+		Set Ag = Workarea.Agent(AgID)
+	End Property
+
+	Public Property Get AlterName
+		If Ag Is Nothing Then
+			AlterName = ""
+		Else
+			AlterName = com_getparamvalue(Ag, prmAgAlterName, Me.Name)
+		End If
+	End Property 
+
+	Public Property Get Name
+		If Ag Is Nothing Then
+			Name = ""
+		Else
+			Name = Ag.Name
+		End If
+	End Property 
+
+	Public Property Get RegNo
+		If Ag Is Nothing Then
+			RegNo = ""
+		Else
+			RegNo = Ag.RegNo
+		End If
+	End Property 
+
+	Public Property Get Code
+		If Ag Is Nothing Then
+			Code = ""
+		Else
+			Code = Ag.Code
+		End If
+	End Property 
+
+	Public Property Get Address
+		If Ag Is Nothing Then
+			Address = ""
+		Else
+			Address = Ag.Address
+		End If
+	End Property 
+
+	Public Property Get Phone
+		If Ag Is Nothing Then
+			Phone = ""
+		Else
+			Phone = Ag.Phone
+		End If
+	End Property 
+
+
+End Class

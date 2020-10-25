@@ -1,0 +1,737 @@
+'#include "Cipher_class.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_AssistantLog.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_Forms.avb"
+
+Option Explicit
+
+'---
+'
+'---
+Sub LoadOpToTCD(aPrm)
+	Dim C8001, Op
+
+	Set Op = aPrm(0)
+
+	Set C8001 = New Cipher
+	C8001.SetMsc Op.TemplateID
+	C8001.SethLog New htmlog, aPrm(1)	
+	C8001.ShowError = True
+
+	If C8001.CheckParams(Nothing) Then
+		If C8001.ConnectDef() Then
+			C8001.ClearBase 1
+			C8001.ClearData 0
+			Op.TransList(1).EnumTrans GetRef("AddRowToTCD"), C8001
+			C8001.Finish
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Function AddRowToTCD(Tr, ByRef C8001)
+	Dim aData
+
+	AddRowToTCD = True
+
+	If Not Tr.Entity Is Nothing Then	
+		aData = Array(Left(Tr.EntBind.Bar, 13), Left(Tr.EntBind.Name, 255))
+		C8001.AddRecord 1, aData
+	End If
+End Function
+'---
+'	Op, Form, TrListNo - проводка для SN, параметр для проверки количества, параметр для проверки SN
+'---
+Sub CheckOpByTCD(aPrm)
+	Dim prmNameQty, prmNameSN, TrNo, Op, C8001
+	Dim dEnt, keys, i, aData
+
+	Set Op = aPrm(0)
+	TrNo = aPrm(2)
+
+	prmNameQty = aPrm(3)
+	prmNameSN = aPrm(4)
+
+	Set C8001 = New Cipher
+	C8001.SetMsc Op.TemplateID
+	C8001.SethLog New htmlog, aPrm(1)	
+
+'	C8001.SethLog.Visible = True
+
+	If C8001.CheckParams(Nothing) Then
+		If C8001.ConnectDef() Then
+
+			Set dEnt = C8001.ReadDataMap(0, -1)
+			If Not dEnt Is Nothing Then
+				Keys = dEnt.Keys
+				Op.TransList(1).EnumTrans GetRef("ClearSNOneRow"), aPrm	
+				com_ClearTrans Op.TransList(TrNo)
+
+				For i = 0 To UBound(Keys)
+					aData = dEnt.Item(Keys(i))
+					'	0					1							2											3									4				5
+					'	штрих код,	серийный номер, 	0 - не найден 1-найден, 	список проводок куда пишем серийники,	параметр для количества	параметр для SN
+					aPrm = Array(aData(0), aData(1), 0, Op.TransList(TrNo), prmNameQty, prmNameSN)
+
+					' ищем товар с штрих кодом, для которого нет SN
+					Op.TransList(1).EnumTrans GetRef("SetSNOneRow"), aPrm
+
+					If aPrm(2) = 0 Then
+						c8001.writelog LOG_MSG_WARNING, "Из ТСД считан штрих код " & aPrm(0) & ", которого нет в документе"
+					End If
+				Next
+
+				aPrm = Array(C8001, prmNameQty, prmNameSN)
+				Op.TransList(1).EnumTrans GetRef("CheckOneRow"), aPrm
+			End If			
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Function SetSNOneRow(Tr, ByRef aPrm)
+	Dim Tr2, TrList, RowNo
+
+	SetSNOneRow = True
+
+	If Tr.EntID <> 0 Then
+		If Tr.EntBind.Bar = aPrm(0) And _
+			Tr.Params(prmTrQty).Value2 > 0 Then
+			'	если нашли ОУ по ШК и товар не весь распределен по серийным номерам
+
+			If aPrm(1) <> "" Then
+				' если серийник не пустой, добавляем строку в список проводок
+				RowNo = aPrm(3).Rows
+				If aPrm(3).Item(RowNo).EntID <> 0 Then RowNo = RowNo + 1
+				Set Tr2 = aPrm(3).Item(RowNo)
+				Tr2.Params(prmTrCode).Value = aPrm(1)
+				Tr2.EntID = Tr.EntID
+				Tr2.AgFromID = Tr.AgFromID
+				Tr2.AgToID = Tr.AgToID
+				Tr2.Qty = 1
+				Tr2.Price = Tr.Price
+				Tr.Params(aPrm(5)).Value = Tr.Params(aPrm(5)).Value2 - 1
+			End If
+
+			Tr.Params(aPrm(4)).Value = Tr.Params(aPrm(4)).Value2 - 1
+
+			aPrm(2) = 1
+			SetSNOneRow = False
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function ClearSNOneRow(Tr, ByRef aPrm)
+	ClearSNOneRow = True
+	If Tr.EntID <> 0 Then 
+		Tr.Params(aPrm(3)).Value = Tr.Qty
+		Tr.Params(aPrm(4)).Value = Tr.Qty
+	End If
+End Function
+'---
+'
+'---
+Function CheckOneRow(Tr, ByRef aPrm)
+	CheckOneRow = True
+
+	If Tr.EntID <> 0 Then
+		If Tr.Params(aPrm(2)).Value2 > 0 Then _
+			aPrm(0).writelog LOG_MSG_WARNING, "Товар " & Tr.EntBind.Name & " без серийного номера. Кол-во: " & Tr.Params(aPrm(2)).Value2
+
+		If Tr.Params(aPrm(1)).Value2 > 0 Then _
+			aPrm(0).writelog LOG_MSG_WARNING, "Товар " & Tr.EntBind.Name & " недостача в поставке. Кол-во: " & Tr.Params(aPrm(1)).Value2
+	End If
+End Function
+'---
+'	проверка отгрузки
+'---
+Sub LoadTask1
+	LoadTask 1
+End Sub
+'---
+' регистрация поступления
+'---
+Sub LoadTask2
+	LoadTask 2
+	LoadAllEnts
+	LoadAllAgents
+	workarea.map.Remove("KindID")
+End Sub
+'---
+'	заказ клиента
+'---
+Sub LoadTask3
+	LoadTask 3
+	LoadRestEnts
+End Sub
+'---
+'
+'---
+Sub LoadTask4
+	LoadTask 4
+End Sub
+'---
+'
+'---
+Function LoadTask(Command)
+	Dim C8001, Msc, MscID
+	Dim aCmd, RD, cmd
+
+	aCmd = Array("", "OrderCheck_8001.AGX", "OrderArrival_8001.AGX", "OrderSell_8001.AGX", "Inventory_8001.AGX")
+	MscID = workarea.map("KindID")
+
+	If Not IsFileExists("ag_load.exe") Or Not IsFileExists(aCmd(Command)) Then 
+		MsgBox "Не найден командный файл: ag_load.exe или файл задачи: " & aCmd(Command) & vbNewLine & _
+					"Проверьте правильность путей доступа к файлам EXE и AGX", vbExclamation, "ТСД: Загрузка задачи"
+		Exit Function
+	End If
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		Set C8001 = New Cipher
+		C8001.SethLog New htmlog, Nothing
+		C8001.ShowError = True
+
+		If C8001.CheckParams(Msc) Then
+			If C8001.ConnectDef() Then
+				If C8001.Ping Then
+					Set RD = CreateLibObject("Redirect")
+					cmd = RD.GetFullPath("ag_load.exe") & " " & RD.GetFullPath(aCmd(Command)) & "," & C8001.PortBoud & "," & C8001.Port & ",1"
+					C8001.Close
+					CreateLibObject("System").Run cmd, 0, True
+					Exit Function
+				End If
+			End If
+		End If
+
+	End If
+
+
+End Function
+'---
+'
+'---
+Sub LoadAllEnts
+	Dim SQL, i, C8001, aData, MscID, Msc, aPrm
+	Dim Mtr
+	
+	If App.AppType = "OLEDB" Then
+		SQL = "select ent_bar, ent_name from entities where isnull(ent_bar, '') <> '' and ent_type = 1004"
+	Else
+		SQL = "select ent_bar, ent_name from entities where iif(isnull(ent_bar), '', ent_bar) <> '' and ent_type = 1004"
+	End If
+	
+	If GetRs2(SQL, aData) Then
+		MscID = workarea.map("KindID")
+		
+		If MscID <> 0 Then
+			Set Msc = Workarea.Misc(MscID)
+			Set C8001 = New Cipher
+			C8001.SethLog New htmlog, Nothing
+			C8001.ShowError = True	
+
+			If C8001.CheckParams(Msc) Then
+				If C8001.ConnectDef() Then
+					If C8001.Ping Then
+						C8001.ClearBase 2
+						Set Mtr = Meter()
+						Mtr.Open "Загрузка данных ...", 0, UBound(aData, 2)
+
+						For i = 0 To UBound(aData, 2)
+							Mtr.Pos = i
+							aPrm = Array(Left(checknull(aData(0, i), ""), 13), _
+												"", _
+												Left(checknull(aData(1, i), ""), 50))
+	
+							If Not C8001.AddRecord( 2, aPrm) Then
+								c8001.writelog LOG_MSG_WARNING, C8001.ErrMsg
+								Exit For
+							End If
+						Next
+	
+						Mtr.Close
+						C8001.Finish
+						c8001.writelog LOG_MSG_INFORMATION, "Список товара загружен: " & i - 1
+						C8001.Close
+					End If
+				End If
+			End If
+		End If
+	
+	End If
+End Sub
+'---
+'
+'---
+Sub LoadAllAgents
+	Dim SQL, i, C8001, aData, MscID, Msc, aPrm
+	Dim Mtr
+	
+	If App.AppType = "OLEDB" Then
+		SQL = "select ag_code, ag_name from agents where isnull(ag_code, '') <> '' and ag_type = 1"
+	Else
+		SQL = "select ag_code, ag_name from agents where iif(isnull(ag_code), '', ag_code) <> '' and ag_type = 1"
+	End If
+	
+	If GetRs2(SQL, aData) Then
+		MscID = workarea.map("KindID")
+		
+		If MscID <> 0 Then
+			Set Msc = Workarea.Misc(MscID)
+			Set C8001 = New Cipher
+			C8001.SethLog New htmlog, Nothing
+			C8001.ShowError = True
+	
+			If C8001.CheckParams(Msc) Then
+				If C8001.ConnectDef() Then
+					If C8001.Ping Then
+						C8001.ClearBase 1
+						Set Mtr = Meter()
+						Mtr.Open "Загрузка данных ...", 0, UBound(aData, 2)
+
+						For i = 0 To UBound(aData, 2)
+							Mtr.Pos = i
+							aPrm = Array(Left(checknull(aData(0, i), ""), 12), _
+												Left(checknull(aData(1, i), ""), 50))
+	
+							If Not C8001.AddRecord(1, aPrm) Then
+								c8001.writelog LOG_MSG_WARNING, C8001.ErrMsg
+								Exit For
+							End If
+						Next
+	
+						Mtr.Close
+						C8001.Finish
+						c8001.writelog LOG_MSG_INFORMATION, "Список корреспондентов загружен: " & i - 1
+						C8001.Close
+					End If
+				End If
+			End If
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Sub LoadDocs
+	TCD_CreateOps 0
+End Sub
+'---
+'
+'---
+Sub TCD_CreateOps(TCDDocNo)
+	Dim TCD, dData, MscID, Msc, TmlID
+
+	Set TCD = New Cipher
+	TCD.SethLog New htmlog, Nothing
+	TCD.ShowError = True
+
+	MscID = workarea.map("KindID")
+		
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+	
+		If TCD.CheckParams(Msc) Then
+			If TCD.ConnectDef Then
+				If TCD.Ping Then
+					Set dData = TCD.ReadDataMap(TCDDocNo, -1)
+					TmlID = com_getparamvalue(Msc, CIPHER_PRM_TML_IN, 0)
+					If Not dData Is Nothing Then CreateOps dData, TmlID, TCD
+				End If
+			End If
+		End If
+	End If
+
+	TCD.Close
+End Sub
+'---
+'
+'---
+Sub CreateOps(dData, ByVal TmlID, TCD)
+	Dim DocNo, AgCode, aData, Tml
+	Dim dEnts, dOps, Op, RowNo, Tr, i
+	Dim Keys, OpKey, hLog
+
+	Set Op = Nothing
+	Set dEnts = CreateLibObject("Map")
+	Set Dops = CreateLibObject("Map")
+	Set hLog = TCD.htmlLog
+	Set ExMap = CreateLibObject("Map")
+
+	If Not IsNumeric(TmlID) Then 
+		TmlID = com_GetElemIDByGUID(acTemplate, TmlID)
+	Else
+		TmlID = TmlID
+	End If
+
+	Keys = dData.Keys
+	DocNo = ""
+	AgCode = ""
+
+	For i = 0 To UBound(Keys)
+		aData = dData(Keys(i))
+		OpKey = aData(0) & ":" & aData(1)
+
+		If Dops.Exists(OpKey) Then
+			Set Op = Dops.Item(OpKey)
+		Else
+			Set Op = Workarea.CreateOperation
+			Op.TemplateID = TmlID
+			Op.TemplateInvoker2.FireAll
+
+			Op.DocNo = aData(0)
+			Op.Trans(1).AgFromID = TCD.GetAgIDByCode(aData(1))
+			Set dOps.Item(OpKey) = Op
+		End If
+	
+		If aData(2) <> "" Then
+			If dEnts.Exists(aData(2)) Then
+				RowNo = dEnts(aData(2))
+			Else
+				RowNo = RowNo + 1
+				dEnts(aData(2)) = RowNo
+			End If
+
+			Set Tr = Op.Trans(1, RowNo)
+			Tr.EntID = TCD.GetEntIDByBar(aData(2))
+			Tr.Qty = Tr.Qty + str2Dbl(aData(4)) - str2Dbl(aData(5))
+
+			If aData(3) <> "" Then
+				Tr.SeriesID = TCD.GetSeriesIDBySN(aData(3), Tr.EntID)
+			End If
+		End If
+	Next
+
+	Keys = dOps.Keys
+	
+	For i = 0 To UBound(Keys)
+		Op.TransList(1).SetMisc TCD.MscNo, TCD.MscID
+		SaveOp dOps.Item(Keys(i)), hLog
+	Next
+
+End Sub
+'---
+'
+'---
+Function SaveOp(Op, hLog)
+	SaveOp = True
+
+	If Not Op Is Nothing Then 
+		If Not Form_Save(Op, Nothing) Then
+			If hLog Is Nothing Then
+				MsgBox "Ошибка сохранения операции", vbExclamation
+			Else
+				hLog.writetext LOG_MSG_ERROR, "Ошибка сохранения операции " & Op.Name
+			End If
+
+			SaveOp	= False
+		End If
+	End If
+End Function
+'---
+' загрузить остатки товара без партий
+'---
+Sub LoadRestEnts
+	Dim MscID, Msc, C8001, i, aData
+	Dim pKind, Mtr, EntPrice, aPrm
+
+	MscID = workarea.map("KindID")
+		
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		Set C8001 = New Cipher
+		C8001.SethLog New htmlog, Nothing
+		C8001.ShowError = True
+
+		If C8001.ErrMsg = "" Then
+			If com_CalcEntsSeriesRest(aData, C8001.AgID, C8001.AccID, Date, 0, Workarea.MyCompany.ID) Then
+
+			If C8001.CheckParams(Msc) Then
+				If C8001.ConnectDef() Then
+					If C8001.Ping Then
+						C8001.ClearBase 3
+						Set Mtr = Meter()
+							Mtr.Open "Загрузка данных ...", 0, UBound(aData, 2)
+							Set pKind = GetPriceList(C8001.AgID)
+	
+							For i = 0 To UBound(aData, 2)
+								Mtr.Pos = i
+								If Not pKind Is Nothing Then
+									EntPrice = pKind.GetEntPrice(aData(1, i), Date, Workarea.DefPriceList)
+								Else
+									EntPrice = 0
+								End If
+
+								If EntPrice <> 0 And aData(2, i) > 0 Then
+									aPrm = Array(Left(checknull(aData(5, i), ""), 13), _
+														Left(checknull(aData(6, i), ""), 5), _
+														Left(checknull(aData(4, i), ""), 50), _
+														Left(checknull(aData(2, i), 0.00), 12), _
+														Left(EntPrice, 12))
+			
+									If Not C8001.AddRecord(3, aPrm) Then
+										c8001.writelog LOG_MSG_WARNING, C8001.ErrMsg
+										Exit For
+									End If
+								End If
+							Next
+		
+							Mtr.Close
+							C8001.Finish
+							c8001.writelog LOG_MSG_INFORMATION, "Остатки товара загружены: " & i - 1
+							C8001.Close
+						End If
+					End If
+				End If
+			End If
+		End If
+	End If
+	
+End Sub
+'---
+'
+'---
+Function GetPriceList(AgID)
+	Dim Ag, pKindID
+
+	pKindID = 0
+
+	If AgID <> 0 Then
+		Set Ag = Workarea.Agent(AgID)
+		pKindID = com_Getparamvalue(Ag, prmAgDefPrice, 0)
+	End If
+
+	If pKindID = 0 Then
+		pKindID = com_Getparamvalue(Workarea.MyCompany, prmAgDefPrice, 0)			
+	End If
+
+	If pKindID <> 0 Then
+		Set GetPriceList = Workarea.PriceKind(pKindID)
+	Else
+		Set GetPriceList = Nothing
+	End If
+
+End Function
+'---
+'
+'---
+Function PackTransOneRow(Tr, ByRef prm)
+	PackTransOneRow = True
+
+	If Tr.Qty = 0 Then Tr.EntID = 0
+End Function
+'---
+'	загрузка данных из ТСД в документ
+'	
+'---
+Function LoadDataToOp(aPrm)
+	Dim C8001, i, dData, RowNo, dRows, DefPrice, RowNoSN
+	Dim Mtr, keys, aData, TrList, DocNo, TrListSN, TrSN, Tr
+
+	DocNo = aPrm(0)
+	Set TrList = aPrm(1)
+	Set DefPrice = aPrm(3)
+'	Set TrListSN = aPrm(4)
+
+	LoadDataToOp = False
+	Set C8001 = New Cipher
+	C8001.SethLog New htmlog, aPrm(2)
+	C8001.ShowError = True
+	C8001.SetMsc TrList.Parent.TemplateID
+
+	If C8001.CheckParams(Nothing) Then
+		If C8001.ConnectDef() Then
+			If C8001.Ping Then
+				Set dData = C8001.ReadDataMap(DocNo, -1)
+				Set dRows = CreateLibObject("Map")
+				
+				Set Mtr = Meter()
+				Mtr.Open "Импорт данных ...", 0, dData.Count
+
+				com_ClearTrans TrList
+'				com_ClearTrans TrListSN
+				keys = dData.keys
+				RowNo = 0
+
+				For i = 0 To UBound(keys)
+					Mtr.Pos = i
+					aData = dData(Keys(i))
+
+					If dRows.Exists(aData(2)) Then
+						RowNo = dRows(aData(2))
+					Else
+						RowNo = RowNo + 1
+						dRows(aData(2)) = RowNo
+					End If
+
+					Set Tr = TrList.Item(RowNo)
+					Tr.EntID = C8001.GetEntIDByBar(aData(2))
+					Tr.Qty = Tr.Qty + str2dbl(aData(4)) - str2dbl(aData(5))
+					If Not DefPrice Is Nothing Then Tr.Price = DefPrice.GetEntPrice(Tr.EntID)
+					Tr.Params(prmTrCode).Value = aData(3)
+
+'					If aData(3) <> "" Then
+'						RowNoSN = TrListSN.Rows
+'						If TrListSN.Item(RowNoSN).EntID <> 0 Then RowNoSN = RowNoSN + 1
+'						Set TrSN = TrListSN.Item(RowNoSN)
+'						TrSN.EntID = Tr.EntID
+'						TrSN.Qty = 1
+'						TrSN.Params(prmTrCode).Value = aData(3)
+'					End If
+				Next
+
+				TrList.EnumTrans GetRef("PackTransOneRow"), Keys	
+				TrList.Pack
+				LoadDataToOp = True
+			End If
+		End If
+	End If
+	
+End Function
+'---
+'	
+'---
+Function LoadDataInventToOp(aPrm)
+	Dim C8001, i, dData, RowNo
+	Dim Mtr, keys, aData, TrList, DocNo, dEnts
+
+	DocNo = aPrm(0)
+	Set TrList = aPrm(1)
+
+	LoadDataInventToOp = False
+	Set C8001 = New Cipher
+	C8001.SethLog New htmlog, aPrm(2)
+	C8001.ShowError = True
+	C8001.SetMsc TrList.Parent.TemplateID
+
+	If C8001.CheckParams(Nothing) Then
+		If C8001.ConnectDef() Then
+			If C8001.Ping Then
+				Set dData = C8001.ReadDataMap(DocNo, -1)
+			
+				Set Mtr = Meter()
+				Mtr.Open "Импорт данных ...", 0, dData.Count
+
+				Set dEnts = CreateLibObject("Map")
+				TrList.EnumTrans GetRef("AccOneRowDict"), dEnts
+
+				keys = dData.keys
+
+				For i = 0 To UBound(keys)
+					Mtr.Pos = i
+					aData = dData(Keys(i))
+
+					If dEnts.Exists(aData(0)) Then
+						RowNo = dEnts(aData(0))
+					Else
+						RowNo = TrList.Rows + 1
+						dEnts(aData(0)) = RowNo
+					End If
+
+					With TrList.Item(RowNo)
+						.EntID = C8001.GetEntIDByBar(aData(0))
+						.Params(prmTrQty).Value2 = .Params(prmTrQty).Value2 + str2dbl(aData(1)) - str2dbl(aData(2))
+						.Params(prmTrSum).Value2 = .Params(prmTrQty).Value2 * .Params(prmTrPrice).Value2
+					End With
+				Next
+
+				TrList.Pack
+				LoadDataInventToOp = True
+			End If
+		End If
+	End If
+	
+	C8001.Close
+
+End Function
+'---
+'
+'---
+Function AccOneRowDict(Tr, ByRef dEnts)
+	AccOneRowDict = True
+
+	If Tr.EntBind.Bar <> "" Then
+		If Not dEnts.Exists(Tr.EntBind.Bar) Then
+			dEnts(Tr.EntBind.Bar) = Tr.RowNo2
+			Tr.Params(prmTrQty).Value2 = 0
+		End If
+	End If
+End Function
+'---
+'	aPrm(0)		номер документа в ТСД
+'	aPrm(1)		проводка	
+'	aPrm(2)		Form
+'	aPrm(4)		PriceKind
+'	aPrm(5)		PriceListID
+'---
+Function LoadDataOrderToOp(aPrm)
+	Dim C8001, i, dData, RowNo, Tr
+	Dim Mtr, keys, aData, TrList, DocNo, dEnts
+	Dim pKind, pListID
+
+	DocNo = aPrm(0)
+	Set TrList = aPrm(1)
+	Set pKind = aPrm(3)
+	pListID = aPrm(4)
+
+	LoadDataOrderToOp = False
+	Set C8001 = New Cipher
+	C8001.SethLog New htmlog, aPrm(2)
+	C8001.ShowError = True
+	C8001.SetMsc TrList.Parent.TemplateID
+
+	If C8001.CheckParams(Nothing) Then
+		If C8001.ConnectDef() Then
+			If C8001.Ping Then
+				com_ClearTrans TrList
+				Set dData = C8001.ReadDataMap(DocNo, -1)
+			
+				Set Mtr = Meter()
+				Mtr.Open "Импорт данных ...", 0, dData.Count
+
+				Set dEnts = CreateLibObject("Map")
+				keys = dData.keys
+
+				For i = 0 To UBound(keys)
+					Mtr.Pos = i
+					aData = dData(Keys(i))
+
+					If str2dbl(aData(1)) <> 0 Or str2dbl(aData(2)) <> 0 Then
+						If dEnts.Exists(aData(0)) Then
+							RowNo = dEnts(aData(0))
+							Set Tr = TrList.Item(RowNo)
+						Else
+							RowNo = TrList.Rows + 1
+							Set Tr = TrList.Item(RowNo)
+							Tr.EntID = C8001.GetEntIDByBar(aData(0))
+	
+							If Not pKind Is Nothing Then 
+								Tr.Price = pKind.GetEntPrice(Tr.EntID, Date, pListID)
+							End If
+	
+							dEnts(aData(0)) = RowNo
+						End If
+	
+						Tr.Qty = Tr.Qty + str2dbl(aData(1)) - str2dbl(aData(2))
+					End If
+				Next
+
+				TrList.Pack
+				LoadDataOrderToOp = True
+			End If
+		End If
+	End If
+	
+	C8001.Close
+
+End Function
+'---
+'
+'---

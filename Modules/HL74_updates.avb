@@ -1,0 +1,41 @@
+'#include "HL74_XML.avb"
+'#include "HL74_ZIP.avb"
+Option Explicit
+
+Const UPDATE_XML = "_update.xml"
+Const UPDATE_ZIP = "_update.zip"
+
+
+Dim oXML, dPath, i
+Dim xmlConfig, z
+Dim TmpFldName, ConfigVer, ConfigName
+
+	Set oXML = New XML
+	oXML.FileName = UPDATE_XML
+
+	If oXml.Load() Then
+		Set dPath = CreateLibObject("Map")
+
+		Set xmlConfig = oXml.GetTag("/config").Item(0)
+		ConfigVer = xmlConfig.GetAttribute("version")
+		ConfigName = xmlConfig.GetAttribute("name")
+
+		If IsFileExists(UPDATE_ZIP) Then
+			Set z = New ZIP
+			z.Open UPDATE_ZIP
+
+			TmpFldName = z.GetTempFolder(z.FSO.GetTempName(), True)
+	
+			If TmpFldName <> "" Then
+				If z.UnzipFiles(TmpFldName, 0) Then
+					MsgBox TmpFldName
+				Else
+					MsgBox "Error"
+				End If
+			End If
+		End If	
+	End If
+
+	If oXml.IsError Then
+		msgbxo oXml.ErrorMsg
+	End If

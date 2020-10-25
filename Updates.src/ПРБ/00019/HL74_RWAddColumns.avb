@@ -1,0 +1,211 @@
+'#include "HL74_ADO.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_const.avb"
+
+Option Explicit
+
+'---------------------------------------------------------------------------------------------------------------
+' ***                  REP_ID - ОТЧЁТ   ***   ITEM - АНАЛИТИКА   ***   ATTR - ПАРАМЕТРЫ                      ***
+' ***                                                                                                        ***
+' ***              aRepStdAttrL - Стандартные   ***   aRepItemAttr - Дополнительные (из REP_ITEMS_ATTR)      ***
+' ***                                                                                                        ***
+'---------------------------------------------------------------------------------------------------------------
+Sub HL74_RWAddColumns
+	Dim i, SQL, aData
+	Dim RepID, RepKind 	' ID отчета ВЫБРАННОГО пользователем
+	Dim RW, Book			' Объект RepWizard и его Книга(Excel)
+	Dim aRepStdAttrL		' Массив по каждому уровню отчета с кол-вом уже отображенных стандартных параметров
+	Dim ws
+
+	If Not com_GetLogicParamValue(Workarea, prmDBExtRepWizard, False) Then Exit Sub
+
+	RepID = WorkArea.Map("RepID")
+	Set RW = WorkArea.CreateReport("RepWizard")
+	RW.Load RepID
+
+	If RW.AccID = 0 Then
+		Set ws = Workarea.site
+		If ws.kind = acAccount Then
+			RW.AccID = ws.ID
+		Else
+			MsgBox "Не установлен счет для мастера отчетов", vbExclamation, rw.caption
+			Exit Sub
+
+		End If
+	End If
+	
+	RepKind = WorkArea.Map("RepKind")
+	If RepKind <> 100 Then Exit Sub	
+
+	Workarea.Map("Result") = True
+
+	If RW.Build Then
+
+		Set Book = RW.MakeSheet
+		Book.Sheet1.PageSetup.Orientation = 2
+		LoadStdAttr RepID, aRepStdAttrL
+
+		For i = 1 To RW.Levels
+			' Есть ли в нашей таблице настроек что-то для этого отчёта и этого уровня?
+			SQL = "Select REP_ITEM, REP_ITEM_ATTR_NAME From REP_ITEMS_ATTR Where Rep_ID = " & RepID & " and REP_ITEM = " & RW.LevelMode(i)
+			If	GetRs2(SQL, aData) Then
+				AddLevelAttributes RW, Book, i, aRepStdAttrL, aData
+			End If
+		Next
+
+		Book.Sheet1.AutoFit 2
+	End If
+End Sub
+
+'---------------------------------------------------------------------------------------------------------------
+' *** Процедура подсчёта кол-ва УЖЕ выведенных в отчет СТАНДАРТНЫХ параметров по КАЖДОМУ УРОВНЮ              ***
+'---------------------------------------------------------------------------------------------------------------
+Sub LoadStdAttr(RepID, aRepStdAttrL)
+	Dim i, j, SQL, aData		' Строка со стандартными параметрами для этого отчета
+	Dim aRepStdAttr 				' Массив колонок со стандартными параметрами для этого отчета
+	Dim StdAttrCount				' Количество отображенных стандартных параметров в уровне
+	Dim RepStdAttr					' Одна колонка
+
+	SQL = "Select Rep_Ps6 From REPORTS Where Rep_ID = " & RepID
+	If	GetRs2(SQL, aData) Then 
+
+		aRepStdAttrL = Split(aData(0, 0), Chr(10))
+		For i = 0 To UBound(aRepStdAttrL)
+
+			If aRepStdAttrL(i) <> "" Then
+
+				aRepStdAttr = Split(aRepStdAttrL(i), Chr(13))
+				StdAttrCount = 0
+				For j = 0 To UBound(aRepStdAttr)
+					RepStdAttr = aRepStdAttr(j)
+					If CharAt(RepStdAttr, 1) = "-" Then	StdAttrCount = StdAttrCount + 1
+				Next
+
+			Else
+				StdAttrCount = 1
+			End If
+
+			aRepStdAttrL(i) = StdAttrCount
+		Next
+	End If
+End Sub
+
+'---------------------------------------------------------------------------------------------------------------
+' *** Процедура вставки и заполнения дополнительных параметров для заданного УРОВНЯ                          ***
+' *** (присутствующих в нашей таблице настройки)                                                             ***
+'---------------------------------------------------------------------------------------------------------------
+Sub AddLevelAttributes(RW, Book, Level, aRepStdAttrL, aRepItemAttr)
+	Dim i
+	Dim ColOffSet ' Смещение за счет уже выведенных в отчете стандартных параметров до начала нашего уровня
+
+	ColOffSet = 0
+	For i = 0 To Level - 1
+		ColOffSet = ColOffSet + aRepStdAttrL(i)
+	Next
+	
+	CopyColumns		Book, Book.Sheet1, ColOffSet, UBound(aRepItemAttr, 2), aRepItemAttr
+	aRepStdAttrL(Level) = aRepStdAttrL(Level) + UBound(aRepItemAttr, 2) + 1
+	' Смещение этого уровня увеличится за счет добавленных НАМИ колонок для доп.параметров
+
+	FindItemValue	RW, Book.Sheet1, RW.Root, 1, Level, 1, ColOffSet, aRepItemAttr
+End Sub
+
+'---------------------------------------------------------------------------------------------------------------
+' *** Скопируем колонку с аналитикой столько раз, сколько параметров для него нам необходимо добавить        ***
+' *** Это делается для того, чтобы формат новых колонок совпадал с форматом первоначальных колонок в отчете  ***
+'---------------------------------------------------------------------------------------------------------------
+Sub CopyColumns (Book, Sh, Col, Count, Name)
+	Dim i, j
+
+	For i = 0 To Count
+		Sh.Activate
+		Sh.Range(Col, 4, Col, Sh.Rows).Select 
+		Book.Copy
+		Sh.InsertColumn(Col+i+1)
+		Sh.Cell(4,Col+i+1).Select
+		Book.Paste
+		Sh.Range(Col+i+1,4,Col+i+1,5).MergeCells False
+		Sh.Cell(4,Col+i+1).Value = ""
+		Sh.Cell(5,Col+i+1).Value = Name(1, i)
+		For j = 6 To Sh.Rows
+			Sh.Cell(j,Col+i+1).Value = ""
+		Next
+	Next
+End Sub
+
+'---------------------------------------------------------------------------------------------------------------
+' *** Процедура поиска ЗНАЧЕНИЯ каждой выведенной в отчете АНАЛИТИКИ                                         ***
+'---------------------------------------------------------------------------------------------------------------
+Sub FindItemValue (RW, Sh, Root, ByVal Level, ItemLevel, ByRef RowNo, ColOffSet, aRepItemAttr)
+	Dim i
+
+	For i = 1 To Root.Children
+		If i > 1 Then
+			RowNo = RowNo + 1
+		End If
+
+		If Level = ItemLevel Then
+			InsertAttrValue Sh, Root.Child(i).Value, RW.LevelMode(Level), RowNo, ColOffSet + 1, aRepItemAttr
+		End If
+
+		If Root.Child(i).Children > 0 Then
+			FindItemValue RW, Sh, Root.Child(i), Level+1, ItemLevel, RowNo, ColOffSet, aRepItemAttr
+		End If
+	Next
+End Sub
+
+'---------------------------------------------------------------------------------------------------------------
+' *** Процедура вставки значений дополнительно необходимых параметров                                        ***
+'---------------------------------------------------------------------------------------------------------------
+Sub InsertAttrValue (Sh, Id, Item, RowNo, Column, aItemAttr)
+	Dim i, StdRows, Elem
+
+	If Id <> 0 Then
+		
+		For i = 0 To UBound(aItemAttr, 2)
+			Select	Case Item
+				Case 3 
+					Set Elem = Workarea.Agent(Id)
+				Case 4 
+					Set Elem = Workarea.Agent(Id)
+				Case 5 
+					Set Elem = Workarea.Entity(Id)
+				Case 9 
+					Set Elem = Workarea.Misc(Id)
+			End Select
+			Sh.Cell(RowNo+6,Column).Value = GetAttrValue(Elem, aItemAttr(1, i))
+			Column = Column + 1 	
+		Next
+
+	Else 
+		Sh.Cell(RowNo+6,Column).Value = ""
+	End If
+End Sub
+
+Function GetAttrValue(Elem, AttrName)
+	Dim AG_PARAM_STD
+	' Ориентировано на ST74_RWAddColumns.adg :
+	Set AG_PARAM_STD = CreateLibObject("Map")
+	AG_PARAM_STD("Контактное лицо (Станд.пар-р)") = "Contact"
+	AG_PARAM_STD("Дата приема на работу (Станд.пар-р)") = "DateIn"
+	AG_PARAM_STD("Дата увольнения (Станд.пар-р)") = "DateOut"
+	AG_PARAM_STD("Номер телефона (Станд.пар-р)") = "Phone"
+	AG_PARAM_STD("Регистрационный номер (Станд.пар-р)") = "RegNo"
+
+	If InStr(AttrName,"(Станд.пар-р)") > 0 Then
+		Execute "GetAttrValue = Elem."&AG_PARAM_STD(AttrName)
+	Else
+		GetAttrValue = Com_GetParamValueRef(Elem, AttrName, "<Не указано>")
+	End If
+End Function
+
+'--------------------------------------------------------------------'
+' Связь между типом аналитики в отчете и её типом в объектной модели '
+'--------------------------------------------------------------------'
+'| RepWizard              | LevelMode | Accent   | Const            |'
+'|------------------------|-----------|----------|------------------|'
+'| Корреспондент1         | 3         | acAgent  | 3                |'
+'| Корреспондент2         | 4         | acAgent  | 3                |'
+'| Объект учёта           | 5         | acEntity | 4                |'
+'| Произвольная аналитика | 9         | acMisc   | 5                |'
+'--------------------------------------------------------------------'

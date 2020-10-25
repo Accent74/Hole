@@ -1,0 +1,17 @@
+Option Explicit
+
+Sub HL74_AgProps()
+	Dim Dlg, Lock
+
+	Lock = workarea.map("Result")
+	If CreateLibObject("WinAPI").GetKeyState(16) Or Lock Then Exit Sub ' 16 - acShift
+
+	Set Dlg = App.CreateDialog("HL74_AgProps.adg")
+	Dlg.Map("KindID") = workarea.map("KindID")
+
+	If Dlg.DoModal = vbOK Then
+		Workarea.Window.Refresh
+	End If
+
+	workarea.map("Result") = True
+End Sub

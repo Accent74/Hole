@@ -1,0 +1,37 @@
+Option Explicit
+
+' параметры проводки
+Const prmMemo		= "Примечание"
+Const prmDocDate	= "Дата документа-основания"
+Const prmQty	=	"Количество"
+
+'----------------
+'
+'----------------
+Function CreateTransParams()
+	Dim Op
+	
+	Set Op = WorkArea.CreateOperation
+	
+	With Op.Trans(1).Params
+		If Not .Exists(prmMemo)		Then .Create vbString, prmMemo
+		If Not .Exists(prmDocDate)		Then .Create vbDate, prmDocDate
+		If Not .Exists(prmQty)		Then .Create vbDouble, prmQty
+
+	End With
+
+	CreateTransParams = True
+
+End Function
+
+'----------------
+'
+'----------------
+
+CreateTransParams() 
+WorkArea.Map("StartUp") = False
+
+'----------------
+'
+'----------------
+	

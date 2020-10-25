@@ -1,0 +1,107 @@
+'----
+'	модуль импорта данных по заявкам из ТСД в Акцент
+'	Запускается из меню Все задачи для папки документов
+'	использует шаблон документа, привязанную к папке
+'----
+Option Explicit
+
+'#include "Cipher_class.avb"
+'#include "Cipher_common.avb"
+'#include "Cipher_const.avb"
+'#include "ST74_ADO.avb"
+
+Dim C8400
+
+Cipher_CreateOperation 2, 3, False
+'---
+'
+'---
+Function AddEntRow(Tr, ByRef DictEnt)
+	Dim Bar
+
+	AddEntRow = True
+		
+	If Tr.EntID <> 0 Then
+		Bar = Tr.Params("String3").Value2
+		If Not DictEnt.Exists(Bar) Then
+			DictEnt.Add Bar, Tr.RowNo2
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetOperation(WA, DocTag, TmlID, ByRef DictEnt, ByRef RowNo)
+	Dim Op
+
+	Set Op = WA.CreateOperation
+
+	If Op.IsNew Then
+		Op.DocNo = Token(DocTag, 2, "|")
+		Op.TemplateID = TmlID
+		RowNo = 0
+		DictEnt.RemoveAll
+	Else
+		With Op.TransList(1)
+			RowNo = .Rows
+			.EnumTrans GetRef("AddEntRow"), DictEnt
+		End With
+	End If
+
+	Set GetOperation = Op
+
+End Function
+'---
+'
+'---
+Sub SetDataTr(Op, CurRowNo, EntID, aFields)
+	Op.String2 = aFields(3)
+
+	With Op.Trans(1, CurRowNo)
+		.AccDbID = CLng(token(aFields(2), 1, ","))
+		.AgToID = CLng(token(aFields(2), 2, ","))
+		.EntID = EntID
+		.Params("Double1").Value2 = .Params("Double1").Value2 + str2dbl(aFields(1))
+		.Params("String1").Value2 = aFields(0)
+	End With
+End Sub
+'---
+'
+'---
+Function GetEntID(ByRef EntBar, EntName, DocNo, LineNo)
+	Dim NewEntName, NewEnt, NewEntID
+
+	GetEntID = 0
+
+	If EntBar <> "" Then
+		NewEntID = FindEntByBarCode(EntBar)
+	
+		If NewEntID <> 0 Then
+			GetEntID = NewEntID
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetAgID(AgCode, AgRoot, DocNo)
+	GetAgID = 0
+End Function
+'---
+'
+'---
+Function OpBeforeSave(Op)
+	Dim prm
+
+	Op.DocNo = ""
+	Op.Done = False
+	Op.Sum3 = -1
+
+	OpBeforeSave = True
+
+End Function
+'---
+'
+'---

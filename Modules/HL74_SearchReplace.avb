@@ -1,0 +1,12 @@
+Option Explicit
+
+Dim Dlg
+
+Set Dlg = App.CreatePropSheet
+
+Dlg.WizardMode = True
+Dlg.AddPage "ST74_SearchReplace1.adg"
+Dlg.AddPage "ST74_SearchReplace2.adg"
+Dlg.AddPage "ST74_SearchReplace1.adg"
+
+Dlg.DoModal

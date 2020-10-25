@@ -1,0 +1,83 @@
+Option Explicit
+'#include "HL74_Const.avb"
+'#include "HL74_common.avb"
+
+
+Dim Ag, i
+
+AgentsConvertAddress 1093
+AgentsConvertAddress 1092
+AgentsConvertAddress 1091
+
+Sub AgentsConvertAddress(agID)
+	
+	With workarea.agent(agID).nested
+		For i = 1 To .count
+			Set Ag = .Item(i)
+			If Ag.Type = 1 Or Ag.type = 4 Then
+				ConvertAddress Ag
+			End If
+		Next
+	End With
+End Sub
+
+Sub ConvertAddress(Ag)
+	Dim NewAddress, aAddress, i, AddrPart, aNewAddress
+
+	If Ag.Address <> "" Then
+		aAddress = Split(Ag.Address, ",")
+	
+		'улица;дом;кварт;индекс;город;страна;тел;контакт;меил;0
+
+		aNewAddress = Array("", "", "", "", "", "", "", "", "", "", "", "")
+
+		For i = 0 To UBound(aAddress)
+			AddrPart = LCase(aAddress(i))
+
+			aNewAddress(0) = Trim(AddAddrValue(InStr(AddrPart, "кв-л") <> 0 _
+										Or InStr(AddrPart, "квартал") <> 0 _
+										Or InStr(AddrPart, "переулок") <> 0 _
+										Or InStr(AddrPart, "ул.") <> 0 _
+										Or InStr(AddrPart, "проезд") <> 0 _
+										Or InStr(AddrPart, "пр") <> 0 _
+										Or InStr(AddrPart, "пер.") <> 0 _
+										Or InStr(AddrPart, "бульвар") <> 0 _
+										Or InStr(AddrPart, "б-р") <> 0 _
+										Or InStr(AddrPart, "микро") <> 0 _
+										Or InStr(AddrPart, "Микроцентр") <> 0 _
+										Or InStr(AddrPart, "площадь") <> 0 _
+										Or InStr(AddrPart, "улица") <> 0 _
+										Or InStr(AddrPart, "пр-т") <> 0, aAddress(i), aNewAddress(0)))
+
+			aNewAddress(1) = AddAddrValue(InStr(AddrPart, "д.") <> 0 Or InStr(AddrPart, "дом") <> 0 , aAddress(i), aNewAddress(1))
+			aNewAddress(1) = Trim(Replace(Replace(aNewAddress(1), "д.", ""), "дом", ""))
+
+ 			aNewAddress(2) = AddAddrValue(InStr(AddrPart, "к.") <> 0 Or InStr(AddrPart, "кв.") <> 0 Or InStr(AddrPart, "квартира") <> 0, aAddress(i), aNewAddress(2))
+			aNewAddress(2) = Trim(Replace(Replace(Replace(aNewAddress(2), "к.", ""), "кв.", ""), "квартира", ""))
+
+			aNewAddress(3) = AddAddrValue(IsNumeric(AddrPart), aAddress(i), aNewAddress(3))
+			aNewAddress(4) = AddAddrValue(InStr(AddrPart, "пгт.") <> 0 Or InStr(AddrPart, "г.") <> 0, aAddress(i), aNewAddress(4))
+			aNewAddress(4) = Trim(Replace(Replace(aNewAddress(4), "пгт.", ""), "г.", ""))
+
+			aNewAddress(5) = AddAddrValue(InStr(AddrPart, "лнр") <> 0 Or InStr(AddrPart, "днр") <> 0 , aAddress(i), aNewAddress(5))
+			aNewAddress(10) = AddAddrValue(InStr(AddrPart, "район") <> 0 Or InStr(AddrPart, "р-н") <> 0 , Trim(aAddress(i)), aNewAddress(10))
+
+		Next
+
+		NewAddress = Join(aNewAddress, ";")
+
+		com_SetFactValue Ag, fctAgAddress, CDate("01/01/2014"), NewAddress
+
+		'Ag.Facts("01/01/2014").Item(fctAgAddress).Value = NewAddress
+	End If
+End Sub
+
+Function AddAddrValue(Check, AddrPart, DefValue)
+
+	If Check Then
+		AddAddrValue = AddrPart
+	Else
+		AddAddrValue = DefValue
+	End If
+
+End Function

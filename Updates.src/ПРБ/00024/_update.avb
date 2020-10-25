@@ -1,0 +1,203 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	024
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "hl74_AssistantLog.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "024"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	AgAddrr_path
+	path_msc
+	Add2020 
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'---
+'
+'---
+Sub AgAddrr_path
+	Dim SQL, aData, i, Ag, dAgAddr, fctHistory, j
+	Dim fctItem, fDate, Keys
+
+	Set dAgAddr = CreateLibOBject("Map")
+	SQL = "Select Count(*), ag_facts.EL_ID, ag_facts.FA_ID, ag_facts.FA_STRING " & _
+				"FROM ag_facts " & _
+				"WHERE (((ag_facts.FA_STRING)<>'')) " & _
+				"GROUP BY ag_facts.EL_ID, ag_facts.FA_ID, ag_facts.FA_STRING " & _
+				"HAVING (((Count(*))>1))"
+
+	If GetRs2(SQL, aData) Then
+
+		For i = 0 To UBound(aData, 2)
+			Set Ag = Workarea.Agent(aData(1, i))
+			dAgAddr.RemoveAll
+
+			Set fctItem = Ag.Facts.Item(fctAgAddress)
+			fctHistory = fctItem.History
+			
+			For j = 0 To UBound(fctHistory, 2)
+				If dAgAddr.Exists(fctHistory(1, j)) Then
+					fctItem.SetNull
+				Else
+					dAgAddr(fctHistory(1, j)) = fctHistory(1, j)
+				End If
+			Next
+
+			Keys = dAgAddr.Keys
+			Com_ClearFacts Ag, fctAgAddress
+			fDate = CDate("01/01/1900")
+
+			For j = 0 To UBound(Keys)
+				Ag.Facts(fDate + j).Item(fctAgAddress).Value = keys(j)
+			Next
+		Next
+	End If
+
+End Sub
+'---
+'
+'---
+Sub path_msc
+	Dim MscID, Msc, SQL, aData
+
+	MscID = com_GetPAramValue(Workarea, prmDBAgree, 0)
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		Msc.Tag = "AGREE"	
+		Msc.Save
+	End If
+
+	MscID = com_GetPAramValue(Workarea, prmDBCashPrint, 0)
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+
+		SQL = "select msc_id from misc where msc_type = -1 and msc_no=" & msc.mscno
+
+		If GetRs2(SQL, aData) Then
+			Set msc = Workarea.Misc(aData(0, 0))
+			Msc.Tag = "TREQ"	
+			Msc.Save
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Sub Add2020()
+	Dim MscID, Msc, MscRoot, i, SQL, ErrorMsg
+
+	MscID = Com_GetParamValue(Workarea, prmDBCalendar, 0)
+
+	If MscID = 0 Then
+		If MsgBox("Не указана аналитика для календаря рабочего времени. Желаете выбрать ?", vbQuestion + vbOKCancel, "Установка обновления") = vbOK Then 
+			MscID = Workarea.Browse(acMisc,,,, "Выберите аналитику для календаря рабочего времени")
+
+			If MscID = 0 Then
+				writelog Array("Календарь рабочего времени не установлен. Укажите аналитику в свойствах базы данных")
+				Exit Sub
+			Else
+				Com_SetParamValue Workarea, prmDBCalendar, MscID
+			End If
+		End If
+	End If	
+
+	Set MscRoot = Nothing
+
+	With Workarea.Misc(MscID).Children
+		For i = 1 To .Count
+			Set Msc = .Item(i)
+			If Msc.Name = "2020" Then
+				Set MscRoot = Msc
+				Exit For
+			End If
+		Next
+
+		If MscRoot Is Nothing Then Set MscRoot = .Create(0, "2020")
+	End With
+	
+	SQL = "update MISC_ATTR Set MSC_VISIBLE = 1985, MS1_NAME = 'График рабочего времени', " & _
+				"MC1_NAME = 'Часов', MC2_NAME = 'Дней', MC3_NAME = 'Часов в день', MD1_NAME = 'Дата начала'," & _
+				" MD2_NAME = 'Дата окончания' where msc_no =" & MscRoot.MscNo
+
+	ExecQuery SQL, ErrorMsg
+
+	Set MscRoot = MscRoot.Children
+
+	AddMonthCalendar MscRoot, "8/1/2020", "8/31/2020", "Август 2020", "В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8" , 168, 21, 8
+	AddMonthCalendar MscRoot, "4/1/2020", "4/30/2020", "Апрель 2020", "8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8" , 175, 22, 8
+	AddMonthCalendar MscRoot, "12/1/2020", "12/31/2020", "Декабрь 2020", "8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8" , 183, 23, 8
+	AddMonthCalendar MscRoot, "7/1/2020", "7/31/2020", "Июль 2020", "8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8" , 184, 23, 8
+	AddMonthCalendar MscRoot, "6/1/2020", "6/30/2020", "Июнь 2020", "8;8;8;8;8;В;В;8;8;8;8;П;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" , 167, 21 , 8
+	AddMonthCalendar MscRoot, "5/31/2020", "5/31/2020", "Май 2020", "П;В;В;П;П;8;8;8;В;В;П;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В" , 135, 17 , 8
+	AddMonthCalendar MscRoot, "3/1/2020", "3/31/2020", "Март 2020", "В;8;8;8;8;8;В;В;П;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" , 168, 21 , 8
+	AddMonthCalendar MscRoot, "11/1/2020", "11/30/2020", "Ноябрь 2020", "В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В" , 159, 20 , 8
+	AddMonthCalendar MscRoot, "10/1/2020", "10/31/2020", "Октябрь 2020", "8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В" , 176, 22 , 8
+	AddMonthCalendar MscRoot, "9/1/2020", "9/30/2020", "Сентябрь 2020", "8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8", 176, 22 , 8
+	AddMonthCalendar MscRoot, "2/1/2020", "2/29/2020", "Февраль 2020", "В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;П;8;8;8;8;В", 152, 19, 8
+	AddMonthCalendar MscRoot, "1/1/2020", "1/31/2020", "Январь 2020", "П;П;П;В;В;П;П;П;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8", 17, 136, 8
+
+End Sub
+'---
+'
+'---
+Sub AddMonthCalendar(Root, Date1, Date2, MscName, String1, Sum1, Sum2,  Sum3)
+	Dim MscID, Msc
+
+	MscID = Root.Find(MscName, 0, 2)
+
+	If MscID = 0 Then
+		Set Msc = Root.Create(1, MscName)
+
+		If Not Msc Is Nothing Then
+			Msc.Date1 = Date1
+			Msc.Date2 = Date2
+			Msc.String1 = String1
+			Msc.Sum1 = Sum1
+			Msc.Sum2 = Sum2
+			Msc.Sum3 = Sum3
+	
+			Msc.Save
+'			writelog Array("Сообщение:", "Добавлена аналитика", Msc.Name), updater
+'		Else
+'			writelog Array("Ошибка:", "Ошибка добавления аналитики:", MscName), updater
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+
+
+

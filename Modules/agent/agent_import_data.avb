@@ -1,0 +1,393 @@
+'#include "agent_const.avb"
+'#include "HL74_common.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_ZIP.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_Log.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Мобильный агент: импорт данных"
+
+'agent_import_main
+
+Dim ImportLog
+
+Sub agent_import_main(ShowMessage)
+	Dim z, Fl, Fld, FldZipPath, Mtr
+	Dim ExtPoint, Zipfile, xmlFile
+	Dim EntRoot, AgRoot, nCount, nOpCount
+	
+	Set ImportLog = New TextLog
+
+	If Not ImportLog.Open("agent_import", False) Then
+		MsgBox "Невозможно открыть файл протокола" & vbNewLine & ImportLog.ErrorMsg, vbCritical, "Внимание !"
+	End If
+
+	Set z = New zip
+	FldZipPath = z.GetTempFolder(z.FSO.GetTempName, True)
+
+	Set Fld = z.FSO.GetFolder(EXPORT_PATH)
+
+	If Not Fld Is Nothing Then
+		nCount = 0
+		nOpCount = 0
+
+		Set Mtr = Meter
+		Mtr.Open "Обработка файлов ...", 1, Fld.Files.Count
+		ImportLog.writelogline Array(Chr(9), "В папке обмена", Fld.Files.Count, "файл(ов)")
+
+		For Each Fl In Fld.Files
+			Mtr.StepIt
+			ExtPoint = InStrRev(fl.Path, ".")
+
+			If LCase(Mid(fl.Path, ExtPoint + 1)) = "mbsu" Then
+				ImportLog.writelogline Array(Chr(9), "Обработка:", fl.Path)
+				Zipfile = Left(fl.Path, ExtPoint) & "zip"
+				xmlFile = FldZipPath & iif(Right(FldZipPath, 1) <> "\", "\", "") & Left(fl.Name, InStrRev(fl.Name, ".")) & "xml"
+				If IsFileExists(Zipfile) Then z.FSO.DeleteFile Zipfile
+				z.FSO.MoveFile fl.Path, Zipfile
+
+				If z.Open(Zipfile) > 0 Then
+					If z.UnzipFiles(FldZipPath, 0) Then
+						
+						Set EntRoot = Workarea.Entities
+						Set AgRoot = Workarea.Agents
+						nCount = nCount + 1
+						agent_import xmlFile, EntRoot, AgRoot, True, nOpCount
+					End If
+				End If
+
+				z.FSO.DeleteFile Zipfile
+
+			End If
+		Next
+
+		ImportLog.Close
+		Mtr.Close
+
+		If ShowMessage Then
+			MsgBox "Импорт окончен." & vbNewLine & _
+						"Прочитано файлов : " & nCount & vbNewLine & _
+						"Импортировано заказов : " & nOpCount, vbInformation, MSG_BOX_CAPTION
+		End If
+
+	ElseIf ShowMessage Then
+		MsgBox "Нет файлов для импорта", vbInformation, MSG_BOX_CAPTION
+	End If
+	
+End Sub
+
+Sub agent_import(ImportFileName, EntRoot, AgRoot, ShowMessage, nOpCount)
+	Dim oXml, Ag, AgGuid
+
+	Set oXML = New XML
+
+	If oXML.Create() Then
+		oXML.FileName = ImportFileName
+		If oXML.Load() Then
+			AgGuid = Mid(Left(ImportFileName, InStrRev(ImportFileName, ".") - 1), InStrRev(ImportFileName, "\") + 1)
+
+			If AgGuid <> "" Then
+				Set Ag = GetElemByGuid(acMisc, AgGuid, workarea.Misc(72).Children, "Менеджер", 3)
+				If Not Ag Is Nothing Then
+					ImportLog.writelogline Array(Chr(9), "Менеджер:", Ag.Name)
+					agent_import_data oXML, Ag, EntRoot, AgRoot, nOpCount
+				Else
+					ImportLog.writelogline Array("Ошибка", "Менеджер не найден", AgGuid)
+				End If
+			Else
+				ImportLog.writelogline Array("Ошибка", "GUID пустой", ImportFileName)
+			End If
+
+		End If	
+	End If
+
+	If oXml.ErrorMsg <> "" Then 
+		MsgBox oXml.ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+	End If
+
+End Sub
+
+Sub agent_import_data(oXML, Ag, EntRoot, AgRoot, nOpCount)
+	Dim i, n, xmlRoot, Node, DictOp, keys, Op, Agree, DictOpRestrict
+
+	Set DictOp = CreateObject("Scripting.Dictionary")
+	Set DictOpRestrict = CreateObject("Scripting.Dictionary")
+
+	Set xmlRoot = oXml.xml.documentElement.selectNodes("/mobile_sales").Item(0).ChildNodes
+
+	For i = 0 To xmlRoot.Length - 1
+		Set Node = xmlRoot.Item(i)
+
+		Select Case Node.NodeName
+			Case "T_ORDER_TITLE"
+				agent_add_operation DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgOrders, 0), EntRoot, AgRoot
+
+			Case "T_ORDER_TABLE"
+				agent_add_oprows DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgOrders, 0), EntRoot, AgRoot
+				
+			Case "T_RETURN_TITLE"
+				agent_add_operation DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgReturns, 0), EntRoot, AgRoot
+
+			Case "T_RETURN_TABLE"
+				agent_add_oprows DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgReturns, 0), EntRoot, AgRoot
+				
+			Case "T_STORECHECK_TITLE"
+				agent_add_operation DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgStorCheck, 0), EntRoot, AgRoot
+
+			Case "T_STORECHECK_TABLE"
+				agent_add_oprows DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgStorCheck, 0), EntRoot, AgRoot
+								
+			Case "T_INVENTORY_TITLE"
+				agent_add_operation DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgInvent, 0), EntRoot, AgRoot
+
+			Case "T_INVENTORY_TABLE"
+				agent_add_oprows DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgInvent, 0), EntRoot, AgRoot
+	
+			Case "T_CASH_ORDERS"
+				agent_add_oprows DictOp, DictOpRestrict, Node, com_getparamvalue(ag, prmAgCash, 0), EntRoot, AgRoot
+				
+			Case "T_CLIENT"
+				agent_update_clients Node, Ag
+
+		End Select
+	Next
+
+	keys = DictOp.keys
+
+	For i = 0 To UBound(keys)
+		Set Op = DictOp.Item(keys(i))
+		Op.TransList(1).SetMisc Ag.MscNo, Ag.ID
+
+		Set Agree = LoadAgree(Op.Trans(1).AgToID)
+
+		If Not Agree Is Nothing Then
+			Op.TransList(1).SetMisc Agree.MscNo, Agree.ID
+		End If
+
+		Op.TransList(1).SetMisc Ag.MscNo, Ag.ID
+		Op.Name = Left(Op.Name & " " & Ag.Name & ":" & Op.Trans(1).AgToBind.Name, 255)
+
+		If Op.Deleted Then 
+			ImportLog.writelogline Array("Внимание", "Операция восстановлена из корзины", Op.DocNo, Op.Date, Op.Name, Op.Sum)
+			Workarea.RestoreOperation Op.ID
+		End If
+
+		If Op.Save Then 
+			ImportLog.writelogline Array(Chr(9), "Операция сохранена", Op.DocNo, Op.Date, Op.Name, Op.Sum)
+			nOpCount = nOpCount + 1
+		Else
+			ImportLog.writelogline Array("Ошибка", "Операция НЕ сохранена", Op.DocNo, Op.Date, Op.Name, Op.Sum)
+		End If
+	Next
+End Sub
+'---
+'
+'---
+Function LoadAgree(AgID)
+	Dim SQL, aData
+
+	SQL = "select top 1 msc_id from misc where msc_lng1 = " & AgID & _
+					" and msc_id in (select id from misc_tree where " & MSC_REAL_AGREE_ROOT & _
+						" in (id, p0, p1, p2, p3, p4, p5, p6, p7)) "
+	If GetRs2(SQL, aData) Then
+		Set LoadAgree = workarea.Misc(aData(0, 0))
+	Else
+		Set LoadAgree = Nothing		
+	End If
+
+End Function
+'---
+'
+'---
+Sub agent_add_oprows(DictOp, DictOpRestrict, Node, TmlID, EntRoot, AgRoot)
+	Dim Op, OpGUID, OpGUIDAccent, Tr, RowNo, Ent
+	Dim EntGUID
+
+	OpGUID = Node.selectSingleNode("N_TITLEID").Text
+	OpGuidAccent = "{guid {" & OpGuid & "}}"
+
+	If DictOpRestrict.Exists(OpGuidAccent) Then 
+'		Set Op = DictOpRestrict.Item(OpGuidAccent)
+'		ImportLog.writelogline Array(Chr(9), "Операция уже существует", Op.Date, Op.DocNo, Op.Name)
+		Exit Sub
+	End If
+
+	If DictOp.Exists(OpGuidAccent) Then
+		Set Op = DictOp.Item(OpGuidAccent)
+	Else
+		Set Op = Workarea.CreateOperation
+		DictOp.Add OpGuidAccent, Op
+	End If
+
+	RowNo = CLng(Node.selectSingleNode("N_LINE_NUMBER").Text)
+	Set Tr = Op.Trans(1, RowNo)
+
+	EntGUID = Node.selectSingleNode("N_NOMENID").Text
+
+	Set Ent = GetElemByGUID(acEntity, EntGUID, EntRoot, "Товар-" & EntGUID, 1004)
+
+	If Not Ent Is Nothing Then
+		Tr.EntID = Ent.ID
+		Tr.Qty = Str2Cur(Node.selectSingleNode("N_NUMBER").Text)
+		Tr.Sum = Str2Cur(Node.selectSingleNode("N_SUM").Text)
+	End If
+End Sub
+
+'---
+'
+'---
+Function OperationExists(OpGuid)
+	Dim SQL, aData
+
+	SQL = "select doc_id from documents where doc_guid ='" & OpGuid & "'"
+
+	If GetRs2(SQL, aData) Then
+		OperationExists = aData(0, 0)
+	Else
+		OperationExists = 0
+	End If
+End Function
+
+'---
+'
+'---
+Function Str2Cur(CNum)
+	On Error Resume Next
+
+	Str2Cur = CCur(Replace(CNum, ".", ","))
+
+	If Err.Number <> 0 Then
+		Err.Clear
+		Str2Cur = CCur(Replace(CNum, ",", "."))
+	End If
+	
+End Function
+'---
+'
+'---
+Sub agent_add_operation(DictOp, DictOpRestrict, Node, TmlID, EntRoot, AgRoot)
+	Dim OpGuid, Op, OpGuidAccent, Client, OpID, ClientID
+
+	OpGuid = Node.selectSingleNode("N_ID").Text
+	OpGuidAccent = "{guid {" & OpGuid & "}}"
+
+	If Not DictOp.Exists(OpGuidAccent) Then
+		OpID = OperationExists(iif(App.AppType = "DAO", OpGuidAccent, OpGuid))
+
+		If OpID = 0  Then
+			Set Op = Workarea.CreateOperationGuid(OpGuidAccent)
+			ImportLog.writelogline Array("", "Создана новая операция", Op.guid)
+		Else
+			Set Op = Workarea.Operation(OpID)
+			DictOpRestrict.add OpGuidAccent, Op
+'			ImportLog.writelogline Array("", "Загружена операция", Op.DocNo, Op.Date, Op.Name, Op.Sum)
+			Exit Sub
+		End If
+
+		DictOp.Add OpGuidAccent, Op
+
+		If Not Op Is Nothing Then
+			Op.AutoNum
+			Op.Date = ConvertUnixDate(Node.selectSingleNode("N_DATE").Text)
+			Op.Memo = Node.selectSingleNode("N_COMMENT").Text
+			Op.Sum = str2Cur(Node.selectSingleNode("N_SUM").Text)
+
+			Set Client = GetElemByGUID(acAgent, Node.selectSingleNode("N_CLIENTID").Text, AgRoot, "Покупатель", 1)
+
+			If Not Client Is Nothing Then
+				ImportLog.writelogline Array("", "Корреспондент", Client.Name, Client.guid)
+				' документ приходуется на того корр., на которого адрес
+				Op.Trans(1).AgToID = Client.ID
+
+				If Client.Type = 2 Then
+					ClientID = Client.Parent.ID
+				Else
+					ClientID = Client.ID
+				End If
+
+				Op.TemplateID = GetOrderIDByClient(ClientID, Node.selectSingleNode("N_FORMID").Text, MSC_AGREE_ROOT)
+			Else
+				Op.TemplateID = TmlID
+			End If
+
+			Op.TemplateInvoker2.FireOnApply
+			Op.TemplateInvoker2.FireAll
+
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Function GetOrderIDByClient(ClientID, FormNo, AgreeRootID)
+	Dim SQL, aData	, Msc
+
+	SQL = "select m.msc_id " & _
+				"from misc m " &_ 
+				"where m.MSC_LNG1=" & ClientID & _
+				" and m.MSC_STR3='" & FormNo & _
+				"' and m.msc_id in (select id from misc_tree where " & AgreeRootID & _
+				" in (id, p0, p1, p2, p3, p4, p5, p6, p7))"
+
+	If GetRs2(SQL, aData) Then
+		Set Msc = Workarea.Misc(aData(0, 0))
+		GetOrderIDByClient = com_getparamvalue(Msc, prmTMLOrder, 0)
+	Else
+		ImportLog.writelogline Array("Внимание", "Не найден шаблон для корресподента", ClientID, FormNo, AgreeRootID)
+		GetOrderIDByClient = 0
+	End If
+End Function
+'---
+'
+'---
+Function ConvertUnixDate(UnixDate)
+	ConvertUnixDate = CDate(FormatDate2(DateAdd("s", Left(UnixDate, Len(UnixDate) - 3), "01/01/1970"), "dd/mm/yyyy"))
+End Function
+'---
+'
+'---
+Function GetElemByGuid(Kind, ByVal ElemGuid, ElemRoot, ElemName, ElemType)
+	Dim SQL, aData, ElemID, aElemsRoot
+
+	If App.AppType = "DAO" Then
+		ElemGuid = "{guid {" & ElemGuid & "}}"
+	End If
+
+	aElemsRoot = Array("", "folder", "account", "agent", "entity", "misc", "binder", "tempalte")
+
+	Select Case Kind
+		Case acAgent
+			SQL = "select ag_id from agents where ag_guid ='" & ElemGuid & "'"
+		Case acEntity
+			SQL = "select ent_id from entities where ent_guid ='" & ElemGuid & "'"
+		Case acMisc
+			SQL = "select msc_id from misc where msc_guid ='" & ElemGuid & "'"
+	End Select
+
+	If GetRs2(SQL, aData) Then
+		ElemID = aData(0, 0)
+	Else
+		ImportLog.writelogline Array("Внимание", "Не найден элемент", Kind, ElemGuid, ElemName, ElemType)
+		ElemID = 0
+	End If
+	
+	If ElemID <> 0 Then
+		Set GetElemByGuid = Eval("Workarea." & aElemsRoot(Kind) & "(" & ElemID & ")")
+	Else
+		If App.AppType <> "DAO" Then
+			ElemGuid = "{guid {" & ElemGuid & "}}"
+		End If
+
+		Set GetElemByGuid = ElemRoot.CreateGUID(ElemType, ElemName, ElemGUID)
+
+		If GetElemByGuid Is Nothing Then
+			ImportLog.writelogline Array("Внимание", "Не могу создать элемент", ElemType, ElemName, ElemGUID)
+		Else
+			ImportLog.writelogline Array(Chr(9), "Созан элемент", ElemType, ElemName, ElemGUID)
+		End If
+	End If
+
+End Function

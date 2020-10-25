@@ -1,0 +1,66 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+
+Dim fl, FSO, RD, DbPath
+
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set Fl = FSO.CreateTextFile("d:\forms.xml", True)
+Set RD = CreateLibObject("Redirect")
+
+DbPath = Rd.DbPath
+If Right(DbPath, 1) <> "\" Then DbPath = DbPath & "\"
+
+fl.writeline "<forms>"
+
+AddProjItems 1, DBPath & "..\forms", Fl, FSO
+AddProjItems 2, DBPath & "..\dialogs", Fl, FSO
+AddProjItems 3, DBPath & "..\sheets", Fl, FSO
+AddProjItems 4, DBPath & "..\modules", Fl, FSO
+
+fl.writeline "</forms>"
+fl.Close
+
+Sub AddProjItems(ProjType, FldPath, TxtFile, FSO)
+	Dim Fld, Fls, Fl, pItem, pItems, ItemProps
+
+	Set Fld = FSO.GetFolder(FldPath)
+	Set pItems = Workarea.ProjectItems(ProjType)
+
+	If Not fld Is Nothing Then
+		Set Fls = Fld.Files
+
+		For Each Fl In Fls
+			Set pItem = pItems.findFile(Fl.Name, 1)
+			If pItem Is Nothing Then
+				Set pItem = pItems.Create("-" & Fl.Name, Fl.Name)
+				ItemProps = "<Form "
+				ItemProps = ItemProps & "ANID='' " 
+				ItemProps = ItemProps & "FileName='" & pItem.FileName & "' " 
+				ItemProps = ItemProps & "ID=" & pItem.ID & " " 
+				ItemProps = ItemProps & "Name='" & pItem.Name & "' "
+				ItemProps = ItemProps & "ShortName='' " 
+				ItemProps = ItemProps & "Tag='' " 
+				ItemProps = ItemProps & "Type=" & ProjType & " "
+				ItemProps = ItemProps & "TypeName='ProjectItem' " 
+				ItemProps = ItemProps & "GUID='" & GetGuid(pItem.ID) & "'/>"
+
+				TxtFile.WriteLine ItemProps
+			End If
+		Next
+
+	End If
+
+End Sub
+
+Function GetGuid(ID)
+	Dim SQL, Rs
+
+	SQL = "select frm_guid from forms where frm_id = "& ID
+	Set Rs = GetRs(SQL)
+
+	If Not rs.eof Then
+		GetGuid = "{guid " & Rs.Fields(0).Value & "}"
+	Else
+		GetGuid = ""
+	End If
+End Function

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="прих.накл имп." tmlguid="{EB08EA23-06BA-43BF-8424-BC7F00C4691F}">
+	<rows row="1" col="2" while="" findfield="bar">
+		<nom col="" expr=""/> 
+		<cat col="" expr=""/>
+		<bar col="2" expr=""/>
+		<art col="8" expr=""/>
+		<tag col="" expr=""/>
+		<name col="3" expr=""/>
+		<unit col="4" expr=""/>
+		<qty col="5" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="6" expr=""/>
+		<sum col="7" expr=""/>
+</rows>
+		<fields>
+		<field name="Вес" col="8" kind="prop"/>
+	</fields>
+
+	</documentimport>

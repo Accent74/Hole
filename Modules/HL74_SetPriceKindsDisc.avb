@@ -1,0 +1,9 @@
+Option Explicit
+
+Sub HL74_SetPriceKindsDisc
+	Dim Dlg
+
+	Set Dlg = App.CreateDialog("HL74_SetPriceKindsDisc.adg")
+	Dlg.DoModal
+	
+End Sub

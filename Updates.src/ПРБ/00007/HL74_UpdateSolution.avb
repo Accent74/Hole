@@ -1,0 +1,1029 @@
+Option Explicit
+
+Const acCurs = 21
+Const acTaxRep = 22
+
+Dim DictElems
+
+'---
+'
+'---
+Sub writelog(aParam, updater)
+	Dim Text
+
+	Text = formatdate2(Now, "dd-mm-yy hh:nn") & " " & Join(aParam)
+
+	If LogFile Is Nothing Then
+		updater.writelog Text
+	Else
+		LogFile.Writeline Text
+	End If
+End Sub
+
+'---
+'
+'---
+Function OpenLogFile(FileName)
+	Dim FSO, RD, FullPath, aPath
+
+	Set RD = CreateLibObject("Redirect")
+	aPath = RD.GetPathArray("*.aup")
+
+	If UBound(aPath) <> -1 Then
+		FullPath = aPath(0)
+		If Right(FullPath, 1) <> "\" Then FullPath = FullPath & "\"
+
+		FullPath = FullPath & FileName
+
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set OpenLogFile = FSO.OpenTextFile(FullPath, 8, True)
+	Else
+		Set OpenLogFile = Nothing
+	End If
+
+End Function
+'---
+'
+'---
+Function Getdbname()
+	If App.AppType = "OLEDB" Then
+		Getdbname = workarea.filename
+	Else
+		Getdbname = workarea.daodatabase.name
+	End If
+End Function
+
+'---
+'
+'---
+Sub UpdateFromXML(xmlFileName, updater)
+	Dim oXml
+
+	Set oXml = New XML
+
+	If oXML.Create() Then
+		oXML.xmlFileName = xmlFileName
+
+		If oXml.Load() Then
+			If DoUpdateFromXML(oXml.XML, updater) Then Exit Sub
+		Else
+			updater.fail = True
+		End If
+	Else
+		updater.fail = True
+	End If
+
+	If updater.fail Then
+		writelog Array(oXml.ErrorMsg), updater
+	End If
+
+End Sub
+'---
+'
+'---
+Function DoUpdateFromXML(XML, updater)
+	Dim aTags, i, j, nodeRoot, DictElem
+	Dim TagPath, aFunction, aRoot
+	Dim Mtr, nTags
+
+	DoUpdateFromXML = True
+
+	Set Mtr = Meter
+
+	aTags = Array("AccentAutoNum", "AccentForms", "AccentUnits", "AccentCurs", "AccentBanks", _
+							"AccentAccounts", "AccentAgents", "AccentEntities", "AccentMiscs", _
+							"AccentTemplates", "AccentFolders", "parameters", "facts", "AccentWorkarea", "AccentAllTaskMenu")
+	aFunction = Array("AddAutoNum", "AddForms", "AddUnits", "AddCurs", "", _
+							"AddAccounts", "AddAgents", "AddEntities", "AddMiscs", _
+							"AddTemplates", "AddFolders", "AddParams", "AddParams", "AddWorkarea", "AddATM")
+	aRoot = Array("", "", "", "", "", "accounts", "agents", "entities", "miscs", "templates", "folders", "params", "facts", "", "")
+
+	Set DictElems = CreateObject("Scripting.Dictionary")
+	nTags = UBound(aTags)
+	Mtr.Open "Обновление структуры данных ...", 1, nTags * 2
+	
+	For j = 1 To 2
+		For i = 0 To nTags
+
+			Mtr.Pos = Mtr.Pos + 1
+			Set nodeRoot = xml.documentElement.selectNodes(aTags(i)).item(0)
+	
+			If Not nodeRoot Is Nothing Then
+	
+				If Not DictElems.Exists(aTags(i)) Then
+					Set DictElem = CreateObject("Scripting.Dictionary")
+					DictElems.Add aTags(i), DictElem
+				End If
+	
+				Set DictElem = DictElems.Item(aTags(i))
+	
+				If aFunction(i) <> "" And (j = 2 Or i < (nTags - 1) ) Then
+					If Not Eval(aFunction(i) & "(updater, nodeRoot.ChildNodes, DictElem" & iif(aRoot(i) = "", "", ", workarea.") & aRoot(i) & ")" ) Then
+						DoUpdateFromXML = False
+						Exit Function
+					End If 
+				End If
+			End If
+		Next
+	Next
+
+	Mtr.Close
+
+End Function
+'---
+'
+'---
+Function AddParams(updater, Root, DictElem, RootElems)
+	Dim i
+
+	AddParams = True
+	
+	For i = 0 To Root.Length - 1
+		If Not AddParam(updater, Root.Item(i), RootElems) Then
+			AddParams = False
+			Exit Function
+		End If
+	Next		
+
+End Function
+'---
+'
+'---
+Function AddParam(updater, NodeItem, RootElems)
+	Dim el_type, el_name, el_ref, el_refguid, prm, el_guid, el_RefValueGUID, el_Value
+
+	AddParam = True
+
+	el_type = CLng(NodeItem.GetAttribute("Type"))
+	el_name = NodeItem.GetAttribute("Name")
+	el_ref = CLng(NodeItem.GetAttribute("RefKind"))
+	el_guid = NodeItem.GetAttribute("GUID")
+	el_refguid = NodeItem.GetAttribute("RefGUID")
+	el_RefValueGUID = NodeItem.GetAttribute("RefValueGUID")
+	el_Value = NodeItem.GetAttribute("Value2")
+
+	If RootElems.Exists(el_name) Then
+		Set prm = RootElems.Item(el_name)
+	Else
+		If el_ref <> 0 Then
+			Set prm = RootElems.CreateRef(el_name, el_ref, GetIDByGUID(el_ref, cutguid(el_refguid)))
+		Else
+			Set prm = RootElems.Create(el_type, el_name)
+		End If
+
+		If prm Is Nothing Then
+			writelog Array("Ошибка. Невозможно создать параметр тип:", el_type,"имя:",el_name, "GUID:"), updater
+			updater.fail = True
+			AddParam = False
+		Else
+			If checknull(el_RefValueGUID, "") <> "" Then
+				prm.Value = GetIDByGUID(el_ref, cutguid(el_RefValueGUID))
+			ElseIf checknull(el_Value, "") <> "" Then
+				prm.Value = el_Value
+			End If
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function AddTemplates(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El, el_FormGUID
+	Dim el_script
+
+	AddTemplates = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddTemplates = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+
+				Case "facts"
+					AddTemplates = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.facts)
+
+				Case "template"
+					el_ID = .GetAttribute("ID")
+					el_type = .GetAttribute("Type")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_script = iif(el_type = "1", .Text, "")
+					el_formGUID = .GetAttribute("FormGUID")
+
+					If GetRs2("select tml_id from templates where tml_guid like '" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.template(id)
+						El.Name = el_name
+					Else
+						Set El = RootElems.CreateGuid(el_type, el_name, fullguid(el_guid))
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать шаблон тип:",el_type,"имя:",el_name,"GUID:",el_guid), updater
+							updater.fail = True
+							AddTemplates = False
+							Exit Function
+						Else
+							writelog Array("Создан шаблон тип:",el_type,"имя:",el_name,"GUID:",el_guid), updater
+						End If
+					End If
+
+					If el_Script <> "" Then 
+						update_script el_Script
+						el.setscript Replace(el_Script, Chr(10), vbCrLf, 1, -1, 1)
+					End If
+
+					If el_FormGUID <> "" Then 
+						el.FormID = GetIDByGUID(acForm, cutguid(el_FormGUID))
+					End If
+
+					If el.modified Then 
+						writelog Array("Обновлены свойства шаблона тип:", el_type, "имя:", el_name, "GUID:",el_guid), updater
+						el.save
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddTemplates(updater, .ChildNodes, DictElem, El.Children) Then
+							AddTemplates = False
+							Exit Function
+						End If
+					End If
+			End Select
+
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Function update_script(ByRef tml_Script)
+	Dim i, j, Script, aScript, CommandArray, StartPos 
+	Dim DictElem, aKinds, guid
+
+	update_script = False
+	CommandArray = Array("SETMISC", "SETCUR", "SETENT", "SETTAX", "SETACCDB", "SETACCCR", "SETAGFROM", "SETAGTO", "FORMID", "SETFOLDER")
+	aKinds = Array(acMisc, acCurs, acEntity, acTaxRep, acAccount, acAccount, acAgent, acAgent, acForm, acFolder)
+
+	Script = UCase(tml_Script)
+	aScript = Split(Script, Chr(10))
+
+	For i = 0 To UBound(CommandArray)
+		For j = 0 To UBound(aScript)
+			StartPos = InStr(aScript(j), CommandArray(i))
+	
+			If StartPos <> 0 Then
+				GUID = Token(Mid(aScript(j), StartPos + Len(CommandArray(i)) + 1), IIF( i < 2, 2, 1), ",")
+				GUID = Trim(Replace(GUID, "=", ""))
+	
+				If GUID <> "" Then
+					tml_Script = Replace(tml_Script, GUID, CStr(GetIDByGUID(aKinds(i), cutguid(GUID))),1, -1, 1)
+					update_script = True
+				End If
+			End If
+
+		Next
+	Next
+
+	tml_Script = tml_Script & vbNewLine
+End Function
+'---
+'
+'---
+Function GetIDByGUID(kind, GUID)
+	Dim SQL, aData
+
+	GetIDByGUID = 0
+
+	Select Case kind
+		Case acAccount
+			SQL = "select acc_id from accounts where acc_guid like '" & guid & "'"
+		Case acMisc
+			SQL = "select msc_id from misc where msc_guid like '" & guid & "'"
+		Case acCurs
+			SQL = "select cur_id from currencies where cur_guid like '" & guid & "'"
+		Case acEntity
+			SQL = "select ent_id from entities where ent_guid like '" & guid & "'"
+		Case acAgent
+			SQL = "select ag_id from agents where ag_guid like '" & guid & "'"
+		Case acForm
+			SQL = "select frm_id from forms where frm_guid like '" & guid & "'"
+		Case acFolder
+			SQL = "select fld_id from folders where fld_guid like '" & guid & "'"
+		Case acTemplate
+			SQL = "select tml_id from templates where tml_guid like '" & guid & "'"
+		Case Else
+			SQL = ""
+	End Select
+
+	If SQL <> "" Then
+		If GetRs2(sql, aData) Then
+			GetIDByGUID = adata(0, 0)
+		End If
+	End If
+	
+End Function
+'---
+'
+'---
+Function AddFolders(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El
+	Dim el_tguid, el_formGUID
+
+	AddFolders = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddFolders = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+
+				Case "facts"
+					AddFolders = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.facts)
+
+				Case Else
+					el_ID = .GetAttribute("ID")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_tguid = .GetAttribute("TGUID")
+					el_formGUID = .GetAttribute("FormGUID")
+
+					If GetRs2("select fld_id from folders where fld_guid like '" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.folder(id)
+						El.Name = el_name
+					Else
+						Set El = RootElems.CreateGuid(el_name, fullguid(el_guid))
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать папку документов имя:",el_name, "GUID:", el_guid), updater
+							updater.fail = True
+							AddFolders = False
+							Exit Function
+						End If
+						writelog Array("Cоздана папку документов имя:",el_name, "GUID:", el_guid), updater
+					End If
+
+					If el_tguid <> "" Then El.TemplateID = GetIDByGUID(acTemplate, cutguid(el_tguid))
+					If el_formGUID <> "" Then El.FormID = GetIDByGUID(acForm, cutguid(el_formGUID))
+
+					If El.Modified Then
+						writelog Array("Обновлены свойства папки документов имя:", el_name, "GUID:", el_guid), updater
+						El.Save
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddFolders(updater, .ChildNodes, DictElem, El.Children) Then
+							AddFolders = False
+							Exit Function
+						End If
+					End If
+			End Select
+
+		End With
+	Next
+End Function
+'---
+'
+'---
+Function AddMiscs(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El
+
+	AddMiscs = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddMiscs = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+
+				Case "facts"
+					AddMiscs = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.facts)
+
+				Case Else
+					el_ID = .GetAttribute("ID")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_type = CLng(.GetAttribute("Type"))
+
+					If GetRs2("select msc_id from misc where msc_guid like '" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.misc(id)
+					Else
+						Set El = RootElems.CreateGuid(el_type, el_name, fullguid(el_guid))
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать элемент разного тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+							updater.fail = True
+							AddMiscs = False
+							Exit Function
+						End If
+						writelog Array("Создан элемент разного тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddMiscs(updater, .ChildNodes, DictElem, El.Children) Then
+							AddMiscs = False
+							Exit Function
+						End If
+					End If
+			End Select
+
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Function AddEntities(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El
+
+	AddEntities = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddEntities = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+
+				Case "facts"
+					AddEntities = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.facts)
+
+				Case Else
+					el_ID = .GetAttribute("ID")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_type = CLng(.GetAttribute("Type"))
+
+					If GetRs2("select ent_id from entities where ent_guid like '" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.entity(id)
+						El.Name = el_name
+					Else
+						Set El = RootElems.CreateGuid(el_type, el_name, fullguid(el_guid))
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать объект учета тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+							updater.fail = True
+							AddEntities = False
+							Exit Function
+						End If
+
+						writelog Array("Создан объект учета тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+
+					End If
+
+					If El.Modified Then
+						writelog Array("Обновлены свойства объекта учета тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+						El.Save
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddEntities(updater, .ChildNodes, DictElem, El.Children) Then
+							AddEntities = False
+							Exit Function
+						End If
+					End If
+			End Select
+
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Function fullguid(guid)
+	If guid <> "" Then
+		If Left(guid, 1) <> "{" Then guid = "{" & guid & "}"
+		fullguid = "{guid " & guid & "}"
+	Else
+		fullguid = ""
+	End If
+End Function
+'---
+'
+'---
+Function AddAgents(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El
+	Dim el_code
+
+	AddAgents = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddAgents = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+
+				Case "facts"
+					AddAgents = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.facts)
+
+				Case "BankAccount"
+				Case Else
+					el_ID = .GetAttribute("ID")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_type = .GetAttribute("Type")
+					el_Code = .GetAttribute("Code")
+
+					If GetRs2("select ag_id from agents where ag_guid='" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.agent(id)
+						El.Name = el_name
+					Else
+						Set El = RootElems.CreateGuid(el_type, el_name, fullguid(el_guid))	
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать корреспондента тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+							updater.fail = True
+							AddAgents = False
+							Exit Function
+						End If
+
+						writelog Array("Создан корреспондента тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+					End If
+
+					If El.Modified Then
+						writelog Array("Обновлены свойства корреспондента тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+						El.Save
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddAgents(updater, .ChildNodes, DictElem, El.Children) Then	
+							AddAgents = False
+							Exit Function
+						End If
+					End If
+			End Select
+
+		End With
+	Next
+
+End Function
+
+'---
+'
+'---
+Function AddAccounts(updater, Root, DictElem, RootElems)
+	Dim i, id, el_ID, el_guid, el_name, el_type, aData, El
+	Dim el_code
+
+	AddAccounts = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Select Case .nodename
+				Case "parameters"
+					AddAccounts = AddParams(updater, .ChildNodes, DictElem, RootElems.Parent.params)
+				Case "facts"
+
+				Case Else
+					el_ID = .GetAttribute("ID")
+					el_guid = cutguid(.GetAttribute("GUID"))
+					el_name = .GetAttribute("Name")
+					el_type = .GetAttribute("Type")
+					el_Code = .GetAttribute("Code")
+
+					If GetRs2("select acc_id from accounts where acc_guid='" & el_guid & "'", aData) Then
+						id = aData(0, 0)
+						Set El = workarea.account(id)
+						El.Name = el_name
+					Else
+						Set El = RootElems.CreateGuid(el_type, el_code, el_name, fullguid(el_guid))	
+						If El Is Nothing Then
+							writelog Array("Ошибка. Невозможно создать счет тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+							updater.fail = True
+							AddAccounts = False
+							Exit Function
+						End If
+
+						writelog Array("Создан счет тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+
+					End If
+
+					If el.Modified Then
+						writelog Array("Обновлены свойства счета тип:", el_type, "имя:", el_name, "GUID:", el_guid), updater
+						El.Save
+					End If
+
+					If .ChildNodes.Length > 0 Then
+						If Not AddAccounts(updater, .ChildNodes, DictElem, El.Children) Then
+							AddAccounts = False
+							Exit Function
+						End If 
+					End If
+			End Select
+
+		End With
+	Next
+
+End Function
+
+'---
+'
+'---
+Function AddCurs(updater, Root, DictElem)
+	Dim i
+
+	AddCurs = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			
+		End With
+	Next
+
+End Function
+
+'---
+'
+'---
+Function AddUnits(updater, Root, DictElem)
+	Dim i
+
+	AddUnits = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Function CutGuid(ByVal guid)
+	
+	guid = LCase(guid)
+
+	If Not IsNull(guid) Then
+		If InStr(guid, "{guid {") <> 0 Then
+			guid = Mid(guid, 7, Len(guid) - 7)
+			If App.AppType = "OLEDB" Then guid = Mid(guid, 2, Len(guid) - 2)
+		End If
+			
+		CutGuid = guid
+	Else
+		CutGuid = ""
+	End If
+
+End Function
+'---
+'
+'---
+Function AddForms(updater, Root, FormsDict)
+	Dim i, aData, NewForm, an_id
+	Dim pr_id, pr_guid, pr_name, pr_type, pr_anid, pr_shortname, pr_filename
+
+	AddForms = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			pr_id = .GetAttribute("ID")
+			pr_guid = cutguid(.GetAttribute("GUID"))
+			pr_name = .GetAttribute("Name")
+			pr_type = .GetAttribute("Type")
+			pr_anid = .GetAttribute("ANID")
+			pr_shortname = .GetAttribute("ShortName")
+			pr_filename = .GetAttribute("FileName")
+
+			If GetRs2("select frm_id from forms where frm_guid='" & pr_guid & "'", aData) Then
+				If Not FormsDict.Exists(pr_id) Then 
+					FormsDict.Add pr_id, aData(0, 0)
+				End If
+			Else
+				With DictElems.Item("AccentAutoNum")
+					If .exists(pr_anid) Then
+						an_id = CLng(.item(pr_anid))
+					Else
+						an_id = 0
+					End If
+				End With
+
+				If Not CreateNewFormGUID(pr_guid, pr_type, pr_name, pr_shortname, pr_filename, an_id, updater) Then
+					writelog Array("Ошибка. Невозможно создать элемент проекта тип:", pr_type, "имя:", pr_name, "GUID:", pr_guid), updater
+					updater.fail = True
+				End If
+			End If
+		End With
+	Next
+	
+End Function
+'---
+'
+'---
+Function CreateNewFormGUID(pr_guid, pr_type, pr_name, pr_shortname, pr_filename, pr_autonum, updater)
+	Dim SQL, FormID, NewForm, aData
+
+	Set CreateNewFormGUID = Nothing
+
+	SQL = "insert into forms (frm_guid, frm_type, frm_name, frm_short, frm_file, fa_id) values ('[GUID]', [TYPE], '[NAME]', [SHORT], '[FILE]', [ID])"
+
+	SQL = Replace(SQL, "[GUID]", pr_guid)
+	SQL = Replace(SQL, "[TYPE]", pr_type )
+	SQL = Replace(SQL, "[NAME]", pr_name )
+	SQL = Replace(SQL, "[SHORT]", iif(pr_shortname = "", "Null", "'" & pr_shortname & "'"))
+	SQL = Replace(SQL, "[FILE]", pr_filename)
+	SQL = Replace(SQL, "[ID]", iif(pr_autonum = "0", "Null", pr_autonum))
+
+	On Error Resume Next
+
+	If App.AppType = "DAO" Then
+		workarea.daodatabase.execute SQL
+	Else
+		GetRs SQL
+	End If
+
+	If Err.Number = 0 Then
+		SQL = "update forms set frm_guid='" & pr_guid & "' where frm_name='" & pr_name & "'"
+
+		If App.AppType = "DAO" Then
+			workarea.daodatabase.execute SQL
+		Else
+			GetRs SQL
+		End If
+	End If
+
+	If Err.Number <> 0 Then
+		writelog Array("Ошибка выполнения запроса:", Err.Description, "#", Err.Number), updater
+	End If
+
+	CreateNewFormGUID = (Err.Number = 0)
+	Err.Clear
+
+End Function
+'---
+'
+'---
+Function AddAutoNum(updater, Root, AutoDict)
+	Dim i, aData, fa_name, fa_id, fa_sfx, fa_pfx, fa, fa_new_id
+
+	AddAutoNum = True
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			fa_name = .GetAttribute("NAME")
+			fa_id = .GetAttribute("ID")
+			fa_sfx = .GetAttribute("SF")
+			fa_pfx = .GetAttribute("PR")
+
+			If GetRs2("select FA_ID from frm_autonum where fa_name='" & fa_name & "'", aData) Then
+				fa_new_id = aData(0, 0)
+			Else
+				Set fa = workarea.autonums.Create(fa_name)
+
+				If fa Is Nothing Then
+					writelog Array("Ошибка. Невозможно создать элемент автонумерации имя:", fa_name), updater
+					AddAutoNum = False
+					Exit Function
+				Else
+					writelog Array("Создан элемент автонумерации имя:", fa_name), updater
+					fa_new_id = fa.id
+				End If
+			End If
+
+			If Not AutoDict.Exists(fa_id) Then
+				AutoDict.Add fa_id, fa_new_id
+			End If
+
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Function AddWorkarea(updater, Root, DictElem)
+	Dim i, j, EventNodeName, Cmd, EventXML
+	Dim ElTag, NodeFound, CurrentNode, NewNode
+
+	Set EventXML = New XML
+
+	If EventXML.Create() Then
+		EventXML.xmlFileName = "HL74_Workarea.xml"
+
+		If EventXML.Load() Then
+
+			For i = 0 To Root.Length - 1
+				With Root.Item(i)
+					EventNodeName = .NodeName
+
+					Select Case EventNodeName
+						Case "parameters"
+							AddParams updater, .ChildNodes, DictElem, workarea.params
+
+						Case "facts"
+							AddFacts updater, .ChildNodes, DictElem, workarea.facts
+
+						Case "scripts"
+							AddScripts updater, .ChildNodes, App.AppType = "DAO"
+	
+						Case Else		
+							With .ChildNodes
+								For j = 0 To .Length - 1
+									Set CurrentNode = .Item(j)
+									cmd = CurrentNode.GetAttribute("cmd")
+		
+									Set ElTag = EventXML.xml.getElementsByTagName("Workarea").item(0).getElementsByTagName(EventNodeName).Item(0)
+									If ElTag Is Nothing Then Exit For
+		
+									CurrentNode.RemoveAttribute "cmd"
+									Set NodeFound = NodeFind(ElTag.ChildNodes, CurrentNode)
+		
+									Select Case cmd
+										Case "del"
+											If Not NodeFound Is Nothing Then 
+												ElTag.RemoveChild NodeFound
+												writelog Array("Удален обработчик workarea:", EventNodeName, "элемент:", NodeFound.xml), updater
+											End If
+										Case "add"
+											If NodeFound Is Nothing Then 
+												Set NewNode = EventXML.XML.CreateElement(CurrentNode.NodeName)
+												CopyAttr CurrentNode, NewNode
+												ElTag.AppendChild NewNode
+												writelog Array("Добавлен обработчик workarea:", EventNodeName, "элемент:", NewNode.xml), updater
+											End If
+									End Select
+								Next
+							End With
+					End Select
+				End With
+			Next
+	
+			EventXML.SaveAll
+		Else
+			updater.fail = True
+		End If
+	Else
+		updater.fail = True
+	End If
+
+	If updater.fail Then
+		writelog Array(EventXML.ErrorMsg), updater
+	End If
+
+	AddWorkarea = Not updater.fail
+
+End Function
+'---
+'
+'---
+Sub AddScripts(updater, Root, IsAppTypeDAO)
+	Dim i, QueryName, QueryText, Cmd
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			QueryName = .GetAttribute("name")
+			QueryText = .Text
+			Cmd = .GetAttribute("cmd")
+
+			If IsAppTypeDAO Then
+				Select Case Cmd
+					Case "del"
+						DeleteQueryDAO QueryName, updater
+
+					Case "add"
+						AddQueryDAO QueryName, QueryText, updater
+				End Select
+			ElseIf cmd = "exec" Then
+				GetRs QueryText
+			End If
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Sub DeleteQueryDAO(QueryName, updater)
+	Dim i
+
+	With workarea.daodatabase
+		With .querydefs
+			For i = 0 To .Count
+				If .Item(i).Name = QueryName Then
+					.Delete QueryName
+					writelog Array("В базе данных кдалена процедура:", QyeryName), updater
+				End If
+			Next
+		End With
+	End With
+
+	writelog Array("В базе данных не найдена процедура:", QyeryName), updater
+End Sub
+'---
+'
+'---
+Sub AddQueryDAO(QueryName, QueryText, updater)
+	Dim QD
+
+	On Error Resume Next
+
+	Set QD = Workarea.DAODAtaBase.CreateQyeryDefs(QueryName, QueryText)
+
+	If Err.Number = 0 Then
+		writelog Array("В базу данных добавлена процедура:", QueryName, "SQL:", QueryText), updater
+	Else
+		writelog Array("Ошибка", Err.Description, "(", Err.Number, ")", "при добавлении процедуры в базу данных:", QueryName, "SQL:", QueryText)
+		updater.fail = True
+	End If
+
+	Err.Clear
+End Sub
+
+'---
+'
+'---
+Function NodeFind(ElTag, CurrentNode)
+	Dim i, j, AttrName, ElNode, AttrFound
+
+	For i = 0 To ElTag.Length - 1
+		Set ElNode = ElTag.Item(i)
+		If ElNode.NodeName = CurrentNode.NodeName Then
+			AttrFound = True
+
+			For j = 0 To CurrentNode.Attributes.Length - 1
+				AttrName = CurrentNode.Attributes.Item(j).Name
+
+				If Not IsNull(ElNode.GetAttribute(AttrName)) Then
+					If ElNode.GetAttribute(AttrName) <> CurrentNode.GetAttribute(AttrName) Then
+						AttrFound = False
+						Exit For
+					End If
+				End If
+			Next
+
+			If AttrFound Then
+				Set NodeFind = ElNode
+				Exit Function
+			End If
+		End If
+	Next
+
+	Set NodeFind = Nothing
+End Function
+'---
+'
+'---
+Sub CopyAttr(NodeFrom, NodeTo)
+	Dim i, AttrName
+
+	With NodeFrom.Attributes
+		For i = 0 To .Length - 1
+			AttrName = .Item(i).Name
+			NodeTo.SetAttribute AttrName, NodeFrom.GetAttribute(AttrName)
+		Next
+	End With
+End Sub
+
+'---
+'
+'---
+Function AddATM(updater, Root, DictElem)
+	Dim i, Cmd, EventXML
+	Dim ElTag, NodeFound, CurrentNode, NewNode
+
+	Set EventXML = New XML
+
+	If EventXML.Create() Then
+		EventXML.xmlFileName = "HL74_AllTaskMenu.xml"
+
+		If EventXML.Load() Then
+			Set ElTag = EventXML.xml.getElementsByTagName("OnAllTaskMenu").item(0)
+
+			For i = 0 To Root.Length - 1
+				Set CurrentNode = Root.Item(i)
+				cmd = CurrentNode.GetAttribute("cmd")
+				CurrentNode.RemoveAttribute "cmd"
+				Set NodeFound = NodeFind(ElTag.ChildNodes, CurrentNode)
+
+				Select Case cmd
+					Case "del"
+						If Not NodeFound Is Nothing Then 
+							ElTag.RemoveChild NodeFound
+							writelog Array("Удален элемент AllTaskMenu:", NodeFound.xml), updater
+						End If
+					Case "add"
+						If NodeFound Is Nothing Then 
+							Set NewNode = EventXML.XML.CreateElement(CurrentNode.NodeName)
+							CopyAttr CurrentNode, NewNode
+							ElTag.AppendChild NewNode
+							writelog Array("Добавлен элемент AllTaskMenu:", NewNode.xml), updater
+						End If
+				End Select
+			Next
+	
+			EventXML.SaveAll
+		Else
+			updater.fail = True
+		End If
+	Else
+		updater.fail = True
+	End If
+
+	If updater.fail Then
+		writelog Array(oXml.ErrorMsg), updater
+	End If
+
+	AddATM = Not updater.fail
+
+End Function
+'---
+'
+'---

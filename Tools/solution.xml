@@ -1,0 +1,146 @@
+<accent_solution_cfg>
+<folder key="1">
+<map><item name="501" type="string" value="-1"/><item name="503" type="string" value="-1"/></map>
+
+</folder>
+<folder_prm key="prm:1">
+<map/>
+
+</folder_prm>
+<folder_fct key="fct:1">
+<map/>
+
+</folder_fct>
+<folder_rep key="rep:1">
+<map/>
+
+</folder_rep>
+<account key="2">
+<map><item name="203" type="string" value="-1"/><item name="204" type="string" value="-1"/><item name="219" type="string" value="-1"/><item name="70" type="string" value="-1"/><item name="220" type="string" value="-1"/></map>
+
+</account>
+<account_prm key="prm:2">
+<map/>
+
+</account_prm>
+<account_fct key="fct:2">
+<map/>
+
+</account_fct>
+<account_rep key="rep:2">
+<map/>
+
+</account_rep>
+<agent key="3">
+<map/>
+
+</agent>
+<agent_prm key="prm:3">
+<map/>
+
+</agent_prm>
+<agent_fct key="fct:3">
+<map/>
+
+</agent_fct>
+<agent_rep key="rep:3">
+<map/>
+
+</agent_rep>
+<entity key="4">
+<map/>
+
+</entity>
+<entity_prm key="prm:4">
+<map/>
+
+</entity_prm>
+<entity_fct key="fct:4">
+<map/>
+
+</entity_fct>
+<entity_rep key="rep:4">
+<map/>
+
+</entity_rep>
+<misc key="5">
+<map/>
+
+</misc>
+<misc_prm key="prm:5">
+<map/>
+
+</misc_prm>
+<misc_fct key="fct:5">
+<map/>
+
+</misc_fct>
+<misc_rep key="rep:5">
+<map/>
+
+</misc_rep>
+<binder key="6">
+<map/>
+
+</binder>
+<binder_prm key="prm:6">
+<map/>
+
+</binder_prm>
+<binder_fct key="fct:6">
+<map/>
+
+</binder_fct>
+<binder_rep key="rep:6">
+<map/>
+
+</binder_rep>
+<template key="7">
+<map><item name="1756" type="string" value="-1"/><item name="1779" type="string" value="-1"/><item name="1738" type="string" value="-1"/><item name="1790" type="string" value="-1"/></map>
+
+</template>
+<template_prm key="prm:7">
+<map/>
+
+</template_prm>
+<template_fct key="fct:7">
+<map/>
+
+</template_fct>
+<template_rep key="rep:7">
+<map/>
+
+</template_rep>
+<projectitem key="8">
+<map><item name="297" type="string" value="-1"/></map>
+
+</projectitem>
+<projectitem_prm key="prm:8">
+<map/>
+
+</projectitem_prm>
+<projectitem_fct key="fct:8">
+<map/>
+
+</projectitem_fct>
+<projectitem_rep key="rep:8">
+<map/>
+
+</projectitem_rep>
+<workarea key="9">
+<map><item name="3" type="string" value="-1"/><item name="8" type="string" value="-1"/><item name="-3" type="string" value="-1"/><item name="-4" type="string" value="-1"/></map>
+
+</workarea>
+<workarea_prm key="prm:9">
+<map/>
+
+</workarea_prm>
+<workarea_fct key="fct:9">
+<map/>
+
+</workarea_fct>
+<workarea_rep key="rep:9">
+<map/>
+
+</workarea_rep>
+</accent_solution_cfg>

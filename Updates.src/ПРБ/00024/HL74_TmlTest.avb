@@ -1,0 +1,25 @@
+'#include "HL74_TmlTest_Common.avb"
+Option Explicit
+'---------------
+'
+'---------------
+
+Dim CommandArray
+Dim ObjArray
+Dim Errors
+
+Set Errors = CreateObject("Scripting.Dictionary")
+
+CommandArray = Array("SETMISC", "SETCUR", "SETENT", "SETTAX", "SETACCDB", "SETACCCR", "SETAGFROM", "SETAGTO", "FORMID", "SETFOLDER")
+ObjArray = Array("Misc", "Cur", "Entity", "TaxReport", "Account", "Account", "Agent", "Agent", "ProjectItem", "Folder")
+
+TestTemplates WorkArea.templates
+
+If Errors.Count > 0 Then 
+	If MsgBox("Обнаружено " & CStr(Errors.Count) & " ошибок !" & vbCrLf & "Показать отчет ?", vbCritical + vbYesNo, "Акцент " & App.Version) = vbYes Then ViewErrors
+Else
+	MsgBox "Ошибки не обнаружены.", vbInformation, "Акцент " & App.Version
+End If
+'------------
+'
+'------------

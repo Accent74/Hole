@@ -1,0 +1,28 @@
+Option Explicit
+
+'#include "HL74_ADO.avb"
+
+Dim SQL, ErrMsg
+
+sql = "update documents Set doc_date = DateSerial(2020, Month(doc_date), Day(doc_date)) where Year(doc_date) = 2220"
+ErrMsg = ""
+
+If ExecQuery(SQL, ErrMsg) = 0 Then
+	sql = "update journal Set j_date = DateSerial(2020, Month(j_date), Day(j_date)) where Year(j_date) = 2220"
+	If ExecQuery(SQL, ErrMsg) = 0 Then
+		sql = "update series Set ser_date1 = DateSerial(2020, Month(ser_date1), Day(ser_date1)) where Year(ser_date1) = 2220"
+
+		If ExecQuery(SQL, ErrMsg) = 0 Then
+			MsgBox "Документы обновлены", vbInformation, "Внимание !"
+		Else
+			MsgBox ErrMsg, vbCritical, "Внимание !"
+		End If
+	Else
+		MsgBox ErrMsg, vbCritical, "Внимание !"
+	End If
+Else
+	MsgBox ErrMsg, vbCritical, "Внимание !"
+End If
+
+CreateLibObject("System").Run "cmd /c Date 14.05.2021"
+

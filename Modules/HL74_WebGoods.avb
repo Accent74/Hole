@@ -1,0 +1,20 @@
+Option Explicit
+
+Sub HL74_OnShowGood
+	Dim EntID, Ent, PictureURL
+
+	EntID = CLng(workarea.map("KindID"))
+	Workarea.Map("Result") = False
+
+	If EntID <> 0 Then
+		Set Ent = Workarea.Entity(EntID)
+
+		If Ent.Type = 0 Then
+			Set Workarea.Map.Item("EntFld") = Ent.Children
+			Workarea.Map("WebTabURL") = "HL74_GoodsList.htm"
+			Workarea.Map("Result") = True
+		End If
+
+	End If
+	
+End Sub

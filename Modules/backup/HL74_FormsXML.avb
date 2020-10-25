@@ -1,0 +1,198 @@
+Option Explicit
+
+'---
+'
+'---
+Sub Form_ToolBar_Ini(Form, xmlFileName, LangPrefix)
+	Dim xml, RD, cmdToolBar, i, frmEvents
+
+	Set RD = CreateLibObject("Redirect")
+	Set xml = CreateObject("msxml2.domdocument")
+	Set cmdToolBar = CreateObject("Scripting.Dictionary")
+	Set frmEvents = CreateObject("Scripting.Dictionary")
+
+	Set Form.Map.Item("cmdToolBar") = cmdToolBar
+	Set Form.Map.Item("cmdEvents") = frmEvents
+
+	If LangPrefix = "" Then 
+		LangPrefix = iif(token(App.Version, 2, ".") = "4", App.LangUI, "ru")
+	End If
+
+	xml.load(RD.GetFullPath(xmlFileName & ".xml"))
+
+	With xml.ChildNodes.Item(0).ChildNodes
+		For i = 0 To .Length - 1
+			Select Case .Item(i).NodeName
+				Case "toolbar"
+					AddToolBar .Item(i).ChildNodes, LangPrefix
+				Case "events"
+					AddEvents .Item(i).ChildNodes
+			End Select
+		Next
+
+	End With
+
+	Form.ToolBar.Refresh
+
+End Sub
+'---
+'
+'---
+Sub AddEvents(xmlEventsRoot)
+	Dim cmdEvents, i, cmdEvent
+
+	Set cmdEvents = Form.Map.Item("cmdEvents")
+	
+	For i = 0 To xmlEventsRoot.Length - 1
+		With xmlEventsRoot.Item(i)
+			If cmdEvents.Exists(.NodeName) Then
+				Set cmdEvent = cmdEvents.Item(.NodeName)
+			Else
+				Set cmdEvent = CreateObject("Scripting.Dictionary")
+			End If
+
+			cmdEvent.Add cmdEvent.Count + 1, Array(.GetAttribute("module"), .GetAttribute("proc"))
+			Set cmdEvents.Item(.NodeName) = cmdEvent
+
+		End With
+	Next
+
+	Set Form.Map.Item("cmdEvents") = cmdEvents
+
+End Sub
+'---
+'
+'---
+Sub AddToolBar(xmlToolbarRoot, LangPrefix)
+	Dim i
+	
+	For i = 0 To xmlToolbarRoot.Length - 1
+		With xmlToolbarRoot.Item(i)
+
+			Select Case .NodeName
+				Case "button"
+					AddFormButton Form.ToolBar, xmlToolbarRoot.Item(i), LangPrefix
+			End Select
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Sub AddFormButton(tBar, xmlItem, LangPrefix)
+	Dim tButton, BtnCmd
+	Dim cmdToolBar
+
+	Set cmdToolBar = Form.Map.Item("cmdToolBar")
+
+	BtnCmd = CInt(xmlItem.GetAttribute("command"))
+	Set tButton = tBar.ItemByCommand(BtnCmd)
+
+	If tButton Is Nothing Then
+		Set tButton = tBar.Create(BtnCmd)
+	End If
+
+	tButton.caption = xmlItem.GetAttribute("caption_" & LangPrefix)
+	tButton.image = xmlItem.GetAttribute("image")
+	tButton.tag = checknull(xmlItem.GetAttribute("tag"), "")
+	tButton.group = (checknull(xmlItem.GetAttribute("group"), "true") = "true")
+	tButton.tooltip = checknull(xmlItem.GetAttribute("tooltip_" & LangPrefix), "")
+
+	tButton.popup = GetPopUpMenu(xmlItem.ChildNodes, cmdToolBar, 1, LangPrefix)
+	tButton.DropDown = (tButton.popup <> "")
+
+	If Not cmdToolBar.exists(BtnCmd) Then
+		cmdToolBar.Add CInt(BtnCmd), Array(checknull(xmlItem.GetAttribute("module"), ""),  checknull(xmlItem.GetAttribute("proc"), ""))
+	Else
+		cmdToolBar(CInt(BtnCmd))(0) = checknull(xmlItem.GetAttribute("module"), "")
+		cmdToolBar(CInt(BtnCmd))(1) = checknull(xmlItem.GetAttribute("proc"), "")
+	End If
+
+	Set Form.Map.Item("cmdToolBar") = cmdToolBar
+
+End Sub	
+'---
+'
+'---
+Function GetPopUpMenu(xmlItems, cmdToolBar, level, LangPrefix)
+	Dim i, PopUpMenu
+	Dim cmd
+
+	PopUpMenu = ""
+
+	With xmlItems
+		If .Length > 0 Then
+			For i = 0 To .Length - 1
+				With .Item(i)
+					If PopUpMenu <> "" Then PopUpMenu = PopUpMenu & "|"
+
+					cmd = .GetAttribute("command")
+
+					If checknull(cmd, "") = "" Then
+						If cmdToolBar.Count <> 0 Then
+							cmd = GetMaxCommand(cmdToolBar)
+						Else	
+							cmd = 1
+						End If
+					End If
+
+					PopUpMenu = PopUpMenu & level & ":" & .GetAttribute("name_" & LangPrefix)
+
+					If .ChildNodes.Length > 0 Then
+						PopUpMenu = PopUpMenu & "|" & GetPopUpMenu(.ChildNodes, cmdToolBar, level + 1, LangPrefix)
+					Else
+						PopUpMenu = PopUpMenu & ":" & cmd	
+
+						If Not cmdToolBar.exists(Cmd) Then
+							cmdToolBar.Add CInt(Cmd), Array(checknull(.GetAttribute("module"), ""),  checknull(.GetAttribute("proc"), ""))
+						Else
+							cmdToolBar(CInt(Cmd))(0) = checknull(.GetAttribute("module"), "")
+							cmdToolBar(CInt(Cmd))(1) = checknull(.GetAttribute("proc"), "")
+						End If
+			
+					End If
+	
+				End With
+			Next
+		End If
+	End With
+
+	GetPopUpMenu = PopUpMenu
+End Function
+'---
+'
+'---
+Function GetMaxCommand(cmdToolBar)
+	Dim i, keys, MaxCommand
+
+	keys = cmdToolBar.keys
+	MaxCommand = 0
+
+	For i = 0 To UBound(keys)
+		If MaxCommand < keys(i) Then MaxCommand = keys(i)
+	Next
+
+	GetMaxCommand = MaxCommand + 1
+End Function
+'---
+'
+'---
+Function Form_CommandExec(Command, Form, Op)
+	Dim cmdToolBar, prm, cmdToolBarButton
+
+	Set cmdToolBar = Form.Map.Item("cmdToolBar")
+	Form_CommandExec = False
+
+	If cmdToolBar.exists(Command) Then
+		cmdToolBarButton = cmdToolBar(Command)
+		prm = Array(Op, Form)
+
+		If cmdToolBarButton(0) <> "" And cmdToolBarButton(1)	<> "" Then
+			App.RunModule cmdToolBarButton(0), cmdToolBarButton(1), prm
+			Form_CommandExec = True
+		End If
+	End If
+End Function
+'---
+'
+'---

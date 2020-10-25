@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="Волмарт расх.накл ЮР. (скидка)" tmlguid="{37604A17-6607-4FF8-93D6-957D1F3B7888}">
+	<rows row="2" col="2" while="" findfield="bar">
+		<nom col="" expr=""/> 
+		<cat col="" expr=""/>
+		<bar col="4" expr=""/>
+		<art col="" expr=""/>
+		<tag col="" expr=""/>
+		<name col="5" expr=""/>
+		<unit col="6" expr=""/>
+		<qty col="7" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="8" expr=""/>
+		<sum col="9" expr=""/>
+	</rows>
+</documentimport>

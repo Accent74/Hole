@@ -1,0 +1,101 @@
+Option Explicit
+
+Public Modified
+Public KindName
+Public FolderID
+
+Private MscName, MscID, MscNo
+
+Class MiscBind
+
+	Private Sub Clear
+		Modified = True
+		MscName = ""
+		MscID = 0
+		MscNo = 0
+	End Sub
+
+	Private Sub SetProps(MscID)
+		Set Msc = Workarea.Misc(MscID)
+
+		Modified = True
+		MscID = Msc.ID
+		MscNo = Msc.No
+		MscName = Msc.Name
+	End Sub
+
+	Private Sub Initialize
+		Clear
+		MiscNo = 0
+		KindName = "Аналитика Разное"
+		FolderID = 0
+		Modified = False
+	End Sub
+
+	Public Property Let ID(MscID)
+		If ID <> 0 Then
+			SetProps ID
+		Else
+			Clear
+		End If
+
+	End Property 
+
+	Public Property Get ID
+		ID = MscID
+	End Property 
+
+	Public Property Get Name
+		Name = MscName
+	End Property
+
+	Public Property Let Name(ValName)
+		Dim elFind
+
+		If ValName = "" Then
+			Clear
+		Else
+			Set elFind = workarea.ElementFinder(acMisc)
+			elFind.AddCriteria "Name", "Like*", ValName
+
+			If elFind.Find Then
+				If elFind.Elems.Count > 1 Then
+					BrowseFoundMsc elFind.Elems, Empty
+				Else
+					SetProps elFind.Elems.Item(1).ID
+				End If
+			Else
+				Mscid = 0
+				MscName = ValName
+			End If
+		End If
+	End Property
+
+	Private Sub BrowseFoundMsc(Elems, AgType)
+		Dim Dlg
+
+		Set Dlg = App.CreateDialog("HL74_ElementFinderList.adg")
+
+		With Dlg.Map
+			Set .Item("Elems") = Elems
+			.Item("kind") = acMisc
+			.item("type") = AgType
+			
+			If Dlg.DoModal = vbOK Then
+				SetProps Dlg.Map("id")
+			End If
+		End With
+	End Sub
+
+	Public Sub OnClick()
+		Dim NewMscID, Root
+
+		Root = iif(FolderID <> 0, FolderID, MscNo)
+		NewMscID = Workarea.Browse(acMisc, Mscid, Root, 1, "Выберите " & KindName)
+
+		If NewMscID <> 0 Then
+			SetProps NewMscID 
+		End If 
+	End Sub
+
+End Class

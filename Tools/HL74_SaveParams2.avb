@@ -1,0 +1,116 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+
+Dim Buffer
+
+buffer = "<dbparams ver="" configname="" configversion="">"
+
+Function SaveParams(ElemKind, Elems, HasTypes, ParamsOnly, buffer)
+	Dim buffer, ElDict, i, j, DoAdd
+
+	buffer = vbTab & "<kind='" & ElemKind & "'>"
+	Set ElDict = CreateLibObject("Map")
+
+	For i = 1 To Elem.Count
+		With .Item(i)
+			With .Nested
+				For j = 1 To .Count
+					With .Item(j)
+						DoAdd = True
+						kindtype = ""
+
+						If HasTypes Then	
+							If ElDict.Exists(.Type) Then
+								DoAdd = False
+							Else
+								ElDict.add .Type, .Type
+								kindtype = .Type
+							End If
+						End If
+
+						If DoAdd Then
+							AddParams .Params, kindtype, Null, Buffer
+							If Not ParamsOnly Then
+								AddParams .Params, kindtype, Null, Buffer
+							End If
+						End If
+					End With
+				Next
+			End With
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Sub AddParams(Prms, kindtype, OnDate, ByRef Buffer)
+	Dim i
+
+	For i = 1 To Prms.Count
+		With Prms.Item(i)
+			buffer = 	buffer & vbTab & vbTab 
+
+			If IsNull(OnDate) Then
+				buffer = 	buffer & "<param"
+			Else
+				buffer = 	buffer & "<fact"
+			End If
+
+			buffer = 	buffer & " kindtype='" & kindtype & "'"
+
+			buffer = buffer + " name='" & .name & "'"
+			buffer = buffer + " type='" & .type & "'"
+			buffer = buffer + " refkind='" & .refkind & "'"
+			buffer = buffer + " value='" & .value2 & "'"
+		
+			If Not IsNull(.Value) anf .refKind <> 0 Then
+				buffer = buffer + " valueguid='" & GetGUIDbyID(.refKind, .Value2) & "'"
+			End If
+		End With
+	Next
+
+	Buffer = Buffer & "/>" & vbNewLine
+End Sub
+'---
+'
+'---
+Function GetGUIDbyID(kind, ID)
+	Dim SQL, aData
+
+	GetGUIDbyID = ""
+
+	Select Case kind
+		Case acAccount
+			SQL = "select acc_guid from accounts where acc_id=" & id
+		Case acMisc
+			SQL = "select msc_guid from misc where msc_id=" & id
+		Case acCurs
+			SQL = "select cur_guid from currencies where cur_id=" & id
+		Case acEntity
+			SQL = "select ent_guid from entities where ent_id=" & id
+		Case acAgent
+			SQL = "select ag_guid from agents where ag_id=" & id
+		Case acForm
+			SQL = "select frm_guid from forms where frm_id=" & id
+		Case acFolder
+			SQL = "select fld_guid from folders where fld_id=" & id
+		Case acTemplate
+			SQL = "select tml_guid from templates where tml_id=" & id
+		Case 18			' enums
+			SQL = "select enn_name from enum_names where enn_id=" & id
+		Case Else
+			SQL = ""
+	End Select
+
+	If SQL <> "" Then
+		If GetRs2(sql, aData) Then
+			GetGUIDbyID = adata(0, 0)
+		End If
+	End If
+	
+End Function
+'---
+'
+'---
+

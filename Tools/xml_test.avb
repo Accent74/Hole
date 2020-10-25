@@ -1,0 +1,16 @@
+'#include "HL74_XML.avb"
+Option Explicit
+
+Dim oXml, NodeRoot
+
+Set oXML = New XML
+
+If oXML.Create() Then
+	oXml.FileName = "6a19533e-c4b7-11e0-b644-0015172808f3.xml"
+
+	If oXml.Load() Then
+		Set NodeRoot = oxml.GetTag("/mobile_sales")
+stop
+	End If
+
+End If

@@ -1,0 +1,166 @@
+'#include "HL74_common.avb"
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+'-----------------
+'
+' набор процедур для обеспечения операций возврата товара от покупателя SQL
+'
+'	1 - FIFO					
+'	2 - LIFO
+'	3 - ручной. проверяем только возможность возврата
+'	4 - по средней цене
+'-----------------
+
+Function ReturnTo(Op, TrNoTo, TrNoFrom, ReturnMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+	Dim Errors, MyCoID, aPrm, dSer
+	
+	MyCoID = WorkArea.MyCompany.ID
+
+	Set Errors = CreateObject("Scripting.Dictionary")
+	Set dSer = CreateLibObject("Map")
+
+	If ReturnMode = 3 Then
+		ReturnTo = ManualCharge(Op.TransList(TrNoTo), Errors)
+	Else
+		com_ClearTrans Op.TransList(TrNoTo)
+		aPrm = Array(Errors, Op.TransList(TrNoTo), ReturnMode, MyCoID, dSer)
+		Op.TransList(TrNoFrom).EnumTrans GetRef("ReturnToOneRow"), aPrm
+
+		ReturnTo = (Errors.Count = 0)
+	End If
+
+	If Errors.Count <> 0 And IsViewError Then 
+		Set WorkArea.Map.Item("ErrorOp") = Op
+		ViewError Errors
+	End If
+
+End Function
+
+'---
+'	0 - Errors
+'	1 - TrListTo
+'	2 - ReturnMode
+'	3 - MyCo.ID
+'---
+Function ReturnToOneRow(Tr, ByRef prm)
+	Dim aPrm, aData, dSer, sQty, RowNo, Tr2, eQty, eSum, i
+
+	ReturnToOneRow = True
+	RowNo = prm(1).Rows
+	If prm(1).Item(RowNo).EntID <> 0 Then RowNo = RowNo + 1
+	Set Tr2 = prm(1).Item(RowNo)
+
+	sQty = Abs(Tr.Qty)
+
+	If Tr.EntID <> 0 Then
+		Set dSer = prm(4)
+		aPrm = Array(Tr2.AccCrID, Tr.AgToID, Tr.EntID, Tr.Date + 1, prm(2), Tr.Operation.ID, prm(3))
+
+		If Query("HL74_ReturnFromBuyer", aPrm, aData) Then
+			'	0 - наименование серии
+			'	1 - ID серии
+			'	2 - дата серии
+			'	3 - последняя дата продажи
+			'	4 - сумма по серии
+			'	5 - количество по серии
+
+			For i = 0 To UBound(aData, 2)	
+				If dSer.Exists(aData(1, i)) Then
+					eSum = dSer(aData(1, i))(0)
+					eQty = dSer(aData(1, i))(1)
+				Else
+					eSum = aData(4, i)
+					eQty = aData(5, i)
+					dSer(aData(1, i)) = Array(eSum, eQty)
+				End If
+
+				If eQty > 0 Then
+					If prm(1).Item(RowNo).EntID <> 0 Then RowNo = RowNo + 1
+					Set Tr2 = prm(1).Item(RowNo)
+
+					Tr2.EntID = Tr.EntID
+					Tr2.SeriesID = aData(1, i)
+				
+					If sQty >= eQty Then
+						Tr2.Qty = -eQty
+						Tr2.Sum = -eSum
+						sQty = sQty - eQty
+						eQty = 0
+						eSum = 0
+					Else
+						Tr2.Qty = sQty
+						Tr2.Price = eSum / eQty
+						eQty = eQty - sQty
+						eSum = eSum - Abs(Tr.Sum)
+						sQty = 0
+					End If
+
+					dSer(aData(1, i))(0) = eSum
+					dSer(aData(1, i))(1) = eQty
+				End If
+
+				If sQty = 0 Then Exit For
+			Next
+
+			If sQty <> 0 Then
+				' недостаточно количества на остатке
+				prm(0).Add prm(0).Count + 1, Array(acErrorNoQuant, Tr.EntID, sQty, Tr.RowNo2, Tr2.AccCrID, Tr.AgToID)
+			End If
+			
+		Else
+			prm(0).Add prm(0).Count + 1, Array(acErrorNoSeries, Tr.EntID, sQty, Tr.RowNo2, Tr2.AccCrID, Tr.AgToID)
+		End If
+	End If
+	
+End Function
+'---
+'
+'---
+Function ManualCharge(TrListTo, Errors)
+	Dim aPrm, dEnts
+
+	Set dEnts = CreateObject("Scripting.Dictionary")
+	aPrm = Array(True, dEnts, Errors, TrListTo.Parent.Trans(1).AgToID)
+
+	TrListTo.EnumTrans GetRef("CheckSerOneRow"), aPrm
+	ManualCharge = (Errors.Count = 0)
+End Function
+'---
+'
+'---
+Function CheckSerOneRow(Tr, ByRef prm)
+	Dim aPrm, SerQty, aData, SerID
+
+	CheckSerOneRow = True
+
+	If Tr.SeriesID <> 0 Then
+		SerID = Tr.SeriesID
+		aPrm = Array(Tr.AccCrID, prm(3), Tr.EntID, SerID, Tr.Date + 1, Tr.Operation.ID)
+
+		If prm(1).Exists(SerID) Then
+			SerQty = prm(1)(SerID)
+		Else
+			If Query("HL74_ReturnFromBuyerSeries", aPrm, aData) Then
+				SerQty = aData(0, 0)
+				prm(1)(SerID) = SerQty
+			Else
+				prm(2).Add prm(2).Count + 1, Array(acErrorNoSeries, Tr.EntID, Abs(Tr.Qty), Tr.RowNo2, Tr.AccCrID, prm(3))
+				Exit Function
+			End If
+		End If
+
+		If SerQty < Abs(Tr.Qty) Then
+			prm(2).Add prm(2).Count + 1, Array(acErrorNoQtySeries, Tr.EntID, SerQty, Tr.RowNo2, Tr.AccCrID, prm(3))
+		Else
+			prm(1)(SerID) = SerQty - Abs(Tr.Qty)
+		End If
+	Else
+		prm(2).Add prm(2).Count + 1, Array(acErrorNoSeries, Tr.EntID, Abs(Tr.Qty), Tr.RowNo2, Tr.AccCrID, prm(3))
+	End If
+
+End Function
+'---
+'
+'---

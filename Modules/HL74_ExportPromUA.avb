@@ -1,0 +1,82 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_const.avb"
+
+Const URL_CATALOG = "http://url/catalog/1/1/"
+Const URL_IMAGES = "http://url/images/"
+
+Sub ExportPromUA(xmlFileName, EntRoot)
+	Dim oXML, xmlCurrency, Root, Catalog, EntItems
+
+	Set oXML = New XML
+
+	If oXml.Create() Then
+		Set Root = oXml.xml.CreateElement("price")
+		Root.SetAttribute "date", Formatdate2(Now, "yyyy-mm-dd hh:nn")
+		oxml.CreateElem Root, "name", "Акцент:интернет магазин"
+		Set xmlCurrency = oxml.xml.CreateElement("currency")
+		xmlCurrency.Text = "1"
+		Root.AppendChild xmlCurrency
+		xmlCurrency.SetAttribute "code", "UAH"
+	
+		Set Catalog = oxml.GetNewElem("catalog", "")
+		AddFolders EntRoot.Children, Catalog, EntRoot.ID, oXml
+		Root.AppendChild Catalog
+		
+		Set EntItems = oxml.GetNewElem("items", "")
+		AddItems EntRoot.Nested, EntItems, oXml
+		Root.AppendChild EntItems
+
+		oXML.xml.InsertBefore Root, Nothing
+		oXml.xmlFileName = xmlFileName
+		oXml.SaveAll
+	End If
+End Sub
+
+Sub AddItems(EntList, EntItems, oXml)
+	Dim i, EntItem, Ent
+
+	For i = 1 To EntList.Count
+		Set Ent = EntList.Item(i)
+		If Ent.Type = 1004 Then
+			Set EntItem = oxml.GetNewElem("item", "")
+			EntItem.SetAttribute "id", Ent.ID
+
+			oxml.CreateElem EntItem, "name", Ent.Name
+			oxml.CreateElem EntItem, "categoryId", Ent.Parent.ID
+			oxml.CreateElem EntItem, "price", ""
+			oxml.CreateElem EntItem, "url", URL_CATALOG & Ent.id
+			oxml.CreateElem EntItem, "image", URL_IMAGES & com_GetPAramValue(Ent, prmEntPhotoRef, "")
+			oxml.CreateElem EntItem, "vendor", com_GetPAramValue(Ent, prmEntMscBrand, "")
+			oxml.CreateElem EntItem, "descriptions", Ent.memo
+			oxml.CreateElem EntItem, "warranty", 12
+
+			EntItems.AppendChild EntItem
+		End If
+	Next
+
+End Sub
+
+Sub AddFolders(EntRoot, Catalog, EntRootID, oXml)
+	Dim i, category
+
+	For i = 1 To EntRoot.Count
+		With EntRoot.Item(i)
+			If .Type < 1000 Then
+				Set category = oxml.GetNewElem("category", .Name)
+				category.SetAttribute "id", .ID
+				If .Parent.ID <> EntRootID Then
+					category.SetAttribute "parentID", .Parent.ID
+				End If
+	
+				Catalog.AppendChild category
+
+				If .HasChildren Then AddFolders .Children, Catalog, EntRootID, oXml
+			End If
+		End With
+	Next
+End Sub
+
+ExportPromUA "d:\promua.xml", Workarea.Entity(27378)

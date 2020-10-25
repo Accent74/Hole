@@ -1,0 +1,38 @@
+Option Explicit
+
+Const MSC_BOX_CAPTION = "Работа с ЭККА"
+
+Dim m119F
+
+Set m119F = CreateObject("CashPrints.CashPrint")
+
+'stop
+If Not m119F.open(1, 9600, 1, "0000") Then
+	MsgBox "Ошибка открытия порта принтера" & vbNewLine & m119F.ErrorMsg, vbCritical, MSC_BOX_CAPTION
+Else
+
+	MsgBox M119f.PrintCheckIn(100.00)
+
+'	If m119F.OpenCheck(1, False) Then
+'		If m119F.PrintCheckRow("Пример товара № 1", 3, 13.56, 40.68, 1, 0) Then
+'			If m119F.PrintCheckRow("Пример товара № 2", 2, 15.40, 30.80, 1, 0) Then
+'				If Not m119F.CloseCheck(71.48, 1) Then
+'					MsgBox "Ошибка закрытия чека" & vbNewLine & m119F.ErrorMsg, vbCritical, MSC_BOX_CAPTION
+'					m119F.CancelCheck() 
+'				End If
+'			Else
+'				MsgBox "Ошибка печати строки" & vbNewLine & m119F.ErrorMsg, vbCritical, MSC_BOX_CAPTION
+'				m119F.CancelCheck() 
+'			End If
+'		Else
+'			MsgBox "Ошибка печати строки" & vbNewLine & m119F.ErrorMsg, vbCritical, MSC_BOX_CAPTION
+'			m119F.CancelCheck() 
+'		End If
+'	Else
+'		MsgBox "Ошибка открытия чека" & vbNewLine & m119F.ErrorMsg, vbCritical, MSC_BOX_CAPTION
+'		m119F.CancelCheck() 
+'	End If
+	m119F.close
+End If
+
+Set m119F = Nothing

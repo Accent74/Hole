@@ -1,0 +1,85 @@
+Option Explicit
+
+Class AgAddrBind
+
+	Private CurAgID, CurAddr
+	Public PathID
+
+	Private Sub Initialize
+		CurAgID = 0
+		CurAddr = ""
+		PathID = 0
+	End Sub
+
+	Public Property Let AgID(ID)
+		If CurAgID <> ID Then CurAddr = ""
+		CurAgID = ID
+	End Property
+
+	Private Sub SetPathID(AddrStr)
+		Dim NewPathID
+
+		NewPathID = Token(AddrStr, 10, ";")
+		If Not IsNumeric(NewPathID) Then PathID = 0 Else PathID = CInt(NewPathID)
+
+	End Sub
+
+	Public Property Let Addr(ByVal AddrStr)
+
+		CurAddr = com_addressnormalize(AddrStr)
+'		CurAddr = MakeAddress(AddrStr)
+		SetPathID AddrStr
+	End Property
+
+	Public Property Get Addr
+		Addr = CurAddr
+	End Property
+	
+	Public Function OnClick()
+		Dim Dlg, Ag
+
+		If CurAgID <> 0 Then
+			Set Ag = Workarea.Agent(CurAgID)
+			Set Dlg = App.CreateDialog("HL74_AgAddrBind.adg")
+		
+			Set Dlg.Map.Item("Ag") = Ag
+
+			If Dlg.DoModal = vbOK Then
+				CurAddr = Dlg.Map("Addr")
+				PathID = Dlg.Map("PathID")
+				OnClick = True
+			Else
+				OnClick = False
+			End If
+		End If
+
+	End Function
+
+	Private Function MakeAddress(Addr)
+		Dim i, aAddr, aAddrName, FullAddress
+
+		FullAddress = ""
+		'улица;дом;квартира;индекс;город;страна;;;
+ 		aAddrName = Array("", "", "", "", "", "", "", "", "", "", "", "")
+		aAddr = Split(Addr, ";")
+
+		If UBound(aAddr) = 0 Then
+			FullAddress = Addr
+		Else
+			For i = 0 To UBound(aAddr) - 1
+				If aAddr(i) <> "" Then 
+					If aAddrName(i) <> "" Then 
+						FullAddress = FullAddress & " " & aAddrName(i) & " "
+					Else
+						FullAddress = FullAddress & " "
+					End If 
+					FullAddress = FullAddress & aAddr(i)
+				End If
+			Next
+		End If
+
+		MakeAddress = Trim(FullAddress)
+
+	End Function
+
+End Class

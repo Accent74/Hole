@@ -1,0 +1,65 @@
+Option Explicit
+
+Const MS_BOX_CAPTION = "Проверка имен объектов учета"
+
+If MsgBox("Проверить наименование объектов учета на недопустимые символы ?", vbQuestion + vbOKCancel, MS_BOX_CAPTION) = vbOK Then
+	Main
+End If
+
+Sub Main
+	Dim CountAll, Count, i, Ent1, j, Ent2
+	Dim Cur
+
+	Count = 0
+	CountAll = 0
+
+	Set Cur = waitcursor
+
+	With Workarea.Entities
+		For i = 1 To .Count
+			Set Ent1 = .Item(i)
+			CountAll = CountAll + 1
+			If Not CheckEntName(Ent1) Then Count = Count + 1
+
+			If Ent1.HasChildren Then
+				With Ent1.Nested
+					For j = 1 To .Count
+						CountAll = CountAll + 1
+						Set Ent2 = .Item(j)
+						If Not CheckEntName(Ent2) Then Count = Count + 1
+					Next
+				End With
+			End If
+		Next
+	End With
+
+	Set Cur = Nothing
+	MsgBox "Проверено:" & CountAll & vbNewLine & "Исправлено:" & Count, vbInformation, "Проверка имен объектов учета"
+
+End Sub
+
+Function CheckEntName(Ent)
+	Dim i, EntName, AscCode, UniCode, EntModified
+
+	EntName = Ent.Name
+	EntModified = False
+
+	For i = 1 To Len(EntName)
+
+		AscCode = Chr(Asc(Mid(EntName, i, 1)))
+		UniCode = ChrW(AscW(Mid(EntName, i, 1)))
+
+		If StrComp(AscCode, UniCode, vbBinaryCompare) <> 0 Then 
+			Ent.Name = Replace(Ent.Name, Mid(EntName, i, 1), "")
+			EntModified = True
+		End If
+	Next
+
+	If EntModified Then
+		Ent.Save
+		CheckEntName = False
+	Else
+		CheckEntName = True
+	End If
+
+End Function

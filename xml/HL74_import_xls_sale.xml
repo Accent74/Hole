@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="Продажи" tmlguid="{7A80BDF8-6AED-492C-AD9F-6BF286E504CE}">
+	<rows row="8" col="2" while="" findfield="name">
+		<nom col="" expr=""/> 
+		<cat col="" expr=""/>
+		<bar col="" expr=""/>
+		<art col="" expr=""/>
+		<tag col="" expr=""/>
+		<name col="2" expr=""/>
+		<unit col="" expr=""/>
+		<qty col="3" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="" expr=""/>
+		<sum col="4" expr=""/>
+	</rows>
+</documentimport>

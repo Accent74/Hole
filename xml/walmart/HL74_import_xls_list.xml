@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<documentimport version="0.1" name="Список товара код\Н\К\Ц\С">
+	<doc_date row="" col="" expr="" />
+	<doc_no row="" col="" expr="" />
+	<doc_sum row="" col="" expr="" />
+	<doc_memo row="" col="" expr="" />
+	<agent kind="from">
+		<code row="" col="" expr="" />
+		<name row="" col="" expr="" />
+		<address row="" col="" expr="" />
+		<bankacc row="" col="" expr="" />
+		<bankmfo row="" col="" expr="" />
+		<bankname row="" col="" expr="" />
+	</agent>
+	<agree>
+		<name row="" col="" expr="" />
+		<number row="" col="" expr="" />
+		<date row="" col="" expr="" />
+	</agree>
+	<rows row="1" col="2" while="" findfield="cat">
+		<nom col="" expr=""/> 
+		<cat col="1" expr="com_strzero(cellval, 11)"/>
+		<bar col="" expr=""/>
+		<art col="" expr=""/>
+		<tag col="" expr=""/>
+		<name col="2" expr=""/>
+		<unit col="4" expr=""/>
+		<qty col="3" expr=""/>
+		<fqty col="" expr=""/>
+		<price col="5" expr=""/>
+		<sum col="6" expr=""/>
+	</rows>
+</documentimport>

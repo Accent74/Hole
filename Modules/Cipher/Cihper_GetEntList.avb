@@ -1,0 +1,60 @@
+'#include "Cipher_class.avb"
+'#include "Cipher_common.avb"
+'#include "Cipher_const.avb"
+'#include "ST74_ADO.avb"
+
+Option Explicit
+
+Function Cipher_GetData(DocNo, EntDict)
+	Dim Boud, Port, AgList, EntRootID, AccID, AccInvent
+	Dim C8400, aRow, EntID, IsError, i, aData, Qty
+
+	If Not CheckParams(Boud, Port, AgList, EntRootID, AccID, AccInvent) Then
+		MsgBox "Не установлены параметры работы с ТСД", vbExclamation, "Внимание !"
+		Exit Function
+	End If
+
+	IsError = True
+
+	Set EntDict = CreateObject("Scripting.Dictionary")
+
+	Set C8400 = New Cipher
+	C8400.ShowError = True
+	
+	If C8400.ErrMsg = "" Then
+		If C8400.Connect(Port, Boud, 0) Then
+			If C8400.Ping Then
+				aData = C8400.ReadDataFile(2)
+				IsError = False
+
+				For i = 1 To UBound(aData)
+					aRow = aData(i)
+					EntID = FindEntByBarCode(aRow(0))
+	
+					If EntID <> 0 Then
+
+						If aRow(1) = "0" Then
+							Qty = str2Dbl(aRow(2))
+						Else
+							Qty = str2Dbl(aRow(1))
+						End If
+
+						If EntDict.Exists(EntID) Then
+							EntDict(EntID) = EntDict(EntID) + Qty
+						Else
+							EntDict.Add EntID, Qty
+						End If
+					Else
+						MsgBox "Товар не найден. ШК: " & aRow(0), vbExclamation, "Ошибка !"
+						IsError = True
+					End If
+				Next
+
+			End If
+		End If
+	End If
+
+	Cipher_GetData = Not IsError
+
+End Function
+

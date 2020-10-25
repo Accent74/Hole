@@ -1,0 +1,36 @@
+Option Explicit
+
+Dim SQL_Find, SQL_Create, TableName
+
+SQL_Find = "Select ID From REP_ITEMS_ATTR"
+SQL_Create = "Create Table REP_ITEMS_ATTR (ID counter CONSTRAINT pk PRIMARY KEY, REP_KIND integer NOT NULL, REP_ID integer NOT NULL, REP_ITEM integer NOT NULL, REP_ITEM_ATTR_NAME varchar(50) NOT NULL)"
+TableName = "REP_ITEMS_ATTR"
+CreateTabs SQL_Find, SQL_Create, TableName
+
+SQL_Find = "Select ID From BIND_TML"
+SQL_Create = "Create Table BIND_TML (PK counter CONSTRAINT prk PRIMARY KEY, BIND_ID integer NOT NULL, TML_ID integer NOT NULL)"
+TableName = "BIND_TML"
+CreateTabs SQL_Find, SQL_Create, TableName
+
+Sub CreateTabs (SQL_Find, SQL_Create, TableName)
+	Dim DB, GetRS
+
+	Set DB = WorkArea.DAODataBase
+	On Error Resume Next
+	Set GetRS = DB.OpenRecordSet(SQL_Find)
+
+	' ЕСЛИ ТАБЛИЦЫ НЕТ, ТО СОЗДАЁМ
+	If Err.Number = 3078 Then 
+		MsgBox "Таблица " & TableName & " не найдена. Создадим её."
+		DB.Execute SQL_Create
+		If Err.Number <> 3078 And  Err.Number <> 0 Then MsgBox "Ошибка поиска таблицы!" & " (" & Err.Number & ") " & Err.Description
+	
+	' ЕСЛИ ТАБЛИЦА ЕСТЬ ИЛИ ОНА ПУСТАЯ
+	ElseIf Err.Number = 0 Or GetRS.Eof Then
+		MsgBox "Таблица " & TableName & " уже существует!"
+	
+	' ЕСЛИ ДРУГАЯ ОШИБКА
+	Else
+		MsgBox "Ошибка поиска таблицы!" & " (" & Err.Number & ") " & Err.Description
+	End If
+End Sub

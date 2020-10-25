@@ -1,0 +1,52 @@
+Option Explicit
+
+Dim en
+
+Set En = GetEnum("Вид дохода для подоходного налога")
+
+If Not En Is Nothing Then
+	AddEnumItem En, "Зарплата", "01:11010100"
+	AddEnumItem En, "Вознаграждение", "02:11010200"
+	AddEnumItem En, "Аренда", "08:11010200"
+	AddEnumItem En, "Социальные выплаты", "10:11010100"
+	AddEnumItem En, "Алименты", "11:11010100"
+	AddEnumItem En, "Доход самозанятых", "13:11010100"
+	AddEnumItem En, "Аренда земли", "16:11010200"
+	AddEnumItem En, "Больничные листы", "19:11010100"
+	AddEnumItem En, "Профсозные выплаты", "15:11010100"
+	AddEnumItem En, "Профсюзные подарки", "14:11010100"
+	AddEnumItem En, "Сдача вторсырья", "18:11010200"
+	AddEnumItem En, "Социальная помощь", "20:11010100"
+	AddEnumItem En, "Стоимость угля", "17:11010100"
+End If
+
+Set En = GetEnum("Вид дохода для ЕСВ")
+
+If Not En Is Nothing Then
+	AddEnumItem En, "Зарплата", "1"
+	AddEnumItem En, "Вознаграждение", "2"
+	AddEnumItem En, "Пособие", "3"
+End If
+
+
+Function GetEnum(EnName)
+	Dim En
+
+	Set En = Workarea.Enum(EnName)
+	If en Is Nothing Then
+		Set En = Workarea.Enums.Create(EnName, "")
+	End If
+	
+	Set GetEnum = En
+End Function
+
+Sub AddEnumItem(En, EnName, EnTag)
+	Dim i, EnItem
+
+	For i = 1 To En.Count
+		If UCase(En.ItemName(i)) = UCase(EnName) Then Exit Sub
+	Next
+
+	En.Create EnName, EnTag
+
+End Sub

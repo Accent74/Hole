@@ -1,0 +1,27 @@
+Option Explicit
+
+Dim i, Frm, Btn
+
+With workarea.projectitems(1)
+	For i = 1 To .Count
+		Set Frm = App.CreateForm(.Item(i).ID,,,,2)
+
+		If Not Frm Is Nothing Then
+
+			With Frm.ToolBar
+				If .ItemByCommand(19) Is Nothing Then
+					Set Btn = .Create(19)
+					Btn.caption = "Связи"
+					Btn.group = True
+					Btn.Image = 78
+					Btn.Tag = "Form_ShowReplations Op"
+					Btn.ToolTip = "Показать связанные документы"
+	
+					Frm.Save
+				End If
+			End With
+		
+			Frm.close
+		End If
+	Next
+End With

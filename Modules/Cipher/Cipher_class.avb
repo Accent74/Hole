@@ -1,0 +1,1344 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Акцент: ТСД"
+
+Const CIPHER_ENT_ROOT					= "CIPHER_ENT_ROOT"
+Const CIPHER_NEW_ENT_ROOT			= "CIPHER_NEW_ENT_ROOT" 
+Const CIPHER_AG_ROOT					= "CIPHER_AG_ROOT"				' Устарело
+Const CIPHER_NEW_AG_ROOT			= "CIPHER_NEW_AG_ROOT"
+Const CIPHER_ACC_ROOT					= "CIPHER_ACC_ROOT"
+Const CIPHER_ACC_INV_ROOT			= "CIPHER_ACC_INV_ROOT"		' Устарело
+Const CIPHER_PORT						= "CIPHER_PORT"
+Const CIPHER_BOUD						= "CIPHER_BOUD"
+Const CIPHER_AG_FOLDERS_LIST 	= "CIPHER_AG_FOLDERS_LIST"
+Const CIPHER_ENT_FOLDERS_LIST 	= "CIPHER_ENT_FOLDERS_LIST"
+Const CIPHER_ACC_INV_ID				= "CIPHER_ACC_INV_ID"
+Const CIPHER_AG_INV_ID				= "CIPHER_AG_INV_ID"
+
+Const FILE_NAME_ENT = "DBEnt.txt"
+Const FILE_NAME_AG = "DBAg.txt"
+Const FILE_NAME_REST = "DBRest.txt"
+Const FILE_NAME_INVENT = "DBInvent.txt"
+
+Const CIPHER_ENT_FLAG = "EntFlag"
+Const CIPHER_AG_FLAG = "AgFlag"
+Const CIPHER_REST_FLAG = "RestFlag"
+Const CIPHER_INVENT_FLAG = "Inventlag"
+Const CIPHER_NO_FLAGS = "NoFlags"
+
+Const CIPHER_PRM_NEW_AG_ROOT 	= "Папка для новых корреспондентов"
+Const CIPHER_PRM_NEW_ENT_ROOT 	= "Папка для новых объектов учета"
+Const CIPHER_PRM_FLAGS 				= "Флажки"
+Const CIPHER_PRM_ENT_FLDS 			= "Папки объектов учета для загрузки"
+Const CIPHER_PRM_AG_FLDS 			= "Папки корреспондентов для загрузки"
+Const CIPHER_PRM_IRDA 				= "IrDA"
+Const CIPHER_PRM_SERIES_BAR		= "Штрих код партии (место)"
+Const CIPHER_PRM_TML_IN				= "Шаблоны: поступления товара"
+
+'	Public Function Connect(Port, BoudRate, IsRDA)	-	соединяет ТСД с компьютером	
+'	Public Function MakeEAN13(EntID)							- создает EAN13 на основе ID 
+'	Public Property Let AgRootD(ID)								-	устанавливает корень для новых корреспондентов
+'	Public Property Let EntRootID(ID)								-	устанавливает корень для новых объектов учета
+'	Public Property Let FindAg(FuncRef)						-	устанавливает внешнюю процедуру для поиска и создания корреспондентоа
+'	Public Property Let FindEnt(FuncRef)					-	устанавливает внешнюю процедуру для поиска и создания объектов учета
+'	Public Sub ImportOperation(DocNo, TmlID, FldID)		-	создает новые документы для операции "поступление"
+'	Public Sub LoadDBFromFile(FileName, DBNo)			- загружает базу данных из файла
+'	Public ErrMsg															- сообщения системы
+'	Public Property Get SN
+'	Public Property Get FreeMem
+'	Public Property Get Ping
+'	Public Property Get Version()
+'	public ShowError
+'	public Delimiter
+'	Public AgRoot
+'	public EntRoot
+'	public IsAgFrom
+'	public TxtFilePath
+'	public	IsAgSet
+'	Public Property Let SetBeforeSaveRef(FuncRef)
+'	Public Property Let SetDataTrRef(FuncRef)
+'	Public Function ReadDataFile(DocNo)
+'	Public Property Let GetOperationRef(FuncRef)
+'	Public Function WriteDataFile(DocNo, FileName)
+
+Class Cipher
+	Private OLE, wa, hLog
+
+	Private aDataRest
+
+	Public ErrMsg, ShowError, Delimiter, Mtr
+	Public AgRoot, EntRoot, IsAgFrom
+	Public TxtFilePath, IsAgSet
+	Public BarField, LineField, NameField, QtyField, DocNoField
+	Public AccID, AgID
+
+	Private RD, nMscNo
+	Private GetAgIDExt, GetEntIDExt
+	Private BeforeSave
+	Private SetDataTrEx
+	Private GetOperationExt
+	Private Msc
+
+	Private BoudRate, PortNo, IrDA
+
+	Public Sub SetMsc(TmlID)
+		Dim Tml, MscID
+
+		Set Msc = Nothing
+
+		If TmlID <> 0 Then
+			Set Tml = Workarea.Template(TmlID)
+			MscID = com_GetParamValue(Tml, prmTMLTCD, 0)
+
+			If MscID <> 0 Then
+				Set Msc = Workarea.Misc(MscID)
+			End If
+		End If
+	End Sub
+
+	Public Property Get CheckParams(prmMsc)
+		CheckParams = False
+
+		If Not prmMsc Is Nothing Then Set Msc = prmMsc
+		
+		If Not Msc Is Nothing Then
+			If Msc.Type = 1 Then
+				If Msc.MscNo = Com_GetMscNoByDBPrm(prmDBTCD) Then
+					CheckParams = True
+
+					BoudRate = Msc.Long1
+					PortNo = Str2long(Msc.String2)
+					AccID = Msc.Long2
+					AgID = Msc.Long3
+					IrDA = com_getparamvalue(Msc, CIPHER_PRM_IRDA, 0)
+
+					Me.AgRootID = com_GetPAramValue(Msc, prmMscTCDNewAgRoot, com_GetPAramValue(Workarea, prmDBAgRoot, 0))
+					Me.EntRootID = com_GetPAramValue(Msc, prmMscTCDNewEntRoot, com_GetPAramValue(Workarea, prmDBEntRoot, 0))
+				Else	
+					MscID = com_getparamvalue(Workarea, prmDBTCD, 0)
+
+					If MscID = 0 Then
+						ErrMsg =  "Требуется установить значение параметра БД " & prmDBTCD
+					Else
+						ErrMsg =  "Требуется указать элемент разного ТСД из " & Workarea.Misc(MiscID).Name
+					End If
+				End If
+			Else	
+				ErrMsg =  "Требуется указать элемент разного ТСД, а не папку."
+			End If
+		Else
+			ErrMsg =  "Не указан элемент разного ТСД."
+		End If		
+	End Property
+	
+	Public Sub SetHLog(hLogObj, ParentAssistant)
+		Set hLog = hLogObj
+		If Not ParentAssistant Is Nothing Then
+			Set hLog.Parent = ParentAssistant
+		End If
+
+		hLog.Open "Протокол работы c ТСД", ""
+	End Sub
+
+	'---
+	'
+	'---
+	Sub Class_Initialize
+		Set RD = CreateLibObject("Redirect")
+
+		Set GetAgIDExt = Nothing
+		Set GetEntIDExt = Nothing
+		Set BeforeSave = Nothing
+		Set SetDataTrEx = Nothing
+		Set GetOperationExt = Nothing
+		Set hLog = Nothing
+
+		Set WA = Workarea
+		Set AgRoot = WA.Agents
+		Set EntRoot = WA.Entities
+
+		AccID = Wa.GetAccID("281")
+		AgID = wa.MyCompany.ID
+		
+		ShowError = False
+		IsAgFrom = True
+		Delimiter = 9
+		IsAgSet = True
+
+		BarField = "3"
+		LineField = "5"
+		NameField = "4"
+		QtyField = "7"
+		DocNoField = "1"
+
+		aDataRest = Array()
+		TxtFilePath = SetDefPath()
+
+		Set Msc = Nothing
+		nMscNo = com_GetMscNoByDBPrm(prmDBTCD)
+
+		Set Mtr = Meter
+
+		CreateOLE OLE	
+
+	End Sub
+	'---
+	'
+	'---
+	Public Property Get MscNo
+		MscNo = nMscNo
+	End Property
+	'---
+	'
+	'---
+	Public Property Get MscID
+		If Not Msc Is Nothing Then
+			MscID = Msc.ID
+		Else
+			MscID = 0
+		End If
+	End Property
+	'---
+	'
+	'---
+	Private Function GetFieldValue(FieldNo)
+		If FieldNo = "" Then
+			GetFieldValue = ""
+		Else
+			GetFieldValue = Eval("OLE.Field" & FieldNo)
+		End If
+	End Function
+	'---
+	'
+	'---
+	Private Function SetDefPath()
+		Dim aPath, path
+
+		aPath = RD.GetPathArray("*.txt")
+
+		If UBound(aPath) = -1 Then
+			path = ""
+		Else
+			path = Trim(aPath(0))
+			If Right(path, 1) <> "\" Then 
+				path = path & "\"
+			End If
+		End If
+
+		SetDefPath  = path
+	End Function
+	'---
+	'
+	'---
+	Public Sub Close
+		If Not OLE Is Nothing Then
+			If Not hLog Is Nothing Then writelog LOG_MSG_INFORMATION, "Окончание работы .."
+			OLE.oledeattach()
+			OLE.OleRealize
+		End If
+	End Sub
+	'---
+	'
+	'---
+	Sub Class_Terminate
+		Close
+	End Sub
+	'---
+	'
+	'---
+	Public Property Let AgRootID(ID)
+		If ID = 0 Then
+			Set AgRoot = WA.Agents
+		Else
+			Set AgRoot = WA.Agent(ID).Children
+		End If
+	End Property
+	'---
+	'
+	'---
+	Public Property Let FindAg(FuncRef)
+		Set GetAgIDExt = FuncRef
+	End Property
+	'---
+	'
+	'---
+	Public Property Let FindEnt(FuncRef)
+		Set GetEntIDExt = FuncRef
+	End Property
+	'---
+	'
+	'---
+	Public Property Let SetDataTrRef(FuncRef)
+		Set SetDataTrEx = FuncRef
+	End Property
+	'---
+	'
+	'---
+	Public Property Let GetOperationRef(FuncRef)
+		Set GetOperationExt = FuncRef
+	End Property
+	'---
+	'
+	'---
+	Public Property Let SetBeforeSaveRef(FuncRef)
+		Set BeforeSave = FuncRef
+	End Property
+	'---
+	'
+	'---
+	Public Property Let EntRootID(ID)
+		If ID = 0 Then
+			Set EntRoot = WA.Entities
+		Else
+			Set EntRoot = WA.Entity(ID).Children
+		End If
+	End Property
+	'---
+	'
+	'---
+	Private Function CreateOLE(OLE)
+
+		On Error Resume Next
+
+		Set OLE = CreateObject("AddIn.CipherLab")
+		CreateOLE = (Err.Number = 0)
+
+		If Err.Number <> 0 Then
+			ErrMsg =  "Ошибка подключения к OLE-объекту." & vbNewLine & _
+							Err.Description & " : " & Err.Number
+			writelog LOG_MSG_ERROR, ErrMsg
+			Set OLE = Nothing
+		Else
+			OLE.OleInitial
+			ErrMsg = ""
+			writelog LOG_MSG_INFORMATION, "Библиотека активирована ..."
+			OLE.DelimiterBase = Delimiter
+			OLE.DelimiterDoc = Delimiter
+		End If
+
+	End Function
+
+	Public Sub writelog(Kind, Msg)
+		If Not hLog Is Nothing Then hLog.writetext Kind, Msg
+	End Sub
+	'---
+	'
+	'---
+	Public Property Get Port
+		Port = PortNo
+	End Property
+	'---
+	'
+	'---
+	Public Property Get Boud
+		Boud = BoudRate
+	End Property
+	'---
+	'
+	'---
+	Public Function ConnectDef()
+		ConnectDef = Connect(Port, BoudRate, IRDA)
+	End Function
+	'---
+	'
+	'---
+	Public Function Connect(nPort, nBoudRate, IsRDA)
+
+		Connect = False
+
+		If OLE Is Nothing Then
+			If Not CreateOLE(OLE) Then Exit Function
+		End If
+
+		OLE.port = iif(IsEmpty(nPort), Port, nPort)
+		OLE.bitrate = iif(IsEmpty(nBoudRate), BoudRate, nBoudRate)
+		OLE.irda = iif(IsEmpty(IsRDA), IRDA, IsRDA)
+
+		If OLE.OleAttach() = 0 Then
+			Connect = False
+			DisplayOLEError
+		Else
+			ErrMsg = ""
+			Connect = True
+			If Not hLog Is Nothing Then writelog LOG_MSG_INFORMATION, "ТСД подключен ..."
+		End If
+
+	End Function
+	'---
+	'
+	'---
+	Private Sub DisplayOLEError
+		ErrMsg =  "Ошибка работы с ТСД." & vbNewLine & _
+						OLE.ErrorDescription & " # " & CStr(OLE.ErrorCode)
+		If Not hLog Is Nothing Then writelog LOG_MSG_ERROR, ErrMsg
+		If ShowError Then MsgBox ErrMsg, vbCritical, MSG_BOX_CAPTION
+	End Sub
+	'---
+	'
+	'---
+	Function GetTransMaxRows(TrList)
+		
+		If TrList.Item(TrList.Rows).EntID = 0 Then
+			GetTransMaxRows = TrList.Rows
+		Else
+			GetTransMaxRows = TrList.Rows + 1
+		End If
+	End Function
+	'---
+	'
+	'---
+	Private Function FindEntInTrlist(TrList, EntID)
+		Dim i, n
+
+		n = TrList.Rows
+
+		For i = 1 To n
+			With TrList.Item(i)
+				If .EntID = EntID Then 
+					FindEntInTrlist = i	
+					Exit Function
+				End If
+			End With
+		Next
+
+		FindEntInTrlist = 0
+	End Function
+	'---
+	'	Импорт информации из ТСД о поступившем товаре
+	'	DocNo 	- номер документа в терминале, который будем читать
+	'	TmlID	- шаблон, с помощью которого будем создавать хозяйственную операцию
+	'					для приходования товара
+	'---
+	Public Sub ImportOperation(DocNo, TmlID, FldID)
+		Dim Count, i, Op, CurrentDocNo
+		Dim RowNo, Mtr, DictEnt, AgCode
+		Dim EntID, EntBar, CurRowNo, OpTag
+		Dim LineNo, MaxRows, OpDocNo
+	
+		Set DictEnt = CreateObject("Scripting.Dictionary")
+	
+		Set Op = Nothing
+	  	Count = OLE.OleDataCount(DocNo)
+		CurrentDocNo = ""
+		Set Mtr = Meter
+	
+		Mtr.Open "Импорт ...", 1, Count
+	
+		For i = 1 To Count
+			Mtr.Pos = i
+
+			Select Case OLE.OleGetData(DocNo)
+				Case 1
+					OpDocNo = Trim(GetFieldValue(DocNoField))
+
+					If CurrentDocNo <> OpDocNo Then
+	            If Not Op Is Nothing Then
+							SaveOperation Op, AgCode, OpDocNo, FldID
+						End If
+	
+						AgCode = Trim(OLE.Field2)
+						CurrentDocNo = OpDocNo
+						OpTag = AgCode & "|" & CurrentDocNo
+	
+						If GetOperationExt Is Nothing Then
+							Set Op = GetOperation(WA, OpTag, TmlID, DictEnt, RowNo)
+						Else
+							Set Op = GetOperationExt(WA, OpTag, TmlID, DictEnt, RowNo)
+						End If
+
+						MaxRows = GetTransMaxRows(Op.TransList(1))
+					End If
+	
+					LineNo = Trim(GetFieldValue(LineField))
+					EntBar = Trim(GetFieldValue(BarField))
+					LineNo = iif(LineNo = "0", "", LineNo)
+
+					If GetEntIDExt Is Nothing Then
+						EntID = GetEntID(EntBar, Trim(Trim(GetFieldValue(NameField))), OpDocNo, LineNo)
+					Else
+						EntID = GetEntIDExt(EntBar, Trim(GetFieldValue(NameField)), OpDocNo, LineNo)
+					End If
+
+					If EntID <> 0 Then
+						If DictEnt.Exists(LineNo) And LineNo <> ""  Then
+							CurRowNo = DictEnt(LineNo)
+						Else
+							If LineNo = "" Then
+								CurRowNo = FindEntInTrlist(Op.TransList(1), EntID)
+	
+								If CurRowNo = 0 Then
+									CurRowNo = MaxRows
+									MaxRows = MaxRows + 1
+								End If
+							Else
+								CurRowNo = MaxRows
+								MaxRows = MaxRows + 1
+								DictEnt.Add LineNo, CurRowNo
+							End If
+						End If
+	
+						If SetDataTrEx Is Nothing Then
+							SetDataTr Op.Trans(1, CurRowNo), EntID
+						Else
+							SetDataTrEx Op, CurRowNo, EntID, Array(OLE.Field1, _
+																							OLE.Field2, _
+																							OLE.Field3, _
+																							OLE.Field4, _
+																							OLE.Field5, _
+																							OLE.Field6, _
+																							OLE.Field7, _
+																							OLE.Field8)
+						End If
+					End If
+	
+				Case -1
+					DisplayOLEError
+			End Select
+		Next
+	
+		If Not Op Is Nothing Then
+			SaveOperation Op, AgCode, DocNo, FldID
+		End If
+	
+		Mtr.Close
+		OLE.OleFinish()
+				
+	End Sub
+	'---
+	'
+	'---
+	Private Sub dlgOpenFile(DataFileName, ByRef FilePath)
+		Dim Dlg
+
+		Set Dlg = CreateLibObject("FileDialog")
+		Dlg.Caption = "Выберите файл для импорта"
+		Dlg.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
+
+		If Dlg.ShowOpen Then
+			FilePath = Dlg.PathName
+		Else
+			FilePath = ""
+		End If
+		
+	End Sub
+	'---
+	'
+	'---
+	Private Function ReadTextFile(DataFileName, aText)
+		Dim FilePath, FSO, fText, tBuffer
+
+		If DataFileName = "" Then
+			dlgOpenFile	DataFileName, FilePath
+		Else
+			FilePath = RD.GetFullPath(DataFileName)
+		End If
+
+		If FilePath = "" Then
+			ReadTextFile = False
+		Else
+			Set FSO = CreateObject("Scripting.FileSystemObject")
+			Set fText = FSO.OpenTextFile(FilePath, 1)
+			tBuffer = fText.ReadAll
+			fText.Close
+
+			aText = Split(tBuffer, vbCrLf)
+			ReadTextFile = True
+		End If
+		
+	End Function
+	'---
+	'	Импорт информации из файла о поступившем товаре
+	'	DataFileName	- 	имя файла, который будем читать
+	'	TmlID				-	шаблон, с помощью которого будем создавать хозяйственную операцию
+	'								для приходования товара
+	'---
+	Public Sub ImportOperationFromFile(DataFileName, TmlID, FldID)
+		Dim Count, i, Op, CurrentDocNo
+		Dim RowNo, Mtr, DictEnt, AgCode
+		Dim EntID, EntBar, CurRowNo, OpTag
+		Dim LineNo, MaxRows, aText, aRow
+	
+		If Not ReadTextFile(DataFileName, aText) Then Exit Sub
+
+		Set DictEnt = CreateObject("Scripting.Dictionary")
+	
+		Set Op = Nothing
+	  	Count = UBound(aText)
+		CurrentDocNo = ""
+		Set Mtr = Meter
+	
+		Mtr.Open "Импорт ...", 0, Count + 1
+	
+		For i = 0 To Count
+			Mtr.Pos = i
+			
+			If aText(i) = "" Then Exit For
+	
+			aRow = Split(aText(i), Chr(Delimiter))
+
+			If CurrentDocNo <> aRow(0) Then
+				If Not Op Is Nothing Then
+					SaveOperation Op, AgCode, CurrentDocNo, FldID
+				End If
+
+				AgCode = Trim(aRow(1))
+				CurrentDocNo = Trim(aRow(0))
+				OpTag = AgCode & "|" & CurrentDocNo
+	
+				If GetOperationExt Is Nothing Then
+					Set Op = GetOperation(WA, OpTag, TmlID, DictEnt, RowNo)
+				Else
+					Set Op = GetOperationExt(WA, OpTag, TmlID, DictEnt, RowNo)
+				End If
+
+				MaxRows = GetTransMaxRows(Op.TransList(1))
+			End If
+	
+			LineNo = Trim(aRow(Int(LineField) - 1))
+			LineNo = iif(LineNo = "0", "", LineNo)
+			EntBar = Trim(aRow(Int(BarField) - 1))
+
+			If GetEntIDExt Is Nothing Then
+				EntID = GetEntID(EntBar, Trim(aRow(Int(NameField) - 1)), Trim(aRow(0)), LineNo)
+			Else
+				EntID = GetEntIDExt(EntBar, Trim(aRow(Int(NameField) - 1)), Trim(aRow(0)), LineNo)
+			End If
+
+			If EntID <> 0 Then
+				If DictEnt.Exists(LineNo) And LineNo <> ""  Then
+					CurRowNo = DictEnt(LineNo)
+				Else
+					If LineNo = "" Then
+						CurRowNo = FindEntInTrlist(Op.TransList(1), EntID)
+	
+						If CurRowNo = 0 Then
+							CurRowNo = MaxRows
+							MaxRows = MaxRows + 1
+						End If
+					Else
+						CurRowNo = MaxRows
+						MaxRows = MaxRows + 1
+						DictEnt.Add LineNo, CurRowNo
+					End If
+				End If
+	
+				If SetDataTrEx Is Nothing Then
+					SetDataTr Op.Trans(1, CurRowNo), EntID
+				Else
+					SetDataTrEx Op, CurRowNo, EntID, aRow
+				End If
+			End If
+		Next
+	
+		If Not Op Is Nothing Then
+			SaveOperation Op, AgCode, CurrentDocNo, FldID
+		End If
+	
+		Mtr.Close
+				
+	End Sub
+
+	'---
+	'
+	'---
+	Private Function GetOperation(WA, DocTag, TmlID, ByRef DictEnt, ByRef RowNo)
+		Dim aData, Op
+
+		Set Op = WA.CreateOperation
+
+		Op.DocNo = token(DocTag, 2, "|")
+		Op.TemplateID = TmlID
+		Op.String3 = DocTag
+		RowNo = 0
+		DictEnt.RemoveAll
+
+		Set GetOperation = Op
+	End Function
+	'---
+	'
+	'---
+	Private Sub SaveOperation(Op, AgCode, DocNo, FldID)
+	
+		With Op.TransList(1)
+			If IsAgSet Then
+				If GetAgIDExt Is Nothing Then
+					If IsAgFrom Then
+						.SetAgFrom GetAgID(AgCode, DocNo)
+					Else
+						.SetAgTo GetAgID(AgCode, DocNo)
+					End If
+				Else
+					If IsAgFrom Then 
+						.SetAgFrom GetAgIDExt(AgCode, AgRoot, DocNo)
+					Else
+						.SetAgTo GetAgIDExt(AgCode, AgRoot, DocNo)
+					End If
+				End If	
+			End If
+		End With
+	
+		Op.TemplateInvoker2.FireAll
+	
+		If Op.Folder Is Nothing Then
+			Op.SetFolder FldID
+		End If
+	
+		If Not BeforeSave Is Nothing Then	
+			If BeforeSave(Op) Then
+				Op.Save
+			End If
+		Else
+			Op.Save
+		End If
+
+	End Sub
+	'---
+	'	находит корреспондента по его ОКПО
+	'	если не находит, создает в указанной папке
+	'---
+	Private Function GetAgID(AgCode, DocNo)
+		Dim AgFinder, NewAg
+	
+		Set AgFinder = WA.ElementFinder(acAgent)
+		AgFinder.AddCriteria "Code", "=", AgCode
+	
+		If Not AgFinder.Find Then
+			Set NewAg = AgRoot.Create(1, "< Новый корреспондент ОКПО: " & AgCode & " № " & DocNo & " >")
+			NewAg.Code = AgCode
+			NewAg.Save
+			GetAgID = NewAg.ID
+		Else
+			GetAgID = AgFinder.Elems.Item(1).ID
+		End If
+	
+	End Function
+
+	'---
+	'	процедура сохраняет данные в проводке
+	'
+	'	Field5 - цена
+	'	Field6 - кол-во +
+	'	Field7 - кол-ко -
+	'---
+	Private Sub SetDataTr(Tr, EntID)
+	
+		If EntID <> 0 Then
+			Tr.EntID = EntID
+		End If
+	
+		Tr.Price = str2dbl(OLE.Field5)
+		
+		If str2dbl(OLE.Field6) = 0 Then
+			Tr.Qty = Tr.Qty + str2dbl(OLE.Field7)
+		Else
+			Tr.Qty = Tr.Qty + str2dbl(OLE.Field6)
+		End If
+	
+		Tr.Sum = Round2(Tr.Sum, 2)
+	End Sub
+
+	'---
+	'
+	'---
+	Private Function GetEntID(ByRef EntBar, EntName, DocNo, LineNo)
+		Dim EntFinder, NewEnt, NewEntName
+	
+		Set EntFinder = WA.ElementFinder(acEntity)
+	
+		NewEntName = "Новый товар " & LineNo & " № " & DocNo
+	
+		If EntBar = "" Then
+			EntFinder.AddCriteria "Name", "=", NewEntName
+		
+			If Not EntFinder.Find Then
+				Set NewEnt = EntRoot.Create(1004, NewEntName)
+				EntBar = MakeEAN13(NewEnt.ID)
+			Else
+				GetEntID = EntFinder.Elems.Item(1).ID
+				Exit Function
+			End If
+		Else
+			EntFinder.AddCriteria "Bar", "=", EntBar
+	
+			If Not EntFinder.Find Then
+				Set NewEnt = EntRoot.Create(1004, NewEntName)
+			Else
+				GetEntID = EntFinder.Elems.Item(1).ID
+				Exit Function
+			End If
+		End If
+	
+		NewEnt.Bar = EntBar
+		NewEnt.Save
+		GetEntID = NewEnt.ID
+		
+	End Function
+	'---
+	'
+	'---
+	Public Function MakeEAN13(EntID)
+		Dim i, CheckSum, RawCode
+
+		RawCode = EntID
+
+		If Len(RawCode) > 10 Then
+			RawCode = Left(RawCode, 10)
+		Else
+			RawCode = String(10 - Len(RawCode), "0") & RawCode
+		End If
+
+		RawCode = "23" & RawCode
+		CheckSum = 0
+
+		For i = 1 To 12	
+			If (i Mod 2) = 0 Then
+				CheckSum = CheckSum + CInt(CharAt(RawCode, i)) * 3
+			Else
+				CheckSum = CheckSum + CInt(CharAt(RawCode, i))
+			End If
+		Next
+
+		MakeEAN13 = RawCode & Abs(CheckSum + Int(-CheckSum / 10) * 10)
+
+	End Function
+	'---
+	'
+	'---
+	Public Sub LoadDBFromFile(FileName, DBNo)
+		
+		If OLE.OLEFileToBase(DBNo, FileName) <> 1 Then
+			DisplayOLEError
+		End If
+
+		OLE.OLEFinish()
+	
+	End Sub
+	'---
+	'
+	'---
+	Public Property Get SN
+		If OLE.OleGetSN() Then
+			SN = OLE.Data
+		Else
+			DisplayOLEError
+		End If
+	End Property
+	'---
+	'
+	'---
+	Public Property Get FreeMem
+		If OLE.OleGetFreeMem() Then
+			FreeMem = OLE.Data
+		Else
+			DisplayOLEError
+		End If
+	End Property
+	'---
+	'
+	'---
+	Public Property Get Ping
+		If OLE.OlePing() = 1 Then
+			Ping = True
+		Else
+			Ping = False
+			ErrMsg = "ТСД не отвечает"
+			DisplayOLEError
+			'If Not hLog Is Nothing Then writelog LOG_MSG_WARNING, ErrMsg
+		End If
+	End Property
+	'---
+	'
+	'---
+	Public Function ClearBase(BaseNo)
+		Dim Res
+
+		Res = (OLE.OleClearDB(BaseNo) = 1)
+
+		If Not Res Then DisplayOLEError	
+		ClearBase = Res
+
+	End Function
+	'---
+	'
+	'---
+	Public Function ClearData(FileNo)
+		If OLE.OleClearDoc(FileNo) = 0 Then
+			ClearData = False
+			DisplayOLEError	
+		Else
+			ClearData = True
+		End If
+	End Function
+	'---
+	'
+	'---
+	Public Function WriteDataFile(FileNo, FileName)
+		Dim Path
+
+		Path = TxtFilePath & FileName
+		
+		If OLE.OleDocToFile(FileNo, path) = 0 Then
+			WriteDataFile = False
+			DisplayOLEError	
+		Else
+			WriteDataFile = True
+		End If
+
+	End Function
+	'---
+	'
+	'---
+	Public Function ReadDBMap(DBNo, IndexNo)
+		Dim dData, i, n, Mtr, RowData
+
+		n = OLE.OleRecordsCount(DBNo)
+		Set dData = CreateLibObject("Map")
+
+		If Not hLog Is Nothing Then writelog LOG_MSG_INFORMATION, "импорт базы данных: " & DbNo
+		Set Mtr = Meter
+		Mtr.Open "Импорт ...", 1, n
+	
+		For i = 1 To n
+			Mtr.Pos = i
+	
+			If OLE.OleGetRecord(DBNo) = 1 Then
+				RowData = Array(	OLE.Field1, _
+											OLE.Field2, _
+											OLE.Field3, _
+											OLE.Field4, _
+											OLE.Field5, _
+											OLE.Field6, _
+											OLE.Field7, _
+											OLE.Field8)
+				If IndexNo < 0 Then
+					dData(i) = RowData
+				Else
+					dData(RowData(IndexNo)) = RowData
+				End If
+
+			Else	
+				DisplayOLEError
+				Set dData = Nothing
+			End If 
+		Next
+	
+		Mtr.Close
+		OLE.OleFinish()
+
+		Set ReadDBMap = dData
+
+	End Function
+	'---
+	'
+	'---
+	Public Function ReadDataMap(DocNo, IndexNo)
+		Dim dData, i, n, Mtr, RowData
+
+		n = OLE.OleDataCount(DocNo)
+		Set dData = CreateLibObject("Map")
+
+		Set Mtr = Meter
+		Mtr.Open "Импорт ...", 1, n
+	
+		For i = 1 To n
+			Mtr.Pos = i
+	
+			If OLE.OleGetData(DocNo) = 1 Then
+				RowData = Array(	OLE.Field1, _
+											OLE.Field2, _
+											OLE.Field3, _
+											OLE.Field4, _
+											OLE.Field5, _
+											OLE.Field6, _
+											OLE.Field7, _
+											OLE.Field8)
+				If IndexNo < 0 Then
+					dData(i) = RowData
+				Else
+					dData(RowData(IndexNo)) = RowData
+				End If
+
+			Else	
+				DisplayOLEError
+				Set dData = Nothing
+			End If 
+		Next
+	
+		Mtr.Close
+		OLE.OleFinish()
+
+		Set ReadDataMap = dData
+
+	End Function
+	'---
+	'
+	'---
+	Public Function ReadDataFile(DocNo)
+		Dim aData, i, n, Mtr, RowData
+
+		n = OLE.OleDataCount(DocNo)
+		ReDim aData(n)
+
+		Set Mtr = Meter
+		Mtr.Open "Импорт ...", 1, n
+	
+		For i = 1 To n
+			Mtr.Pos = i
+	
+			If OLE.OleGetData(DocNo) = 1 Then
+				RowData = Array(	OLE.Field1, _
+											OLE.Field2, _
+											OLE.Field3, _
+											OLE.Field4, _
+											OLE.Field5, _
+											OLE.Field6, _
+											OLE.Field7, _
+											OLE.Field8)
+				aData(i) = RowData
+			Else	
+				DisplayOLEError
+			End If 
+		Next
+	
+		Mtr.Close
+		OLE.OleFinish()
+
+		ReadDataFile = aData
+	End Function
+	'---
+	'
+	'---
+	Public Property Get Version()
+		If Not OLE Is Nothing Then
+			Version = OLE.Version
+		End If
+
+	End Property
+	'---
+	'
+	'---
+	Public Property Get CheckVerOLE()
+		If Not OLE Is Nothing Then
+			If OLE.OleIsVersion = 0 Then
+				CheckVerOLE = OLE.ErrorDescription
+			Else
+				CheckVerOLE = ""
+			End If
+		End If
+
+	End Property
+	'---
+	'
+	'---
+	Public Function CalcRest(Mode)
+		If Mode = 1 Then
+			CalcRest = com_CalcEntsSeriesRest(aDataRest, AgID, AccID, Date, 0, wa.MyCompany.ID)
+		Else
+			' без серийных номеров
+			CalcRest = com_CalcEntsRest(aDataRest, AgID, AccID, Date, 0, wa.MyCompany.ID)
+		End If
+	End Function
+	'---
+	'
+	'---
+	Public Function MakeRestFile(fName, pListID, pKindID, SeriesBarMode)
+		Dim FSO, TextFile, i, buffer, pKind, n, EntUnitShort
+		Dim EntName, Ent, EntSerNo, EntPrice, EntSum
+	
+		If fName = "" Then fName = TxtFilePath & FILE_NAME_REST
+
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set TextFile = FSO.CreateTextFile(fName, True)
+		MakeRestFile = False	
+
+		If TextFile Is Nothing Then
+			Me.ErrorMsg = "Ошибка создания файла: " & fName
+			DisplayOLEError
+			Exit Function
+		End If
+	
+		If pListID = 0 Then pListID = Workarea.DefPriceList
+
+		If pListID <> 0 And pKindID <> 0 Then
+			Set pKind = Workarea.PriceKind(pKindID)
+		Else
+			Set pKind = Nothing
+			EntPrice = 0
+		End If
+
+		n = UBound(aDataRest, 2)
+		Me.Mtr.Min = 0
+		Me.Mtr.Max = n
+	
+		If UBound(aDataRest) <> -1 Then
+	
+			For i = 0 To UBound(aDataRest, 2)
+				Me.Mtr.Pos = i
+				If aDataRest(1, i) <> 0 Then
+					Set Ent = Workarea.Entity(aDataRest(1, i))
+	
+					If aDataRest(0, i) <> 0 Then
+						With Ent.SeriesColl.ItemID(aDataRest(0, i))
+							Select Case SeriesBarMode
+								Case 1
+									EntSerNo = .Code
+								Case 2
+									EntSerNo = .tag
+								Case Else
+									EntSerNo = ""
+							End Select
+						End With
+					Else
+						EntSerNo = ""
+					End If
+	
+					If Not pKind Is Nothing Then
+						EntPrice = pKind.GetEntPrice(Ent.ID, Date, pListID)
+					End If
+			
+					If Ent.UnitID = 0 Then
+						EntUnitShort = ""
+					Else
+						EntUnitShort = workarea.unit(Ent.UnitID).shortname
+					End If
+
+					EntName = EntNameAndUnit(Ent.Name, EntUnitShort, 50)
+
+					EntSum = aDataRest(3, i)
+					'	1-ШК	(13)
+					'	2-Код товара (5)
+					'	3-Наименование	 (50)
+					'	4-Цена остаток/Вес (12)
+					'	5-Количество учетное (12)
+					'	6-Количество по факту (12)
+					'	7-серийный номер (30)
+					buffer = Array(	Ent.Bar, _
+												Ent.Art, _
+												EntName,_
+												Replace(FormatNumber(iif(EntSum = 0, 0, EntSum / aDataRest(2, i)), 4,,, False), ",", ".") ,_
+												Replace(FormatNumber(aDataRest(2, i), 4,,, False), ",", ".") ,_
+												0.0000, _
+												EntSErNo)
+
+					TextFile.Writeline Join(buffer, Chr(Delimiter))
+				End If
+			Next
+	
+			MakeRestFile = True	
+		Else
+			buffer = ""
+
+			For i = 1 To 8
+				buffer = buffer & " " & Chr(9)
+			Next
+
+			buffer = buffer & " "
+			TextFile.write buffer
+		End If
+	
+		TextFile.Close
+	End Function
+	'---
+	'
+	'---
+	Public Function LoadRests(RestFileName, BaseNo)
+		Dim fName 
+	
+		LoadRests = False
+
+		If RestFileName = "" Then 
+			fName = GetFilePath(FILE_NAME_REST)
+		Else
+			fName = GetFilePath(RestFileName)
+		End If
+
+		If fName = "" Then Exit Function
+	
+		If IsFileExists(fName) Then
+			ole.OleFileToBase BaseNo, fName
+		End If
+
+		If CInt(OLE.ErrorCode) <> 0 Then 
+			DisplayOLEError
+		Else
+			LoadRests = True
+		End If
+
+	End Function
+	'---
+	'
+	'---
+	Private Function GetFilePath(cFileName)
+		Dim FileExt, FilePath, aPath
+	
+		FilePath = RD.GetFullPath(cFileName)
+		
+		If FilePath = "" Then
+			FileExt = Right(cFileName, InStrRev(cFileName, ".") - 1)
+			aPath = RD.GetPathArray(FileExt)
+	
+			If UBound(aPath) <> -1 Then
+				FilePath = Trim(aPath(0))
+				If Right(FilePath, 1) <> "\" Then FilePath = FilePath & "\"
+				FilePath = FilePath & cFileName
+			Else
+				FilePath = ""
+				ErrMsg = "Укажите путь доступа к файлу " & cFileName
+				GetFilePath = ""
+			End If
+		End If
+		
+		GetFilePath = FilePath
+	
+	End Function
+
+	'---
+	'
+	'---
+	Private Function EntNameAndUnit(EntName, UnitShortName, MaxLen)
+		Dim UnitLen, NewEntName
+	
+		UnitLen = Len(UnitShortName) + 1
+	
+		If (Len(EntName) + UnitLen) > MaxLen Then
+			NewEntName = Left(EntName, MaxLen - UnitLen)
+		Else
+			NewEntName = EntName
+		End If
+	
+		EntNameAndUnit = NewEntName & iif(UnitShortName <> "", "/" & UnitShortName, "")
+	End Function
+	'---
+	'
+	'---
+	Public Function LoadTask(TaskFileName)
+		Dim fName 
+	
+		LoadTask = False
+
+		If TaskFileName <> "" Then 
+			fName = GetFilePath(TaskFileName)
+		End If
+
+		If fName = "" Then Exit Function
+	
+		If IsFileExists(fName) Then
+			ole.OleFileToBase 3, fName
+		End If
+
+		If CInt(OLE.ErrorCode) <> 0 Then 
+			DisplayOLEError
+		Else
+			LoadRests = True
+		End If
+
+	End Function
+	'---
+	'
+	'---
+	Public Function AddRecord(BaseNo, aData)
+		Dim i
+
+		For i = 0 To UBound(aData)	
+			Select Case i
+				Case 0
+					OLE.Field1 = aData(i)
+				Case 1
+					OLE.Field2 = aData(i)
+				Case 2
+					OLE.Field3 = aData(i)
+				Case 3
+					OLE.Field4 = aData(i)
+				Case 4
+					OLE.Field5 = aData(i)
+				Case 5
+					OLE.Field6 = aData(i)
+				Case 6
+					OLE.Field7 = aData(i)
+				Case 7
+					OLE.Field8 = aData(i)
+			End Select
+		Next
+
+		If ole.OlePutRecord(BaseNo) = 1 Then
+			AddRecord = True
+		Else
+			AddRecord = False
+			DisplayOLEError
+		End If
+	End Function
+	'---
+	'
+	'---
+	Public Function Finish
+		Finish = OLE.OleFinish
+	End Function
+	'---
+	'
+	'---
+	Public Property Get PortBoud
+		Dim aBoud
+
+		aBoud = Array("115200", "115200", "57600", "37400", "19200", "9600")
+		PortBoud = aBoud(BoudRate)
+
+	End Property
+	'---
+	'
+	'---
+	Public Function GetEntIDByBar(EntBar)
+		Dim SQL, aData, Ent
+
+		SQL = "select ent_id from entities where ent_bar ='" & EntBar & "'"
+		If GetRs2(SQL, aData) Then
+			GetEntIDByBar = aData(0, 0)
+		Else
+			Set Ent = EntRoot.Create(1004, EntBar & " <Новый товар>")
+			Ent.Bar = EntBar
+			Ent.Save
+			GetEntIDByBar = Ent.ID
+		End If
+	End Function
+	'---
+	'
+	'---
+	Public Function GetAgIDByCode(AgCode)
+		Dim SQL, aData, Ag
+
+		SQL = "select ag_id from agents where ag_code ='" & AgCode & "'"
+		If GetRs2(SQL, aData) Then
+			GetAgIDByCode = aData(0, 0)
+		Else
+			Set Ag = AgRoot.Create(1, AgCode & " <Новый корреспондент>")
+			Ag.Code = AgCode
+			Ag.Save
+			GetAgIDByCode = Ag.ID
+		End If
+	End Function
+	'---
+	'
+	'---
+	Public Function GetSeriesIDBySN(SN, EntID)
+		Dim SQL, aData, Ent, Ser
+
+		SQL = "select ser_id from series where ser_number ='" & AgCode & "' and ent_id = " & EntID
+
+		If GetRs2(SQL, aData) Then
+			GetSeriesIDBySN = aData(0, 0)
+		Else
+			Set Ent = Workarea.Entity(EntID)
+			Set Ser = Ent.SeriesColl.Create(SN, SN, SN)
+			GetSeriesIDBySN = Ser.ID
+		End If
+
+	End Function
+	'---
+	'
+	'---
+	Public Property Get htmlLog
+		Set htmlLog = hLog
+	End Property
+End Class
+'---
+'
+'---

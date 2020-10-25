@@ -1,0 +1,24 @@
+Option Explicit
+Dim SQL, QD, qIndex
+
+SQL = "PARAMETERS AgID Long, AccID Long, EntID Long, DocID Long, DocDate DateTime, MC Long; " & _
+	"SELECT JOURNAL.Ser_ID, Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum] " & _
+	"FROM ENTITIES INNER JOIN JOURNAL ON ENTITIES.ENT_ID = JOURNAL.J_ENT " & _
+	"WHERE ((JOURNAL.ACC_DB=[AccID] AND JOURNAL.J_AG1=[AgID] and JOURNAL.DOC_ID <> [DocID]) " & _
+	"OR (JOURNAL.ACC_CR=[AccID] AND JOURNAL.J_AG2=[AgID])) " & _
+	"AND JOURNAL.J_DONE=2  " & _
+	"AND JOURNAL.DOC_ID<>[DocID] " & _
+	"AND JOURNAL.J_DATE<=[DocDate] " & _
+	"AND JOURNAL.MC_ID=[MC] " & _
+	"AND JOURNAL.J_ENT=[EntID] " & _
+	"GROUP BY JOURNAL.Ser_ID " & _
+	"HAVING Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) <> 0 and  " & _
+	"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) <> 0;"
+
+For Each QD In Workarea.DAODAtabase.QueryDefs
+	If qd.name = "HL74_RestEntSeries" Then
+		Workarea.DAODAtaBase.QueryDefs.Delete "HL74_RestEntSeries"
+	End If
+Next
+
+Set QD = Workarea.DAODataBase.CreateQueryDef("HL74_RestEntSeries", SQL)

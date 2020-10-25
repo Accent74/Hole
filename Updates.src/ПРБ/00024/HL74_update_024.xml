@@ -1,0 +1,2176 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders>
+		<folder ID="499" GUID="{guid {FC4C20EE-A498-4364-9C2C-382A1EFBC19E}}" Name="Товары" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="516" GUID="{guid {1170FBCF-3A97-4E23-8B5C-7E67059A125B}}" Name="07. Товары. Возврат поставщику" FormID="0" FormGUID="" Tag="" TID="1808" TGUID="{guid {DE7598DD-D135-4019-BCF8-B2195FDBF4F0}}" Type="0"/>
+			<folder ID="531" GUID="{guid {3AD1A31E-6494-4832-8A87-9E5C78AE0807}}" Name="10. Товары. Инвентаризационная опись" FormID="0" FormGUID="" Tag="" TID="1878" TGUID="{guid {DE36291D-893C-41C6-BBF3-ECC9734C6000}}" Type="0"/>
+			<folder ID="515" GUID="{guid {E89A218F-33BF-4920-8A83-FD2A8397AAE9}}" Name="06. Товары. Возврат от покупателя" FormID="0" FormGUID="" Tag="" TID="1807" TGUID="{guid {14F0DFAA-72B1-4EE7-8189-8D2F8375D867}}" Type="0"/>
+		</folder>
+		<folder ID="528" GUID="{guid {892E10F5-299B-49F5-921A-E7A8D6334712}}" Name="Кадры" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="536" GUID="{guid {A71D477D-CA8F-4341-943F-0A97E6404834}}" Name="3. Кадры. Заработная плата." FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+				<folder ID="539" GUID="{guid {35F209F3-2F0A-473A-AD93-3E2AE002ACF6}}" Name="3.3. Кадры. Заработная плата. Ведомость выплаты заработной платы" FormID="0" FormGUID="" Tag="" TID="1852" TGUID="{guid {31DD224E-9044-4E23-B609-B167757B6A7F}}" Type="0"/>
+				<folder ID="705" GUID="{guid {FBDE1E82-9155-49B6-AB9E-F514A631DACC}}" Name="3.1. Кадры. Заработная плата. Начисление заработной платы" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+					<folder ID="704" GUID="{guid {5DC1C4F3-2A84-4C30-B350-107262954714}}" Name="3.1.4. Кадры. Заработная плата. Начисления больничных" FormID="0" FormGUID="" Tag="" TID="2050" TGUID="{guid {B546BEEB-FB96-4A37-821E-3C56D6C8D6E1}}" Type="0"/>
+					<folder ID="702" GUID="{guid {BB9B2E57-A912-4B27-AABB-458B3BE812C8}}" Name="3.1.3. Кадры. Заработная плата. Начисления отпускных" FormID="0" FormGUID="" Tag="" TID="2049" TGUID="{guid {D3172C36-62AC-404C-8A56-8084F8D6F560}}" Type="0"/>
+					<folder ID="537" GUID="{guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}" Name="3.1.1. Кадры. Заработная плата. Ведомость начисления заработной платы" FormID="801" FormGUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}" Tag="" TID="0" TGUID="" Type="0"/>
+					<folder ID="703" GUID="{guid {2309FE8A-DF7C-42F7-BB51-D41699461598}}" Name="3.1.2. Кадры. Заработная плата. Начисления прочие" FormID="0" FormGUID="" Tag="" TID="2051" TGUID="{guid {4F6DF052-E4FB-4458-AF20-F128918B20BC}}" Type="0"/>
+				</folder>
+				<folder ID="706" GUID="{guid {F6FB1C18-CFE5-4E41-9854-F2CC3A11C4C3}}" Name="3.2. Кадры. Заработная плата. Удержания" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+					<folder ID="538" GUID="{guid {91EF57D0-6432-4722-9C62-F9BBE50E1A5D}}" Name="3.2.1. Кадры. Заработная плата. Ведомость обязательных удержаний" FormID="802" FormGUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}" Tag="" TID="0" TGUID="" Type="0"/>
+					<folder ID="701" GUID="{guid {DB9B95C0-B748-46AA-9C02-344CE2B27C8D}}" Name="3.2.2. Кадры. Заработная плата. Ведомость удержания алиментов" FormID="0" FormGUID="" Tag="" TID="2046" TGUID="{guid {C84097AE-D5D7-4F60-9BB2-C7CC0AFD94B7}}" Type="0"/>
+				</folder>
+				<folder ID="614" GUID="{guid {C2F2795A-486C-48B5-84FB-435CD0BEC662}}" Name="3.4. Кадры. Заработаная плата. Отчетность" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+					<folder ID="615" GUID="{guid {40687928-0FC2-4332-A646-6B50B0EC6ED2}}" Name="3.4.1 Кадры. Заработная плата. Налоговая декларация по подоходному налогу" FormID="0" FormGUID="" Tag="" TID="1932" TGUID="{guid {1594A015-1965-4048-9FE5-89E3F0F097FC}}" Type="0"/>
+					<folder ID="616" GUID="{guid {3777EDE0-804B-4C7F-9B0C-AA9DB9501136}}" Name="3.4.2 Кадры. Заработная плата. Отчет по ЕСВ" FormID="0" FormGUID="" Tag="" TID="1933" TGUID="{guid {CEB25360-0685-4CD7-8A9B-785901619515}}" Type="0"/>
+				</folder>
+			</folder>
+		</folder>
+	</AccentFolders>
+	<AccentTemplates>
+		<template GUID="{guid {314B0155-9035-4137-8B4E-C007C00ABEA7}}" ID="1739" Memo="" Name="Товары" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+			<template GUID="{guid {0E8166D3-4411-4577-8BF5-2DCA1407E9B9}}" ID="1823" Memo="" Name="Товары. Переоценка и инвентаризация" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+				<template GUID="{guid {DE36291D-893C-41C6-BBF3-ECC9734C6000}}" ID="1878" Memo="" Name="Товары. Инвентаризационная опись (по партиям)" Tag="" Type="1" FormID="1132" FormGUID="{guid {03801F79-FD2D-4F89-BE43-8791FE1BE5B4}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 1132
+  op.SetFolder 531
+  op.Name = &quot;Товары. Инвентаризационная опись (по партиям)&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 69
+  op.TransList(1).SetAccCr 69
+  op.TransList(2).SetAccDb 416
+  op.TransList(2).SetAccCr 195
+  op.TransList(3).SetAccDb 195
+  op.TransList(3).SetAccCr 361
+  '--Разное--
+  op.TransList(1).SetMisc 13, 325
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 3, True, 1, False
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  '}} END_RECALC
+End Sub
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {03801F79-FD2D-4F89-BE43-8791FE1BE5B4}}
+  op.SetFolder {guid {3AD1A31E-6494-4832-8A87-9E5C78AE0807}}
+  op.Name = "Товары. Инвентаризационная опись (по партиям)"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}
+  op.TransList(1).SetAccCr {guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}
+  op.TransList(2).SetAccDb {guid {A939FC4C-2442-4A43-B22F-D6E4671233D5}}
+  op.TransList(2).SetAccCr {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(3).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(3).SetAccCr {guid {758E9105-7344-43D3-B72C-8182F2C3B5EA}}
+  '--Разное--
+  op.TransList(1).SetMisc 13, {guid {FBC2FB8A-C877-459E-8273-D7AD76F884E7}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 3, True, 1, False
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  '}} END_RECALC
+End Sub
+					<parameters>
+						<parameter Name="Изменен" Type="7" RefKind="0" Value2="2/12/2020 2:27:24 PM"/>
+					</parameters>
+				</template>
+			</template>
+			<template GUID="{guid {DD3A3038-A467-40A7-8B0D-AF561A709BE0}}" ID="1755" Memo="" Name="Товары. Возврат поставщику" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+				<template GUID="{guid {DE7598DD-D135-4019-BCF8-B2195FDBF4F0}}" ID="1808" Memo="" Name="Товары. Возврат поставщику. Возврат товара поставщику" Tag="" Type="1" FormID="321" FormGUID="{guid {879051AF-D1EE-11D5-8141-0002440B6A16}}" Script="'#include &quot;hl74_ado.avb&quot;
+'#include &quot;hl74_common.avb&quot;
+					
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+					
+	Com_ClearTrans Op.TransList(2)
+	Op.TransList(1).EnumTrans GetRef(&quot;CalcAddCostOneRow&quot;), Op
+					
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 321
+  op.SetFolder 516
+  op.Name = &quot;Товары. Возврат поставщику. Возврат товара поставщику&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 299
+  op.TransList(1).SetAccCr 195
+  op.TransList(2).SetAccDb 176
+  op.TransList(2).SetAccCr 195
+  op.TransList(3).SetAccDb 418
+  op.TransList(3).SetAccCr 176
+  '--Налоговые отчеты--
+  op.TransList(1).SetTax 1, &quot;Д.А.&quot;
+  op.TransList(1).SetTax 2, &quot;Д.Б.&quot;
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Объекты учета--
+  op.CopyEntSeries 2, 1
+  op.CopyEntSeries 3, 2
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 2, True
+  op.CopyAgents 3, True, 2, True, True
+  op.CopyAgents 2, False, 1, True, True
+  op.CopyAgents 3, False, 2, False, True
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+					
+Function CalcAddCostOneRow(Tr, ByRef Op)
+	Dim EntSum, EntQty, Tr2, SQL, aData
+					
+	CalcAddCostOneRow = True
+					
+	SQL = &quot;Select sum(j_sum) from journal j2 where j2.doc_id = (Select top 1 j.doc_id from journal j where j.ser_id = &quot; &amp; Tr.SeriesID &amp; _
+		&quot; order by j_date, j_id) And j_ent = &quot; &amp; Tr.EntID &amp; &quot; And acc_db = &quot; &amp; Tr.AccCrID &amp; &quot; And (j_qty = 0 Or j_qty Is Null)&quot;
+					
+	Set Tr2 = Op.Trans(2, Tr.RowNo2)
+					
+	Tr2.EntID = Tr.EntID
+	Tr2.Qty = 0
+					
+	If GetRs2(SQL, aData) Then
+		If checknull(aData(0, 0), 0) &lt;&gt; 0 Then
+			EntSum = aData(0, 0)
+					
+			SQL = &quot;Select sum(j_qty) from journal j2 where j2.doc_id = (Select top 1 j.doc_id from journal j where j.ser_id = &quot; &amp; Tr.SeriesID &amp; _
+				&quot; order by j_date, j_id) And j_ent = &quot; &amp; Tr.EntID &amp; &quot; And acc_db = &quot; &amp; Tr.AccCrID &amp; &quot; And not (j_qty = 0 Or j_qty Is Null)&quot;
+					
+			If GetRs2(SQL, aData) Then
+				EntQty = checknull(aData(0, 0), 0)
+					
+				If EntQty &lt;&gt; 0 And EntSum &lt;&gt; 0 Then
+					Tr2.Sum = EntSum / EntQty * Tr.Qty
+				Else
+					Tr2.Sum = 0
+				End If
+			End If
+		End If
+	End If
+					
+End Function
+					
+">'#include "hl74_ado.avb"
+'#include "hl74_common.avb"
+
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+
+	Com_ClearTrans Op.TransList(2)
+	Op.TransList(1).EnumTrans GetRef("CalcAddCostOneRow"), Op
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {879051AF-D1EE-11D5-8141-0002440B6A16}}
+  op.SetFolder {guid {1170FBCF-3A97-4E23-8B5C-7E67059A125B}}
+  op.Name = "Товары. Возврат поставщику. Возврат товара поставщику"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  op.TransList(1).SetAccCr {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(2).SetAccDb {guid {4FDB4ACE-9573-4D40-830C-8A57EEF113D6}}
+  op.TransList(2).SetAccCr {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(3).SetAccDb {guid {9A1139DC-887A-44CA-85D6-655B05E05D0C}}
+  op.TransList(3).SetAccCr {guid {4FDB4ACE-9573-4D40-830C-8A57EEF113D6}}
+  '--Налоговые отчеты--
+  op.TransList(1).SetTax 1, "Д.А."
+  op.TransList(1).SetTax 2, "Д.Б."
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Объекты учета--
+  op.CopyEntSeries 2, 1
+  op.CopyEntSeries 3, 2
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 2, True
+  op.CopyAgents 3, True, 2, True, True
+  op.CopyAgents 2, False, 1, True, True
+  op.CopyAgents 3, False, 2, False, True
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+Function CalcAddCostOneRow(Tr, ByRef Op)
+	Dim EntSum, EntQty, Tr2, SQL, aData
+
+	CalcAddCostOneRow = True
+
+	SQL = "Select sum(j_sum) from journal j2 where j2.doc_id = (Select top 1 j.doc_id from journal j where j.ser_id = " &amp; Tr.SeriesID &amp; _
+		" order by j_date, j_id) And j_ent = " &amp; Tr.EntID &amp; " And acc_db = " &amp; Tr.AccCrID &amp; " And (j_qty = 0 Or j_qty Is Null)"
+
+	Set Tr2 = Op.Trans(2, Tr.RowNo2)
+
+	Tr2.EntID = Tr.EntID
+	Tr2.Qty = 0
+
+	If GetRs2(SQL, aData) Then
+		If checknull(aData(0, 0), 0) &lt;&gt; 0 Then
+			EntSum = aData(0, 0)
+
+			SQL = "Select sum(j_qty) from journal j2 where j2.doc_id = (Select top 1 j.doc_id from journal j where j.ser_id = " &amp; Tr.SeriesID &amp; _
+				" order by j_date, j_id) And j_ent = " &amp; Tr.EntID &amp; " And acc_db = " &amp; Tr.AccCrID &amp; " And not (j_qty = 0 Or j_qty Is Null)"
+
+			If GetRs2(SQL, aData) Then
+				EntQty = checknull(aData(0, 0), 0)
+
+				If EntQty &lt;&gt; 0 And EntSum &lt;&gt; 0 Then
+					Tr2.Sum = EntSum / EntQty * Tr.Qty
+				Else
+					Tr2.Sum = 0
+				End If
+			End If
+		End If
+	End If
+
+End Function
+
+					<parameters>
+						<parameter Name="Изменен" Type="7" RefKind="0" Value2="3/3/2020 12:34:51 PM"/>
+					</parameters>
+				</template>
+			</template>
+		</template>
+		<template GUID="{guid {25836D39-7D62-4A3D-9199-6FBA5303B8FF}}" ID="1818" Memo="" Name="Кадры" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+			<template GUID="{guid {49DC4171-90CA-4641-B6A7-371B7C92204F}}" ID="1830" Memo="" Name="Кадры. Заработная плата" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+				<template GUID="{guid {C84097AE-D5D7-4F60-9BB2-C7CC0AFD94B7}}" ID="2046" Memo="" Name="Кадры. Заработная плата. Ведомость удержания алиментов" Tag="" Type="1" FormID="1133" FormGUID="{guid {0394FF7B-6461-404D-86CE-1E59391E0768}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If Op.Done Then App.RunModule &quot;HL74_AddOpToBinder.avb&quot;, &quot;HL74_AddOpToBinder&quot;, Op
+	' копируем аналитику, если она есть
+					
+	Dim i, j, nTransList, MscID
+					
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				For j = 2 To nTransList 
+					If (Op.Trans(j).MiscID(.MscNo) &lt;&gt; 0 And MscID = 0) Or MscID &lt;&gt; 0 Then
+						Op.TransList(j).SetMisc .MscNo, MscID
+					End If
+				Next
+			End With
+		Next
+	End With
+					
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+					
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 1133
+  op.SetFolder 701
+  op.Name = &quot;Кадры. Заработная плата. Ведомость удержания алиментов&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 321
+  op.TransList(1).SetAccCr 331
+  '--Объекты учета--
+  op.TransList(1).SetEnt 29651
+  '}} END_APPLY
+End Sub
+					
+					
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+					
+					
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+					
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If Op.Done Then App.RunModule "HL74_AddOpToBinder.avb", "HL74_AddOpToBinder", Op
+	' копируем аналитику, если она есть
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				For j = 2 To nTransList 
+					If (Op.Trans(j).MiscID(.MscNo) &lt;&gt; 0 And MscID = 0) Or MscID &lt;&gt; 0 Then
+						Op.TransList(j).SetMisc .MscNo, MscID
+					End If
+				Next
+			End With
+		Next
+	End With
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {0394FF7B-6461-404D-86CE-1E59391E0768}}
+  op.SetFolder {guid {DB9B95C0-B748-46AA-9C02-344CE2B27C8D}}
+  op.Name = "Кадры. Заработная плата. Ведомость удержания алиментов"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  op.TransList(1).SetAccCr {guid {E3AA9BB9-4CB6-4B3D-B74F-563FA95C11A3}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {2E111CB3-AF6D-4490-92C2-C703CE7CEDA6}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+
+					<parameters>
+						<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/15/2019 11:54:27 AM"/>
+					</parameters>
+				</template>
+				<template GUID="{guid {0CE16492-B833-4064-A166-0B9399FAFB12}}" ID="1851" Memo="" Name="Кадры. Заработная плата. Выплата заработной платы" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+					<template GUID="{guid {31DD224E-9044-4E23-B609-B167757B6A7F}}" ID="1852" Memo="" Name="Кадры. Заработная плата. Ведомость выплаты заработной платы" Tag="" Type="1" FormID="805" FormGUID="{guid {E38DAD45-FDBF-4B96-A058-732D53EB23DF}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID =   805
+  op.SetFolder   539
+  op.Name = &quot;Кадры. Заработная плата. Ведомость выдачи заработной платы&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb   321
+  op.TransList(1).SetAccCr   627
+  '--Объекты учета--
+  op.TransList(1).SetEnt   975
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub 
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {E38DAD45-FDBF-4B96-A058-732D53EB23DF}}
+  op.SetFolder {guid {35F209F3-2F0A-473A-AD93-3E2AE002ACF6}}
+  op.Name = "Кадры. Заработная плата. Ведомость выдачи заработной платы"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  op.TransList(1).SetAccCr {guid {544A9FA0-50A3-4DD5-9B68-A57A6CDF1E05}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub 
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="3/26/2018 4:01:55 PM"/>
+						</parameters>
+					</template>
+				</template>
+				<template GUID="{guid {DE203DE0-25EE-4419-979D-78F08E88E0EE}}" ID="1831" Memo="" Name="Кадры. Заработная плата. Начисления" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+					<template GUID="{guid {B546BEEB-FB96-4A37-821E-3C56D6C8D6E1}}" ID="2050" Memo="" Name="Кадры. Заработная плата. Начисление больничных" Tag="" Type="1" FormID="1134" FormGUID="{guid {6E27D64D-6E47-4C87-B668-21683DBBA429}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+	If Op.Done Then App.RunModule &quot;HL74_AddOpToBinder.avb&quot;, &quot;HL74_AddOpToBinder&quot;, Op
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 1134
+  op.SetFolder 704
+  op.Name = &quot;Кадры. Заработная плата. Начисление больничных&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 405
+  op.TransList(1).SetAccCr 321
+  '--Объекты учета--
+  op.TransList(1).SetEnt 13014
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+	If Op.Done Then App.RunModule "HL74_AddOpToBinder.avb", "HL74_AddOpToBinder", Op
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {6E27D64D-6E47-4C87-B668-21683DBBA429}}
+  op.SetFolder {guid {5DC1C4F3-2A84-4C30-B350-107262954714}}
+  op.Name = "Кадры. Заработная плата. Начисление больничных"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {8F1F069C-4180-43DA-8C59-AEE307E7AB22}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/15/2019 11:55:23 AM"/>
+						</parameters>
+					</template>
+					<template GUID="{guid {D3172C36-62AC-404C-8A56-8084F8D6F560}}" ID="2049" Memo="" Name="Кадры. Заработная плата. Начисление отпускных" Tag="" Type="1" FormID="1134" FormGUID="{guid {6E27D64D-6E47-4C87-B668-21683DBBA429}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+						
+	If Op.Done Then App.RunModule &quot;HL74_AddOpToBinder.avb&quot;, &quot;HL74_AddOpToBinder&quot;, Op
+	' копируем аналитику, если она есть
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 1134
+  op.SetFolder 702
+  op.Name = &quot;Кадры. Заработная плата. Начисление отпускных&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 405
+  op.TransList(1).SetAccCr 321
+  '--Объекты учета--
+  op.TransList(1).SetEnt 13015
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+
+	If Op.Done Then App.RunModule "HL74_AddOpToBinder.avb", "HL74_AddOpToBinder", Op
+	' копируем аналитику, если она есть
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {6E27D64D-6E47-4C87-B668-21683DBBA429}}
+  op.SetFolder {guid {BB9B2E57-A912-4B27-AABB-458B3BE812C8}}
+  op.Name = "Кадры. Заработная плата. Начисление отпускных"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {152B9A02-1904-4C9D-9682-2C7D19230BAF}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/15/2019 11:54:56 AM"/>
+						</parameters>
+					</template>
+					<template GUID="{guid {2BCCB930-B222-4387-B36A-474FF476F157}}" ID="1876" Memo="" Name="Кадры. Заработная плата. Начисление по ГПД" Tag="" Type="1" FormID="801" FormGUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If Op.Done Then App.RunModule &quot;HL74_AddOpToBinder.avb&quot;, &quot;HL74_AddOpToBinder&quot;, Op
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 801
+  op.SetFolder 537
+  op.Name = &quot;Кадры. Заработная плата. Начисление по окладу&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 404
+  op.TransList(1).SetAccCr 321
+  '--Объекты учета--
+  op.TransList(1).SetEnt 1205
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub ">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If Op.Done Then App.RunModule "HL74_AddOpToBinder.avb", "HL74_AddOpToBinder", Op
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}
+  op.SetFolder {guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}
+  op.Name = "Кадры. Заработная плата. Начисление по окладу"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {4D2805C3-C194-43BE-AC82-4EC77E980524}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub <parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/15/2019 11:55:08 AM"/>
+						</parameters>
+					</template>
+					<template GUID="{guid {97F95299-F6D3-4049-9F64-A9C23B145168}}" ID="1832" Memo="" Name="Кадры. Заработная плата. Начисление по окладу" Tag="" Type="1" FormID="801" FormGUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID =   801
+  op.SetFolder   537
+  op.Name = &quot;Кадры. Заработная плата. Начисление по окладу&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb   405
+  op.TransList(1).SetAccCr   321
+  '--Объекты учета--
+  op.TransList(1).SetEnt   975
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}
+  op.SetFolder {guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}
+  op.Name = "Кадры. Заработная плата. Начисление по окладу"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="3/26/2018 4:02:14 PM"/>
+						</parameters>
+					</template>
+					<template GUID="{guid {4F6DF052-E4FB-4458-AF20-F128918B20BC}}" ID="2051" Memo="" Name="Кадры. Заработная плата. Начисление прочие" Tag="" Type="1" FormID="958" FormGUID="{guid {C48758E8-3744-491A-A705-D936B8315841}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+	If Op.Done Then App.RunModule &quot;HL74_AddOpToBinder.avb&quot;, &quot;HL74_AddOpToBinder&quot;, Op
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 958
+  op.SetFolder 703
+  op.Name = &quot;Кадры. Заработная плата. Начисление прочие&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 405
+  op.TransList(1).SetAccCr 321
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+	If Op.Done Then App.RunModule "HL74_AddOpToBinder.avb", "HL74_AddOpToBinder", Op
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {C48758E8-3744-491A-A705-D936B8315841}}
+  op.SetFolder {guid {2309FE8A-DF7C-42F7-BB51-D41699461598}}
+  op.Name = "Кадры. Заработная плата. Начисление прочие"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/15/2019 12:02:51 PM"/>
+						</parameters>
+					</template>
+				</template>
+				<template GUID="{guid {ED541D55-3B0E-4C01-9E67-ED6E44FA206F}}" ID="1833" Memo="" Name="Кадры. Заработная плата. Обязательные удержания" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+					<template GUID="{guid {DAC5724E-24A9-43D4-91A5-9D134B86E02B}}" ID="1834" Memo="" Name="Кадры. Заработная плата. Обязательные удержания" Tag="" Type="1" FormID="802" FormGUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+						
+	Dim i, j, nTransList, MscID
+						
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+						
+						
+						
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID =   802
+  op.SetFolder   538
+  op.Name = &quot;Кадры. Заработная плата. Обязательные удержания&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb   321
+  op.TransList(1).SetAccCr   305
+  op.TransList(2).SetAccDb   405
+  op.TransList(2).SetAccCr   316
+  '--Объекты учета--
+  op.TransList(1).SetEnt   976
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+						
+						
+						
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE 
+	' копируем аналитику, если она есть
+
+	Dim i, j, nTransList, MscID
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Op.Trans(1).MiscID(.MscNo)
+				If MscID &lt;&gt; 0 Then
+					For j = 2 To nTransList
+						Op.TransList(j).SetMisc .MscNo, MscID
+					Next
+				End If
+			End With
+		Next
+	End With
+
+
+
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {A2661173-5167-43CC-87A4-3ECB36151066}}
+  op.SetFolder {guid {91EF57D0-6432-4722-9C62-F9BBE50E1A5D}}
+  op.Name = "Кадры. Заработная плата. Обязательные удержания"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  op.TransList(1).SetAccCr {guid {21E6ADFC-D95E-46B0-B101-E0063E3CCF07}}
+  op.TransList(2).SetAccDb {guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}
+  op.TransList(2).SetAccCr {guid {E85A11CD-4491-434E-BFDF-C64EAA9DCD9F}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {8A8C8AE3-C592-495E-B3A5-92184A3E2C8D}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="3/26/2018 4:02:25 PM"/>
+						</parameters>
+					</template>
+				</template>
+				<template GUID="{guid {192741B8-0395-467A-A6E8-CDBDDB1565CD}}" ID="1931" Memo="" Name="Кадры. Заработная плата. Отчетность" Tag="" Type="0" FormID="0" FormGUID="" Script=" ">
+					<template GUID="{guid {1594A015-1965-4048-9FE5-89E3F0F097FC}}" ID="1932" Memo="" Name="Кадры. Заработная плата. Налоговая декларация по подоходному налогу" Tag="" Type="1" FormID="952" FormGUID="{guid {EBBAB98F-E112-4934-9CA6-D35045AC7B12}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 952
+  op.SetFolder 615
+  op.Name = &quot;Кадры. Заработная плата. Налоговая декларация по подоходному налогу&quot;
+  '--Объекты учета--
+  op.TransList(1).SetEnt 27712
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+						
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {EBBAB98F-E112-4934-9CA6-D35045AC7B12}}
+  op.SetFolder {guid {40687928-0FC2-4332-A646-6B50B0EC6ED2}}
+  op.Name = "Кадры. Заработная плата. Налоговая декларация по подоходному налогу"
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {33F92242-BAFD-418F-9392-C6C4A57ABFF1}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/18/2019 11:10:20 AM"/>
+						</parameters>
+					</template>
+					<template GUID="{guid {CEB25360-0685-4CD7-8A9B-785901619515}}" ID="1933" Memo="" Name="Кадры. Заработная плата. Отчет по ЕСВ" Tag="" Type="1" FormID="953" FormGUID="{guid {757B057D-59D8-479B-B4F1-BAE0CF2D350C}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+						
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 953
+  op.SetFolder 616
+  op.Name = &quot;Кадры. Заработная плата. Отчет по ЕСВ&quot;
+  '}} END_APPLY
+End Sub
+						
+						
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+						
+						
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+						
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {757B057D-59D8-479B-B4F1-BAE0CF2D350C}}
+  op.SetFolder {guid {3777EDE0-804B-4C7F-9B0C-AA9DB9501136}}
+  op.Name = "Кадры. Заработная плата. Отчет по ЕСВ"
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="6/19/2017 9:48:17 AM"/>
+						</parameters>
+					</template>
+				</template>
+			</template>
+		</template>
+	</AccentTemplates>	
+	<AccentEntities>
+		<entity ID="974" GUID="{guid {5E6E0FFE-CEAE-11D5-8141-0002440B6A16}}" Art="" Bar="" Cat="" Name="Налоги и сборы" Nom="" Tag="" Type="0" Memo="" UnSelf="False" UnitID="0">
+			<entity ID="975" GUID="{guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}" Art="" Bar="" Cat="" Name="Начисления по окладу" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+			<entity ID="13014" GUID="{guid {8F1F069C-4180-43DA-8C59-AEE307E7AB22}}" Art="" Bar="" Cat="" Name="Больничный" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+			<entity ID="13015" GUID="{guid {152B9A02-1904-4C9D-9682-2C7D19230BAF}}" Art="" Bar="" Cat="" Name="Отпускные" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+			<entity ID="1205" GUID="{guid {4D2805C3-C194-43BE-AC82-4EC77E980524}}" Art="" Bar="" Cat="11010200" Name="Начисления по ГПД" Nom="01" Tag="ГПД" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+			<entity ID="976" GUID="{guid {8A8C8AE3-C592-495E-B3A5-92184A3E2C8D}}" Art="" Bar="" Cat="" Name="Подоходный налог с основной ЗП" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+			<entity ID="27712" GUID="{guid {33F92242-BAFD-418F-9392-C6C4A57ABFF1}}" Art="" Bar="" Cat="" Name="Подоходный налог" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/>
+		</entity>
+		<entity ID="28984" GUID="{guid {E47B3329-3DA7-49F0-80D7-760883E707B5}}" Art="" Bar="" Cat="" Name="Заработная плата" Nom="" Tag="SYS8" Type="0" Memo="" UnSelf="False" UnitID="0">
+			<entity ID="28985" GUID="{guid {7C5A193D-359D-48C0-B16B-E825EB04C7CF}}" Art="" Bar="" Cat="" Name="Удержания с сотрудников" Nom="" Tag="SYS28" Type="0" Memo="" UnSelf="False" UnitID="0">
+				<entity ID="29651" GUID="{guid {2E111CB3-AF6D-4490-92C2-C703CE7CEDA6}}" Art="" Bar="" Cat="" Name="Алименты" Nom="" Tag="" Type="1001" Memo="" UnSelf="False" UnitID="0"/>
+			</entity>
+		</entity>
+	</AccentEntities>
+	
+	<AccentMiscs>
+		<misc ID="157" GUID="{guid {8EBAF842-4FF0-4AB5-A7C8-49B97BEE8DC3}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="1" Long2="0" Long3="0" Memo="" MscNo="13" Name="Торговое оборудование" RefFolderID="0" RefKind="0" String1="" String2="3" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="TRE" Type="-1">
+			<parameters>
+				<parameter Name="Флажки" Type="3" RefKind="0" Value2="0"/>
+				<parameter Name="Папки объектов учета для загрузки" Type="8" RefKind="0" Value2="27400,27405,27413,27414,2189,8282,8283,8284,8289"/>
+				<parameter Name="Папки корреспондентов для загрузки" Type="8" RefKind="0" Value2="3203"/>
+			</parameters>
+			<misc ID="324" GUID="{guid {A20AC068-BE4E-44FE-90A3-B80559BA3A2D}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="13" Name="ТСД" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0">
+				<misc ID="325" GUID="{guid {FBC2FB8A-C877-459E-8273-D7AD76F884E7}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="1" Long2="195" Long3="0" Memo="" MscNo="13" Name="Cipher8001" RefFolderID="0" RefKind="0" String1="" String2="3" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="CIPHER" Type="1">
+					<parameters>
+						<parameter Name="Флажки" Type="3" RefKind="0" Value2="0"/>
+					</parameters>
+				</misc>
+			</misc>
+		</misc>
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts>
+		<account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo="">
+			<account ID="356" GUID="{guid {4DFF0AEE-62F5-493F-8F44-2A44A0812D66}}" Code="74" Name="Другие доходы" PlanID="70" SaldoType="0" Tag="SYS356" Type="1" Memo="">
+				<account ID="361" GUID="{guid {758E9105-7344-43D3-B72C-8182F2C3B5EA}}" Code="745" Name="Доход от безвозмездно полученных активов" PlanID="70" SaldoType="0" Tag="SYS361" Type="1" Memo=""/>
+			</account>
+			<account ID="409" GUID="{guid {ED397C54-0A7A-438F-99A8-DEA0CB2FAE8E}}" Code="94" Name="Другие  расходы операционной деятельности" PlanID="70" SaldoType="0" Tag="SYS409" Type="1" Memo="">
+				<account ID="416" GUID="{guid {A939FC4C-2442-4A43-B22F-D6E4671233D5}}" Code="947" Name="Недостачи и потери от порчи ценностей" PlanID="70" SaldoType="0" Tag="SYS416" Type="1" Memo=""/>
+				<account ID="418" GUID="{guid {9A1139DC-887A-44CA-85D6-655B05E05D0C}}" Code="949" Name="Другие расходы операционной деятельности" PlanID="70" SaldoType="0" Tag="SYS418" Type="1" Memo=""/>
+			</account>
+			<account ID="69" GUID="{guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}" Code="00" Name="&lt;&lt;Вступительный баланс&gt;&gt;" PlanID="70" SaldoType="0" Tag="SYS69" Type="-2" Memo=""/>
+			<account ID="194" GUID="{guid {BB96D902-589B-43FA-807E-AA98A421C219}}" Code="28" Name="Товары" PlanID="70" SaldoType="0" Tag="SYS194" Type="0" Memo="">
+				<account ID="195" GUID="{guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}" Code="281" Name="Товары на складе" PlanID="70" SaldoType="0" Tag="SYS195" Type="0" Memo="">
+					<account ID="611" GUID="{guid {7B4C40CA-108A-4F68-9590-45D3FDEBB0FD}}" Code="2813" Name="Склад БРАК" PlanID="70" SaldoType="0" Tag="" Type="0" Memo="">
+						<account ID="613" GUID="{guid {C7146EAE-D6DF-4F0F-86C7-3A681C048F97}}" Code="28131" Name="На складе" PlanID="70" SaldoType="0" Tag="" Type="0" Memo=""/>
+						<account ID="612" GUID="{guid {87EF8245-69A1-4C81-BAD7-CF5CB402219B}}" Code="28134" Name="Неремонтопригодный брак" PlanID="70" SaldoType="0" Tag="" Type="0" Memo=""/>
+						<account ID="615" GUID="{guid {7E4140A0-BA77-472F-856E-910BBCF896C7}}" Code="28132" Name="В СЦ" PlanID="70" SaldoType="0" Tag="" Type="0" Memo=""/>
+					</account>
+					<account ID="445" GUID="{guid {3B084CEA-24B9-11D5-AD96-000021F4AAC8}}" Code="2811" Name="Товар на складе (товар)" PlanID="70" SaldoType="0" Tag="SYS445" Type="0" Memo=""/>
+				</account>
+			</account>
+			<account ID="167" GUID="{guid {2D3B1D29-D5E4-4ED3-9689-AAEF9EF0607E}}" Code="20" Name="Производственные запасы" PlanID="70" SaldoType="0" Tag="SYS167" Type="0" Memo="">
+				<account ID="176" GUID="{guid {4FDB4ACE-9573-4D40-830C-8A57EEF113D6}}" Code="209" Name="Другие материалы" PlanID="70" SaldoType="0" Tag="SYS176" Type="0" Memo=""/>
+			</account>
+			<account ID="298" GUID="{guid {63451D75-B109-46E6-BF95-16E0C984C96B}}" Code="63" Name="Расчеты с поставщиками и подрядчиками" PlanID="70" SaldoType="0" Tag="SYS298" Type="2" Memo="">
+				<account ID="299" GUID="{guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}" Code="631" Name="Расчеты с отечественными поставщиками" PlanID="70" SaldoType="0" Tag="SYS299" Type="2" Memo=""/>
+			</account>
+			<account ID="367" GUID="{guid {FB97F106-65B3-4213-A412-397828764683}}" Code="79" Name="Финансовые результаты" PlanID="70" SaldoType="0" Tag="SYS367" Type="2" Memo="">
+				<account ID="368" GUID="{guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}" Code="791" Name="Результат операционной деятельности" PlanID="70" SaldoType="0" Tag="SYS368" Type="0" Memo=""/>
+			</account>
+			<account ID="333" GUID="{guid {3E42980E-F227-4FFB-A33D-9067C82B9FB8}}" Code="70" Name="Доходы от реализации" PlanID="70" SaldoType="0" Tag="SYS333" Type="2" Memo="">
+				<account ID="337" GUID="{guid {0076B3AB-58A6-47F8-9CCC-A12ACBC30808}}" Code="704" Name="Вычеты из дохода" PlanID="70" SaldoType="0" Tag="SYS337" Type="0" Memo=""/>
+			</account>
+			<account ID="400" GUID="{guid {1CE24D86-EC12-41AB-A839-484D38C59709}}" Code="90" Name="Себестоимость реализации" PlanID="70" SaldoType="0" Tag="SYS400" Type="1" Memo="">
+				<account ID="402" GUID="{guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}" Code="902" Name="Себестоимость реализованных товаров" PlanID="70" SaldoType="0" Tag="SYS402" Type="1" Memo=""/>
+			</account>
+			<account ID="326" GUID="{guid {E6BA41A4-7F3A-4428-95E0-9A024CDC0A66}}" Code="68" Name="Расчеты по другим операциям" PlanID="70" SaldoType="0" Tag="SYS326" Type="2" Memo="">
+				<account ID="331" GUID="{guid {E3AA9BB9-4CB6-4B3D-B74F-563FA95C11A3}}" Code="685" Name="Расчеты с прочими кредиторами" PlanID="70" SaldoType="0" Tag="SYS331" Type="1" Memo=""/>
+			</account>
+			<account ID="312" GUID="{guid {F2593CAB-B2A1-431E-ACDB-642CC462A368}}" Code="65" Name="Расчеты по страхованию" PlanID="70" SaldoType="0" Tag="SYS312" Type="1" Memo="">
+				<account ID="316" GUID="{guid {E85A11CD-4491-434E-BFDF-C64EAA9DCD9F}}" Code="652" Name="По социальному страхованию" PlanID="70" SaldoType="0" Tag="SYS316" Type="1" Memo=""/>
+			</account>
+			<account ID="404" GUID="{guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}" Code="91" Name="Общепроизводственные расходы" PlanID="70" SaldoType="0" Tag="SYS404" Type="0" Memo=""/>
+			<account ID="405" GUID="{guid {80E7AFB0-8DA5-4A14-98A8-13781451F3AE}}" Code="92" Name="Административные расходы" PlanID="70" SaldoType="0" Tag="SYS405VED" Type="0" Memo=""/>
+			<account ID="320" GUID="{guid {3272D4AD-F79F-45B9-BAB4-E8A116385B79}}" Code="66" Name="Расчеты по выплатам работникам" PlanID="70" SaldoType="0" Tag="SYS320" Type="1" Memo="согласно письма Минфина от 20.10.2005 N717">
+				<account ID="321" GUID="{guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}" Code="661" Name="Расчеты по заработной плате" PlanID="70" SaldoType="0" Tag="SYS321" Type="2" Memo=""/>
+			</account>
+			<account ID="200" GUID="{guid {1F72141A-35A6-4109-A5C6-9D1F97649964}}" Code="30" Name="Наличность" PlanID="70" SaldoType="0" Tag="SYS200" Type="0" Memo="">
+				<account ID="627" GUID="{guid {544A9FA0-50A3-4DD5-9B68-A57A6CDF1E05}}" Code="303" Name="Операционная касса в национальной валюте" PlanID="70" SaldoType="0" Tag="" Type="0" Memo=""/>
+			</account>
+			<account ID="301" GUID="{guid {5DCDC761-1A2D-458E-9480-E0082AC0D5A6}}" Code="64" Name="Расчеты по налогам и платежам" PlanID="70" SaldoType="0" Tag="SYS301" Type="1" Memo="">
+				<account ID="302" GUID="{guid {E2C4971E-06E3-40AD-A582-92871F486B07}}" Code="641" Name="Расчеты по налогам" PlanID="70" SaldoType="0" Tag="SYS302" Type="1" Memo="">
+					<account ID="305" GUID="{guid {21E6ADFC-D95E-46B0-B101-E0063E3CCF07}}" Code="6414" Name="Подоходный налог" PlanID="70" SaldoType="0" Tag="SYS305" Type="1" Memo=""/>
+				</account>
+			</account>
+			<account ID="219" GUID="{guid {F9DF1002-FEF6-4CC4-A413-589731495FB5}}" Code="36" Name="Расчеты с покупателями и заказчиками" PlanID="70" SaldoType="0" Tag="SYS219" Type="0" Memo="">
+				<account ID="220" GUID="{guid {6EC9A0F1-F594-4F49-B4B5-4D6D6165249E}}" Code="361" Name="Расчёты с отечественными покупателями" PlanID="70" SaldoType="0" Tag="SYS220" Type="1" Memo="">
+					<parameters>
+						<parameter Name="Исключить счета" Type="8" RefKind="0" Value2="да"/>
+					</parameters>
+					<account ID="595" GUID="{guid {4D654EBF-3C64-47F7-8C49-B91AEFEE422C}}" Code="3611" Name="Расчеты за бытовую технику" PlanID="70" SaldoType="0" Tag="SYS491" Type="0" Memo=""/>
+				</account>
+			</account>
+		</account>
+	</AccentAccounts>
+	
+	<AccentUnits/>
+	<AccentCurs/>
+
+	<AccentForms>
+		<form ANID="83" FileName="HL74_PayRollPay.afm" ID="805" Name="Кадры. Заработная плата. Ведомость выдачи заработной платы" ShortName="ЗВВ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {E38DAD45-FDBF-4B96-A058-732D53EB23DF}}"/>
+		<form ANID="130" FileName="HL74_PayRollVac.afm" ID="1134" Name="Кадры. Заработная плата. Ведомость начисления отпускных" ShortName="ВНО" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {6E27D64D-6E47-4C87-B668-21683DBBA429}}"/>
+		<form ANID="82" FileName="HL74_PayRoll.afm" ID="801" Name="Кадры. Заработная плата. Ведомость начислений" ShortName="ЗПН" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}"/>
+		<form ANID="117" FileName="HL74_PayRollOther.afm" ID="958" Name="Кадры. Заработная плата. Ведомость прочих начислений" ShortName="ЗПН" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {C48758E8-3744-491A-A705-D936B8315841}}"/>
+		<form ANID="81" FileName="HL74_PayRollTax.afm" ID="802" Name="Кадры. Заработная плата. Ведомость обязательных удержаний" ShortName="ЗОУ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}"/>
+		<form ANID="116" FileName="HL74_PayRollTaxRep.afm" ID="952" Name="Кадры. Заработная плата. Налоговая декларация по подоходному налогу" ShortName="НДФЛ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {EBBAB98F-E112-4934-9CA6-D35045AC7B12}}"/>
+		<form ANID="0" FileName="HL74_PayRollTaxS.afm" ID="953" Name="Кадры. Заработная плата. Отчет по ЕСВ" ShortName="" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {757B057D-59D8-479B-B4F1-BAE0CF2D350C}}"/>
+		<form ANID="129" FileName="HL74_PayRollAlim.afm" ID="1133" Name="Кадры. Заработная плата. Ведомость удержания алиментов." ShortName="ВУА" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {0394FF7B-6461-404D-86CE-1E59391E0768}}"/>
+		<form ANID="63" FileName="HL74_BuyerReturn (WT).afm" ID="322" Name="Товары. Накладная на возврат от покупателя" ShortName="ТВК" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {879051B0-D1EE-11D5-8141-0002440B6A16}}"/>
+		<form ANID="63" FileName="HL74_SupplierReturn (WT).afm" ID="321" Name="Товары. Накладная на возврат поставщику" ShortName="ТВП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {879051AF-D1EE-11D5-8141-0002440B6A16}}"/>
+		<form ANID="0" FileName="HL74_InventoryListSeries.afm" ID="1132" Name="Товары. Инвентаризационная опись (серии)" ShortName="" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {03801F79-FD2D-4F89-BE43-8791FE1BE5B4}}"/>
+
+	</AccentForms>
+	<AccentAutoNum>
+		<AutoNum ID="63" PR="" SF="" NAME="Товары. Накладная на возврат поставщику"/>
+		<AutoNum ID="81" PR="" SF="" NAME="Кадры. Заработная плата. Обязательные удержания"/>
+		<AutoNum ID="82" PR="" SF="" NAME="Кадры. Заработная плата. Ведомость начислений"/>
+		<AutoNum ID="83" PR="" SF="" NAME="Кадры. Заработная плата. Ведомость выдачи ЗП"/>
+		<AutoNum ID="116" PR="" SF="" NAME="Кадры. Зарплата. Налоговая декларация по НДФЛ"/>
+		<AutoNum ID="117" PR="" SF="" NAME="Кадры. Зарплата. Ведомость прочих начислений"/>
+		<AutoNum ID="121" PR="" SF="" NAME="Товаро-транспортная накладная"/>
+		<AutoNum ID="129" PR="" SF="" NAME="Кадры.Зарплата. Ведомость удержания алиментов"/>
+		<AutoNum ID="130" PR="" SF="" NAME="Кадры. Зарплата. Ведомость начисления отпускных"/>
+	</AccentAutoNum>
+	
+	<AccentEnumsItems>
+		<enum ENM_ID="5" ENN_ID="3" ENM_NAME="Да" ENM_TAG=""/>
+		<enum ENM_ID="7" ENN_ID="3" ENM_NAME="Нет" ENM_TAG=""/>
+		<enum ENM_ID="100" ENN_ID="16" ENM_NAME="Зарплата" ENM_TAG="01:11010100"/>
+		<enum ENM_ID="101" ENN_ID="16" ENM_NAME="Вознаграждение" ENM_TAG="02:11010200"/>
+		<enum ENM_ID="102" ENN_ID="16" ENM_NAME="Аренда" ENM_TAG="08:11010200"/>
+		<enum ENM_ID="103" ENN_ID="16" ENM_NAME="Социальные выплаты" ENM_TAG="10:"/>
+		<enum ENM_ID="104" ENN_ID="16" ENM_NAME="Алименты" ENM_TAG="11:"/>
+		<enum ENM_ID="105" ENN_ID="16" ENM_NAME="Доход самозанятых" ENM_TAG="13:"/>
+		<enum ENM_ID="106" ENN_ID="16" ENM_NAME="Аренда земли" ENM_TAG="16:11010200"/>
+		<enum ENM_ID="107" ENN_ID="16" ENM_NAME="Больничные листы" ENM_TAG="19:"/>
+		<enum ENM_ID="108" ENN_ID="16" ENM_NAME="Профсозные выплаты" ENM_TAG="15:"/>
+		<enum ENM_ID="109" ENN_ID="16" ENM_NAME="Профсюзные подарки" ENM_TAG="14:"/>
+		<enum ENM_ID="110" ENN_ID="16" ENM_NAME="Сдача вторсырья" ENM_TAG="18:11010200"/>
+		<enum ENM_ID="111" ENN_ID="16" ENM_NAME="Социальная помощь" ENM_TAG="20:"/>
+		<enum ENM_ID="112" ENN_ID="16" ENM_NAME="Стоимость угля" ENM_TAG="17:"/>
+		<enum ENM_ID="113" ENN_ID="17" ENM_NAME="Зарплата" ENM_TAG="1"/>
+		<enum ENM_ID="114" ENN_ID="17" ENM_NAME="Вознаграждение" ENM_TAG="2"/>
+		<enum ENM_ID="115" ENN_ID="17" ENM_NAME="Пособие" ENM_TAG="3"/>
+		<enum ENM_ID="120" ENN_ID="20" ENM_NAME="плательщик единого налога по ставке 10%" ENM_TAG=""/>
+		<enum ENM_ID="121" ENN_ID="20" ENM_NAME="плательщик единого налога по ставке 6%" ENM_TAG=""/>
+		<enum ENM_ID="122" ENN_ID="20" ENM_NAME="плательщик налога на общих основаниях" ENM_TAG=""/>
+	</AccentEnumsItems>
+	<AccentEnumsGrp>
+		<enum ENN_ID="3" ENN_NAME="Логика" ENN_TAG=""/>
+		<enum ENN_ID="16" ENN_NAME="Вид дохода для подоходного налога" ENN_TAG=""/>
+		<enum ENN_ID="17" ENN_NAME="Вид дохода для ЕСВ" ENN_TAG=""/>
+		<enum ENN_ID="20" ENN_NAME="Статус налогоплательщика" ENN_TAG=""/>
+	</AccentEnumsGrp>
+	
+	<AccentWorkarea>
+		<scripts>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND upper(name) = upper('ST74_DBReportAgree'))
+									drop procedure [dbo].[ST74_DBReportAgree]
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND upper(name) = upper('HL74_custombind_goods_oddments_twice_price_id'))
+									drop procedure [dbo].[HL74_custombind_goods_oddments_twice_price_id]
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND upper(name) = upper('st7_oddments_of_the_goods_id'))
+									drop procedure [dbo].[st7_oddments_of_the_goods_id]
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND upper(name) = upper('st7_oddments_of_the_goods_price_id'))
+									drop procedure [dbo].[st7_oddments_of_the_goods_price_id]
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND upper(name) = upper('ST74_CalcEntsSeriesRest'))
+									drop procedure [dbo].[ST74_CalcEntsSeriesRest]
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				CREATE procedure [dbo].[ST74_DBReportAgree] 
+					@AccID int,
+					@MscNo int,
+					@dEnd datetime,
+					@mc int
+				as
+					set nocount on
+
+					select id
+					into #Acc
+					from acc_tree
+					where @AccID in (id, p0, p1, p2, p3, p4, p5, p6, p7)
+
+					--- результирующая таблица
+					create table #report (AgID int, MscID int, TotalSum money, DocID int, DocDate datetime, DocNo nvarchar(50), DocSum money, PayDate datetime)
+
+					--- выбрали кредиторку. только задолженности по покупателям
+					select	j_ag1 as AgID, 
+							Msc_id as MscID,
+							sum(j_sum) as TotalSum
+					into #JO6
+					from journal j with (nolock) 
+						left join JRN_MISC jm on jm.J_ID = j.J_ID
+					where
+						j_done = 2 and MC_ID = @mc 
+						and j_date &lt; @dEnd
+						and acc_db in (select  id from #Acc)
+						and jm.MSC_NO = @MscNo
+					group by j_ag1, MSC_ID
+					
+					insert into #JO6 (AgID, MscID, TotalSum)
+					select	j_ag2, 
+							Msc_id,
+							-sum(j_sum)
+					from 	journal j with (nolock) 
+							left join JRN_MISC jm on jm.J_ID = j.J_ID
+					where
+						j_done = 2 and MC_ID = @mc 
+						and j_date &lt; @dEnd
+						and acc_cr in (select  id from #Acc)
+						and jm.MSC_NO = @MscNo
+					group by j_ag2, MSC_ID
+
+					--- курсор по все записям дебиторки
+					declare @AgID int, @MscID int, @AgSum Money
+					declare DocList cursor for
+
+						select	#JO6.AgID,
+								#JO6.MscID,
+								Sum(#JO6.TotalSum)
+						from #JO6 with (nolock) 
+						Group by 
+								#JO6.AgID, 
+								#JO6.MscID
+						Having Sum(#JO6.TotalSum) &gt; 0
+
+					open DocList
+
+					fetch next From DocList into @AgID, @MscID, @AgSum
+
+					while @@FETCH_STATUS = 0
+						begin
+							declare @DocID int, 
+									@DocDate datetime, 
+									@DocNo nvarchar(50),
+									@DocSum money,
+									@PayDate datetime,
+									@PaySum money = 0,
+									@TotalSum money = 0
+
+							--- выбрали все документы по покупателю и договору до даты отчета
+							declare AgDocList cursor for
+								select j.doc_id, 
+										doc_date, 
+										doc_no, 
+										sum(j.j_sum), 
+										isnull(doc_pd3, doc_date) 
+								from journal j
+									left join documents d on d.doc_id = j.doc_id
+									left join JRN_MISC jm on jm.J_ID = j.J_ID
+								where 
+									j_ag1 = @AgID
+									and jm.msc_id = @MscID
+									and acc_db in (select  id from #Acc)
+									and not acc_cr in (select  id from #Acc)
+									and j_done = 2
+									and j.mc_id = @mc 
+									and d.doc_date &lt; @dEnd 
+								group by 
+									j.doc_id, 
+									doc_date, 
+									doc_no, 
+									isnull(doc_pd3, doc_date)
+								having sum(j.j_sum) &gt; 0
+								order by isnull(doc_pd3, doc_date) desc, doc_no desc
+
+							open AgDocList
+							fetch next from AgDocList
+							into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+
+							--- макс сумма задолженности (для расчетов)
+							set @TotalSum = @AgSum
+
+							insert into #report (AgID, MscID, DocID, TotalSum) values (@AgID, @MscID, 0, @AgSum)
+
+							--- по всем документам от конца пока не выбрали всю сумму
+							while @@FETCH_STATUS = 0 and @TotalSum &gt; 0
+								begin
+									--- если остаток суммы меньше суммы по документу, то делаем сумму задолженности == остатку
+									if @TotalSum &lt; @DocSum
+										set @DocSum = @TotalSum
+
+									--- уменьшили сумму задолженности на сумму документа
+									set @TotalSum = @TotalSum - @DocSum
+									
+									insert into #report (AgID, MscID, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate) values
+													(@AgID, @MscID, 0, @DocID, @DocDate, @DocNo, @DocSum, @PayDate)
+									fetch next from AgDocList
+									into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+								end
+
+							close AgDocList
+							deallocate AgDocList
+
+							fetch next From DocList into @AgID, @MscID, @AgSum
+						end
+
+					close DocList
+					deallocate DocList
+
+					select AgID, 
+							isnull(Ag_Code, ''), 
+							isnull(Ag_NAME, '&lt; Не указан&gt; '), 
+							isnull(Msc_Name, '&lt;Не указан&gt; '), 
+							TotalSum, 
+							DocID, 
+							DocDate, 
+							DocNo, 
+							DocSum, 
+							PayDate, 
+							MscID
+					from #report
+						left join AGENTS on ag_id = AgID
+						left join Misc on msc_id = MscID
+					order by Ag_Name, AgID, Msc_Name, MscID, DocDate, DocID, DocNo, PayDate
+
+					drop table #report, #JO6, #Acc
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				CREATE PROCEDURE [dbo].[HL74_custombind_goods_oddments_twice_price_id]
+						  @EntName nvarchar(255), 
+						  @AgID Int, 
+						  @AccID Int, 
+						  @DocID Int, 
+						  @OnDate DateTime, 
+						  @MC int, 
+						  @pID int, 
+						  @pKindID int
+
+					AS
+					SET NOCOUNT ON
+
+					Declare @str nvarchar(255)
+
+					Set @str = N'%' + @EntName + N'%' 
+
+					---
+					--- Создаем временную таблицу для выборки объектов 
+					---
+					CREATE TABLE #Ent(EntID Int, EntQty Money, EntSum Money)
+
+					--- добавляем все ОУ, подходящие по имени
+					INSERT INTO #Ent (EntID,  EntQty, EntSum)
+					select ent_id, 0, 0
+					from entities 
+					where ENTITIES.ENT_TYPE &gt; 1000 and upper( ENTITIES.ENT_NAME) like upper(@str)
+
+					--вставляем дебет (с плюсами)
+					INSERT INTO #Ent (EntID,  EntQty, EntSum)
+
+					SELECT JOURNAL.J_ENT, 
+						Sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END),
+
+						Sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+						left join entities as e on e.ent_id = journal.J_ENT 
+					WHERE (JOURNAL.ACC_DB=@AccID) 
+							AND (JOURNAL.J_AG1=@AgID)  
+							AND (JOURNAL.J_DONE=2) 
+							and JOURNAL.MC_ID = @MC
+							AND (JOURNAL.DOC_ID&lt;&gt; @DocID) 
+							AND (JOURNAL.J_DATE &lt; @OnDate)
+							and j_ent in (select EntID from #Ent)
+					group by JOURNAL.J_ENT
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (EntID,  EntQty, EntSum)
+
+					SELECT JOURNAL.J_ENT, 
+						Sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END),
+
+						Sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL 
+						left join entities as e on e.ent_id = journal.J_ENT 
+					WHERE (JOURNAL.ACC_CR=@AccID) 
+							AND (JOURNAL.J_AG2=@AgID)  
+							AND (JOURNAL.J_DONE=2) 
+							and JOURNAL.MC_ID = @MC
+							AND (JOURNAL.DOC_ID&lt;&gt; @DocID) 
+							AND (JOURNAL.J_DATE &lt; @OnDate) 
+							and j_ent in (select EntID from #Ent)
+					group by JOURNAL.J_ENT
+
+					--Окончательная выборка
+					SELECT top 21 
+							#Ent.EntID ID,
+							ENTITIES.ENT_NAME, 
+							Sum(EntQty),
+							case 
+								when Sum(EntQty) &lt;&gt;  0 then Sum(EntSum) / Sum(EntQty)
+								else 0
+							end,
+							(select top 1 p.prc_value 
+								from prc_contents as p 
+								where p.ent_id = EntID 
+									and p.prl_id = @pID 
+									and p.prc_id = @pKindID 
+									and p.prc_date &lt;= @OnDate 
+								order by p.prc_date desc) as EntityPrice,
+							Sum (EntSum) AS Sum, 
+							#Ent.EntID as EntID
+
+					FROM #Ent LEFT JOIN  ENTITIES ON #Ent.EntID= ENTITIES.ENT_ID
+					GROUP BY #Ent.EntID,  ENTITIES.ENT_NAME,  ENTITIES.ENT_TYPE
+					HAVING Sum (EntSum) &lt;&gt;  0
+					ORDER BY  Sum (EntSum) desc, ENTITIES.ENT_NAME
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				CREATE procedure [dbo].[st7_oddments_of_the_goods_price_id]
+						  @EntName nvarchar(255), @AgID Int, @AccID Int, @DocID Int, @OnDate DateTime, @MC int, @pID int, @pKindID int
+
+					AS
+					SET NOCOUNT ON
+
+					Declare @str nvarchar(255)
+
+					Set @str = N'%' + @EntName + N'%' 
+
+					---
+					--- Создаем временную таблицу для выборки объектов в разрезе серий
+					---
+					CREATE TABLE #Ent(EntityID Int, Qty Money, Suma Money)
+
+					--вставляем дебет (с плюсами)
+					INSERT INTO #Ent (EntityID,  Qty, Suma)
+
+					SELECT JOURNAL.J_ENT, 
+						CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END,
+
+						CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END
+
+					FROM JOURNAL 
+					WHERE (JOURNAL.ACC_DB=@AccID) AND (JOURNAL.J_AG1=@AgID)  AND (JOURNAL.J_DONE=2) and JOURNAL.MC_ID = @MC
+						 AND (JOURNAL.DOC_ID&lt;&gt;@DocID) AND (JOURNAL.J_DATE&lt;@OnDate)
+
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (EntityID,  Qty, Suma)
+
+					SELECT JOURNAL.J_ENT, 
+						CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END,
+
+						CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END
+
+					FROM JOURNAL 
+					WHERE (JOURNAL.ACC_CR=@AccID) AND (JOURNAL.J_AG2=@AgID)  AND (JOURNAL.J_DONE=2) and JOURNAL.MC_ID = @MC
+						 AND (JOURNAL.DOC_ID &lt;&gt; @DocID) AND (JOURNAL.J_DATE &lt;=@OnDate) 
+
+					--Окончательная выборка
+					SELECT ENTITIES.ENT_ID ID, ENTITIES.ENT_NAME AS EntityName, 
+							(select top 1 p.prc_value from prc_contents as p where p.ent_id = EntityID and p.prl_id = @pID and p.prc_id = @pKindID and p.prc_date &lt; = @OnDate order by p.prc_date desc) as EntityPrice,
+							Sum(Qty) AS Qty, Sum (Suma) AS Sum, #Ent.EntityID as EntID
+
+					FROM #Ent LEFT JOIN  ENTITIES ON #Ent.EntityID= ENTITIES.ENT_ID
+					GROUP BY #Ent.EntityID,  ENTITIES.ENT_NAME,  ENTITIES.ENT_TYPE
+					HAVING Sum(Qty) &lt;&gt; 0 and  ENTITIES.ENT_TYPE &gt;  1000 and upper( ENTITIES.ENT_NAME) like upper(@str)
+					ORDER BY  ENTITIES.ENT_NAME
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				CREATE PROCEDURE [dbo].[st7_oddments_of_the_goods_id]
+					  @AgID Int, @AccID Int, @DocID Int, @OnDate DateTime, @EntName nvarchar(255), @MC int
+
+					AS
+					SET NOCOUNT ON
+
+					Declare @str nvarchar(255)
+
+					Set @str = N'%' + @EntName + N'%' 
+
+					---
+					--- Создаем временную таблицу для выборки объектов в разрезе серий
+					---
+					CREATE TABLE #Ent(EntityID Int, Qty Money, Suma Money)
+
+					--вставляем дебет (с плюсами)
+					INSERT INTO #Ent (EntityID,  Qty, Suma)
+
+					SELECT JOURNAL.J_ENT, 
+						CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END,
+
+						CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END
+
+					FROM JOURNAL 
+					WHERE (JOURNAL.ACC_DB=@AccID) AND (JOURNAL.J_AG1=@AgID)  AND (JOURNAL.J_DONE=2) and JOURNAL.MC_ID = @MC
+						 AND (JOURNAL.DOC_ID&lt;&gt; @DocID) AND (JOURNAL.J_DATE&lt;=@OnDate)
+
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (EntityID,  Qty, Suma)
+
+					SELECT JOURNAL.J_ENT, 
+						CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END,
+
+						CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END
+
+					FROM JOURNAL 
+					WHERE (JOURNAL.ACC_CR=@AccID) AND (JOURNAL.J_AG2=@AgID)  AND (JOURNAL.J_DONE=2) and JOURNAL.MC_ID = @MC
+						 AND (JOURNAL.DOC_ID &lt;&gt; @DocID) AND (JOURNAL.J_DATE&lt;=@OnDate) 
+					 
+
+					--Окончательная выборка
+					SELECT ENTITIES.ENT_ID, ENTITIES.ENT_NAME AS EntityName, 
+							Sum(Qty) AS Qty, Sum (Suma) AS Sum, #Ent.EntityID as EntID
+
+					FROM #Ent LEFT JOIN  ENTITIES ON #Ent.EntityID= ENTITIES.ENT_ID
+					where ENTITIES.ENT_TYPE &gt; 1000 and upper(@str) like upper( ENTITIES.ENT_NAME)
+					GROUP BY #Ent.EntityID,  ENTITIES.ENT_NAME,  ENTITIES.ENT_TYPE
+					HAVING Sum(Qty)&lt;&gt;0 
+					ORDER BY  ENTITIES.ENT_NAME;
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+					CREATE PROCEDURE [dbo].[ST74_CalcEntsSeriesRest]
+					   @AgID Int, 
+					   @AccID Int, 
+					   @DocID Int, 
+					   @OnDate DateTime, 
+					   @MC int
+
+					AS
+					SET NOCOUNT ON
+
+					---
+					--- Создаем временную таблицу для выборки объектов в разрезе серий
+					---
+					CREATE TABLE #Ent(SerID int, EntID int, RestQty Money, RestSum Money)
+
+					--вставляем дебет (с плюсами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID ) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+					WHERE JOURNAL.ACC_DB=@AccID AND JOURNAL.J_AG1=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID ) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+
+					WHERE	JOURNAL.ACC_CR=@AccID AND JOURNAL.J_AG2=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+					
+					--Окончательная выборка
+					SELECT	SerID, 
+							EntID, 
+							Sum(RestQty) AS RestQty, 
+							Sum (RestSum) AS RestSum
+					FROM #Ent 
+						left join ENTITIES e on e.ent_id = EntID
+						left join series s on s.ser_id = SerID
+					
+					group by SerID, EntID, ent_name, ser_code
+					HAVING Sum(RestQty)&lt;&gt;0 or Sum(RestSum)&lt;&gt;0 
+					order by ent_name, ser_code 
+
+					drop table #Ent
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				grant execute on [dbo].[ST74_DBReportAgree] to ap_public
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				grant execute on [dbo].[HL74_custombind_goods_oddments_twice_price_id] to ap_public
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				grant execute on [dbo].[st7_oddments_of_the_goods_price_id] to ap_public
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				grant execute on [dbo].[st7_oddments_of_the_goods_id] to ap_public
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				grant execute on [dbo].[ST74_CalcEntsSeriesRest] to ap_public
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+				if not exists (select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='sys_log' and COLUMN_NAME='ITEM_NAME')
+					begin
+						select *
+						into #sys_log2
+						from sys_log
+
+						delete from sys_log
+						alter table sys_log add ITEM_NAME nvarchar(255)
+
+						insert into SYS_LOG (log_date, uid, item, sys_action, ITEM_ID, ITEM_DATE, item_cy, ITEM_STR1, item_str2, guid, flags1)	
+						select log_date, uid, item, sys_action, ITEM_ID, ITEM_DATE, item_cy, ITEM_STR1, item_str2, guid, flags1
+						from #sys_log2
+						drop table #sys_log2
+					end
+			</query>
+		<query name="ST7_TaxInDocs" cmd="del" type="DAO"/>
+		<query name="ST7_TaxInDocs" cmd="add" type="DAO">
+			PARAMETERS Acc631ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT AG_REGNO, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM)
+			FROM ((JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG2
+			WHERE JT.TX_ID = TaxRepID And JT_ADDR1 = 'Д.А.' And J.MC_ID = MCID And J_DATE &gt;= StartDate And J_DATE &lt; EndDate And  J_DONE = 2 And ACC_CR in (select id from acc_tree where Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+			GROUP BY AG_REGNO, AG_NAME, J_DATE, DOC_NO;
+		</query>
+
+		<query name="st7_TaxInDocsB" cmd="del" type="DAO"/>
+		<query name="st7_TaxInDocsB" cmd="add" type="DAO">
+			PARAMETERS Acc631ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT AG_REGNO, AG_NAME, SUM(J_SUM)
+			FROM (JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG2
+			WHERE JT.TX_ID = TaxRepID And JT_ADDR1 = 'Д.Б.' And J.MC_ID = MCID And J_DATE &gt;= StartDate And J_DATE &lt; EndDate And  J_DONE = 2 And ACC_CR in (select id from acc_tree where  Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+			GROUP BY AG_REGNO, AG_NAME;
+		</query>
+
+		<query name="st7_TaxOutDocs" cmd="del" type="DAO"/>
+		<query name="st7_TaxOutDocs" cmd="add" type="DAO">
+			PARAMETERS Acc361ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT AG_REGNO, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM)
+			FROM ((JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG1
+			WHERE JT.TX_ID = TaxRepID And JT_ADDR1 = 'Д.А.' And J.MC_ID = MCID  And J_DATE &gt;= StartDate And J_DATE &lt; EndDate And  J_DONE = 2 And ACC_DB in (select id from acc_tree where Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+			GROUP BY AG_REGNO, AG_NAME, J_DATE, DOC_NO;
+		</query>
+		
+		</scripts>
+	</AccentWorkarea>
+</AccentExportData>

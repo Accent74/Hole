@@ -1,0 +1,21 @@
+Option Explicit
+
+'--- параметры проводки
+Const prmTrRateSale = "Курс продажи"
+Const prmTrRateBuy = "Курс покупки"
+
+'--- корень валюты в ОУ
+Const ENT_CURR_ROOT = 12635
+
+'--- параметры счета
+Const prmAccPercent = "Процент"
+
+'--- константы БД
+Const CUR_BASE_CODE = "643"
+
+Const CURRENCY_ROOT = 12635
+Const ACC_CARD_ROOT = 209
+Const RATE_BUY_ID = 118
+Const RATE_SALE_ID = 119
+Const FORM_RATE = 960
+

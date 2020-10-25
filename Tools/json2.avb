@@ -1,0 +1,132 @@
+Option Explicit
+
+Dim buffer, DictJson, f, pos
+
+Set f = CreateObject("Scripting.FileSystemObject").OpenTextFile("d:\test.txt")
+buffer = f.readall
+f.close
+
+Set DictJson = CreateObject("Scripting.Dictionary")
+
+
+stop
+
+pos = 1
+Set DictJson = Serilized(Buffer, Pos)
+stop
+
+Function Serilized(Buffer, ByRef Pos)
+	Dim Dict, key, value
+
+	Set Dict = CreateObject("Scripting.Dictionary")
+
+	While pos <= Len(buffer)
+
+		Select Case CharAt(Buffer, Pos)
+			Case "{"
+				key = GetKey(Buffer, Pos)
+
+			Case ":"
+				value = GetValue(Buffer, Pos)
+				Dict.Add Key, Value
+
+			Case ","
+				key = GetKey(Buffer, Pos)
+
+			Case "}"
+				Set Serilized = Dict
+				Exit Function
+		End Select
+
+		Pos = Pos + 1
+	Wend
+
+	Set Serilized = Dict
+
+End Function
+
+Function GetValue(buffer, ByRef Pos)
+	Dim value, StartArray, dArray
+	Dim aValue(), i, keys
+
+	Pos = Pos + 1
+	value = ""
+	StartArray = False
+	Set dArray = CreateObject("Scripting.Dictionary")
+
+	Do While Pos <= Len(Buffer)
+
+		Select Case CharAt(Buffer, Pos)
+			Case Chr(34)
+				' строка
+				If value <> "" Then 		'конец строки
+					If StartArray Then
+						' добавили в массив
+						dArray.Add dArray.Count + 1, Value
+						Value = ""
+					Else
+						GetValue = Value
+						Exit Function
+					End If
+				End If
+	
+			Case "{"
+				dArray.add dArray.Count, Serilized(Buffer, Pos)
+
+			Case "[" 
+				' массив
+				stop
+				StartArray = True
+
+			Case ","
+				' элемент массива
+
+			Case "]"
+				ReDim aValue(dArray.Count - 1)
+				Keys = dArray.Keys
+
+				For i = 0 To UBound(Keys)
+					If IsObject(dArray.Item(Keys(i))) Then
+						Set aValue(i) = dArray.Item(Keys(i))
+					Else
+						aValue(i) = dArray.Item(Keys(i))
+					End If
+				Next
+
+				Exit Do
+
+			Case Else
+				Value = Value & CharAt(Buffer, Pos)
+
+		End Select
+
+		Pos = Pos + 1
+	Loop
+
+	If StartArray Then
+		GetValue = aValue
+	Else
+		GetValue = Value
+	End If
+
+End Function
+
+Function GetKey(Buffer, ByRef Pos)
+	Dim Key
+
+	Pos = Pos + 1
+	Key = ""
+
+	Do While Pos <= Len(Buffer)
+		If CharAt(Buffer, Pos) = Chr(34) And Key <> "" Then
+			Exit Do
+		ElseIf CharAt(Buffer, Pos) <> Chr(34) Then
+			Key = Key & CharAt(Buffer, Pos)
+		End If
+
+		Pos = Pos + 1
+	Loop
+
+	GetKey = Key
+
+End Function

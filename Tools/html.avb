@@ -1,0 +1,91 @@
+Option Explicit
+
+Dim objIE, Dict, DictRows, DictRow
+
+Set objIE = CreateObject("InternetExplorer.Application")
+objIE.Visible = True
+objIE.Navigate "C:\Users\olimp\OneDrive\Desktop\sheet001.htm"
+
+While objIE.Busy
+    DoEvent
+Wend
+
+Set Dict = CreateLibObject("Map")
+Set DictRows = CreateLibObject("Map")
+Set DictRow = CreateLibObject("Map")
+
+Dict("R0012G4") = 13
+Dict("R0013G4") = 14
+Dict("R0014G4") = 12
+
+DictRow("RowNo") = 1
+DictRow("T1RXXXXG3A") = 1111
+DictRow("T1RXXXXG3B") = 2222
+DictRow("T1RXXXXG32") = 3333
+Set DictRows.Item("1") = DictRow
+
+Set DictRow = CreateLibObject("Map")
+DictRow("RowNo") = 2
+DictRow("T1RXXXXG3A") = 4444
+DictRow("T1RXXXXG3B") = 5555
+DictRow("T1RXXXXG32") = 6666
+Set DictRows.Item("2") = DictRow
+
+Set Dict.Item("t001") = DictRows
+
+' разобрали €чейки
+ViewChildren objIE.Application.Document.Body.Children, Dict
+
+'stop
+' разобрали списки 
+ViewRows objIE.Application.Document, Dict
+
+'---
+'
+'---
+Sub ViewRows(Root, Dict)
+	Dim i, j, keys, DictRows, Tr, TrClone
+
+	Keys = Dict.Keys
+
+	For i = 0 To UBound(Keys)
+		If IsObject(Dict(Keys(i))) Then
+			Set DictRows = Dict.Item(Keys(i))
+
+			If Not IsNull(Root.getElementById(Keys(i))) Then
+				Set Tr = Root.getElementById(Keys(i))
+	
+				For j = DictRows.Count To 1 Step -1
+					Set TrClone = Tr.CloneNode(True)
+					ViewChildren TrClone.Children, DictRows(j)
+					Tr.insertAdjacentHTML "afterend", TrClone.InnerHTML
+				Next
+
+				Tr.parentnode.removeChild Tr
+			End If
+		End If
+	Next
+End Sub
+'---
+'
+'---
+Sub ViewChildren(Root, Dict)
+	Dim i, TagName
+
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			If .Children.Length > 0 Then
+				ViewChildren .Children, Dict
+			Else
+				TagName = .InnerText
+				If Dict.Exists(TagName) Then
+					.InnerText = Dict(TagName)
+				End If
+			End If
+		End With
+	Next
+End Sub
+'---
+'
+'---
+

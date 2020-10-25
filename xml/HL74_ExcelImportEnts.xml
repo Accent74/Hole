@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<excelimport version="0.1" name="Экспорт данных по товару с группами" index="cat" startrow="10">
+	<field name="folder1" fieldno="1"/>
+	<field name="folder2" fieldno="2"/>
+	<field name="folder3" fieldno="3"/>
+	<field name="name" fieldno="4"/>
+	<field name="memo" fieldno="12"/>
+	<field name="bar" fieldno="13"/>
+	<field name="foto" fieldno="15"/>
+	<field name="cat" fieldno="0"/>
+	<field name="brand" fieldno="5"/>
+</excelimport>

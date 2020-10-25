@@ -1,0 +1,117 @@
+'#Include "HL74_XML.avb"
+'#Include "HL74_ADO.avb"
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Анализ параметров и фактов"
+Const XML_PARAM_FILE_NAME = "_HL74_Params.xml"
+
+PrepareParamsFacts
+
+Sub PrepareParamsFacts
+	Dim oXML, aElems, aTables, i, aData, aIsParam
+	Dim Dict, NodeType, Root, Tag, SQL, j
+	
+	Set oXml = New XML
+	Set Dict = CreateObject("Scripting.Dictionary")
+
+	If oXml.Create() Then
+		oXml.FileName = XML_PARAM_FILE_NAME
+
+		If IsFileExists(XML_PARAM_FILE_NAME) Then
+			If Not oXml.Load() Then
+				MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+				Exit Sub
+			End If
+
+			Set Root = oXml.xml.ChildNodes.Item(1)
+		Else
+			Set Root = oXml.xml.createProcessingInstruction("xml", "version='1.0' encoding='windows-1251'")
+			oXml.xml.AppendChild Root
+			Set Root = oXml.Xml.CreateElement("config")
+			Root.SetAttribute "configversion", "000"
+			Root.SetAttribute "configname", "ПРБ"
+			oXml.Xml.InsertBefore Root, Null
+		End If
+	
+		aElems = Array("agentparams", "agentfacts", "entparams", "entfacts", "accparams", "dbfacts", "dbparams", "formparams", "transparams", "tmlparams", "fldparams")
+		aIsParam = Array(True, False, True, False, True, False, True, True, True, True, True)
+		aTables = Array("ag_param_names", "ag_fact_names", "ent_param_names", "ent_fact_names", _
+								"acc_param_names", "db_fact_names", "db_param_names", "frm_param_names", _
+								"jrn_param_names", "tml_param_names", "fld_param_names")
+
+		For i = 0 To UBound(aElems)
+			Dict.RemoveAll
+			Set tag = oXml.GetTag("/config/" & aElems(i))
+
+			If Tag.length = 0 Then
+				Set Tag = oXml.Xml.CreateElement(aElems(i))
+				Root.AppendChild Tag
+			Else
+				Set Tag = Tag.Item(0)
+				LoadItems Dict, Tag.ChildNodes
+			End If
+
+			If aIsParam(i) Then
+				SQL = "select prm_name, prm_ref, prm_refid, node_type, prm_type, prm_id, prm_guid from " & aTables(i)
+				NodeType = "param"
+			Else
+				SQL = "select fa_name, fa_ref, fa_refid, node_type, fa_type, fa_id, '' from " & aTables(i)
+				NodeType = "fact"
+			End If
+
+			If GetRs2(SQL, aData) Then
+				For j = 0 To UBound(aData, 2)
+					If Not Dict.Exists(aData(0, j) & ":" & aData(3, j)) Then
+						Tag.AppendChild AddNewItem(oXml.Xml, aData, j, NodeType)
+					End If
+				Next
+			End If
+		Next
+
+		If Not oXml.SaveAll() Then
+			MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+		End If
+	Else
+		MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+	End If
+End Sub
+
+Function AddNewItem(Xml, aData, RowNo, NodeType)
+	Dim Elem
+
+	Set Elem = xml.CreateElement(NodeType)
+	Elem.SetAttribute "name", aData(0, RowNo)
+	Elem.SetAttribute "nodetype", aData(3, RowNo)
+	Elem.SetAttribute "type", aData(4, RowNo)
+	Elem.SetAttribute "refkind", checknull(aData(1, RowNo), "")
+	Elem.SetAttribute "guid", cutguid(aData(6, RowNo))
+	Elem.SetAttribute "id", aData(5, RowNo)
+
+	Set AddNewItem = Elem
+
+End Function
+
+Function cutguid(guid)
+	If IsNull(guid) Then
+		cutguid = ""
+	ElseIf Left(guid, 6) = "{guid " Then 
+		cutguid = Mid(guid, 7, 38)
+	Else
+		cutguid = guid
+	End If
+End Function
+
+Sub LoadItems(Dict, TagChildren)
+	Dim i, ItemName, ItemNodeType
+
+	For i = 0 To TagChildren.Length - 1
+		With TagChildren.Item(i)
+			ItemName = .GetAttribute("name")
+			ItemNodeType = .GetAttribute("nodetype")
+
+			If Not IsEmpty(ItemName) Then
+				Dict.Add ItemName & ":" & ItemNodeType, ItemName
+			End If
+		End With
+	Next
+End Sub

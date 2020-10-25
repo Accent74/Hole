@@ -1,0 +1,53 @@
+Option Explicit
+Dim DB, Tab, Tab1, Tab2, F1, F2
+
+F1 = 0
+F2 = 0
+
+Set DB = WorkArea.DAODatabase
+
+For Each Tab In DB.TableDefs
+	If Tab.Name = "REP_ITEM_ATTR" Then F1 = F1 + 1
+	If Tab.Name = "BIND_TML" Then F2 = F2 + 1
+Next
+stop
+If F1 = 0 Then
+	Set Tab1 = DB.CreateTableDef("REP_ITEM_ATTR")
+	AddFields Tab1, Array("ID", "REP_KIND", "REP_ID", "REP_ITEM", "REP_ITEM_ATTR_NAME"), Array(2, 3, 3, 3, 10)
+	DB.TableDefs.Append Tab1
+End If
+
+If F2 = 0 Then
+	Set Tab2 = DB.CreateTableDef("BIND_TML")
+	AddFields Tab2, Array("PK", "BIND_ID", "TML_ID"), Array(3, 3, 3)
+	DB.TableDefs.Append Tab2
+End If
+
+Sub AddFields (Tab, aFName, aFType)
+	Dim i, F
+
+	For i = 0 To UBound(aFName)
+		Set F = Tab.CreateField(aFName(i))
+		F.Type = aFType(i)
+		If aFName(i) = "ID" Or aFName(i) = "PK" Then F.Attributes = 17
+		If aFType(i) = 3 Then F.Size = 10
+		If aFType(i) = 10 Then F.Size = 100
+		Tab.Fields.Append F
+	Next
+End Sub
+
+'1	-	Логический
+'2	-	Числовой (Байт)
+'3	-	Числовой (Целое)
+'4	-	Числовой (Длинное целое)
+'5	-	Денежный
+'6	-	Числовой (Одинарное с плавающей точкой)
+'7	-	Числовое (Двойное с плавающей точкой)
+'8	-	Дата/Время
+'9	-	Двоичный
+'10	-	Текстовый
+'11	-	Поле объекта OLE
+'12	-	Поле МЕМО
+'15	-	Числовой (Код репликации)
+'16	-	Числовой (Действительное)
+'17	-	Поле объекта OLE

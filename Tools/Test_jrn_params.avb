@@ -1,0 +1,46 @@
+'#include "HL74_Const.avb"
+Option Explicit
+
+Dim Op, i, j
+
+'Set Op = workarea.operation(4631)
+'
+'For i = 1 To 1000
+'
+'	With Op.Trans(1, i)
+'		.EntID = 3581
+'		.Sum = 100
+'		.Qty = 1
+'
+'		With .Params
+'			For j = 1 To .Count
+'				With .Item(j)
+'					Select Case .Type
+'						Case vbCurrency, vbLong, vbDouble
+'							.Value = 1000
+'						Case vbDate
+'							.Value = Now()
+'						Case Else	
+'							.Value = "test"
+'					End Select
+'				End With
+'			Next
+'		End With
+'	End With
+'Next
+'
+'Op.Save
+
+Dim tStart, tEnd, tmp
+
+tStart = Time()
+
+Set Op = workarea.operation(4631)
+Op.Reload
+
+tmp = Op.Trans(1).PArams(prmtrsum).Value2
+tmp = Op.Trans(1).PArams(prmtrPrice).Value2
+tmp = Op.Trans(1).PArams(prmtrQty).Value2
+tEnd = Time()
+MsgBox DateDiff("s", tEnd, tStart)
+

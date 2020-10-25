@@ -1,0 +1,88 @@
+'#include "HL74_Common.avb"
+Option Explicit
+'---
+'
+'---
+Sub rep_Decompose(aSubPrm)
+	Dim dEnts, TrListFrom, TrListTo, aPrm
+
+	Set TrListFrom = aSubPrm(0)
+	Set TrListTo = aSubPrm(1)
+
+	Set dEnts = CreateLibObject("Map")
+	com_clearTrans TrListTo
+
+	aPrm = Array(dEnts, TrListTo)
+	TrListFrom.EnumTrans GetRef("rep_DecomposeOneRow"), aPrm
+
+End Sub
+'---
+'
+'---
+Function rep_DecomposeOneRow(Tr, ByRef aPrm)
+	Dim i, recipe, Entry, RowNo, dEnts, TrListTo
+	Dim TrEntry
+
+	Set dEnts= aPrm(0)
+	Set TrListTo = aPrm(1)
+
+	rep_DecomposeOneRow = True
+
+	If Tr.EntID <> 0 Then
+		Set Recipe = rep_GetActualRecipe(Tr.Entity, Tr.Date)
+
+		If Not Recipe Is Nothing Then
+			For i = 1 To Recipe.Count
+				Set Entry = Recipe.Entry(i)
+
+				If Not dEnts.Exists(Entry.EntID) Then
+					If TrListTo.Item(TrListTo.Rows).EntID <> 0 Then
+						RowNo = TrListTo.Rows + 1
+					Else
+						RowNo = TrListTo.Rows
+					End If
+
+					dEnts(Entry.EntID) = RowNo
+					TrListTo.Item(RowNo).EntID = Entry.EntID
+				Else
+					RowNo = dEnts(Entry.EntID)
+				End If
+					
+				Set TrEntry = TrListTo.Item(RowNo)
+				TrEntry.Qty = TrEntry.Qty + Entry.Qty * Tr.Qty
+			Next
+		End If
+	End If
+		
+End Function
+'---
+'
+'---
+Function rep_GetActualRecipe(Ent, OnDate)
+	Dim i
+
+	With Ent.Recipes
+		For i = 1 To .Count
+			With .Item(i)
+				If rep_DateInPeriod(OnDate, .DateIn, .DateOut) Then
+					Set rep_GetActualRecipe = Ent.Recipes.Item(i)
+					Exit Function
+				End If
+			End With
+		Next
+	End With
+
+	Set rep_GetActualRecipe = Nothing
+End Function
+'---
+'
+'---
+Function rep_DateInPeriod(OnDate, dStart, dEnd) 
+	rep_DateInPeriod = (dStart = 0 Or OnDate >= dStart) And _
+			(dEnd = 0 Or OnDate <= dEnd)
+End Function
+'---
+'
+'---
+
+

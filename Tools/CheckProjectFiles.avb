@@ -1,0 +1,33 @@
+'#include "HL74_Log.avb"
+Option Explicit
+
+Dim aFiles, i, LogFile, ProjFiles, FSO, RD
+Dim DBPath, ProjFile, ProjFileFound, Fld
+
+aFiles = Array("forms", "dialogs", "sheets", "modules")
+Set LogFile = New TextLog
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set RD = CreateLibObject("Redirect")
+DBPath = RD.DBPath
+
+If Right(DBPath, 1) <> "\" Then DBPath = DBPath & "\"
+
+If LogFile.Open("HL74_ProjItems", True) Then
+	For i = 1 To 4
+		With Workarea.ProjectItems(i)
+			Set Fld = FSO.GetFolder(DBPath & "..\" & aFiles(i - 1))
+			Set ProjFiles = Fld.Files
+
+			For Each ProjFile In ProjFiles
+				Set ProjFileFound = .FindFile(ProjFile.Name)
+				If ProjFileFound Is Nothing Then
+					LogFile.writelogline Array(ProjFile.Name)
+				End If
+			Next
+		End With
+	Next
+
+	LogFile.Close
+Else
+	MsgBox LogFile.ErrorMsg, vbCritical, "Анализ файлов проекта"
+End If

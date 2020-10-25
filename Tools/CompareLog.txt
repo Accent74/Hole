@@ -1,0 +1,230 @@
+Запуск анализатора изменений 12.11.2019 11:07:17
+Файл источник открыт: d:\testing\hole\modules\ERP.avb
+Файл не найден: d:\testing\Standard74\modules\ERP.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Actionmenu_class.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Actionmenu_class.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_AddOpToBinder.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_AddOpToBinder.avb
+Процедура: Sub HL74_AddOpToBinder(Op)
+Файл источник открыт: d:\testing\hole\modules\HL74_ADO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ADO.avb
+Функция: Function ADO_Query(QueryName, aQueryPrm, ByRef aData)
+Файл источник открыт: d:\testing\hole\modules\HL74_AgAddrBind.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_AgAddrBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_AgBind.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_AgBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Agent.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Agent.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_AgProps.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_AgProps.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_AssetBind.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_AssetBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_AssetClass.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_AssetClass.avb
+Файл источник открыт: d:\testing\hole\modules\hl74_AssistantLog.avb
+Файл не найден: d:\testing\Standard74\modules\hl74_AssistantLog.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_BackupDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_BackupDB.avb
+Функция: Function GetShortName(fName)
+Файл источник открыт: d:\testing\hole\modules\HL74_Charge2DAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Charge2DAO.avb
+Функция: Function ChargeOff3(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+Файл источник открыт: d:\testing\hole\modules\HL74_Charge2OLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Charge2OLEDB.avb
+Функция: Function ChargeOff3(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+Файл источник открыт: d:\testing\hole\modules\HL74_ChargeRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ChargeRetailDAO.avb
+Функция: Function GetTtansaction(Op, TrNoFrom, TrNoTo, ByRef NewTrNoTo)
+Файл источник открыт: d:\testing\hole\modules\HL74_ChargeRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ChargeRetailOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_CheckParams.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_CheckParams.avb
+Процедура: Sub HL74_CheckParams
+Файл источник открыт: d:\testing\hole\modules\HL74_CheckUpdates.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_CheckUpdates.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ClearBinder.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ClearBinder.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ClientBank.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ClientBank.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Common.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Common.avb
+Процедура: Sub Com_ClearTrans(TrList)
+Файл источник открыт: d:\testing\hole\modules\HL74_Const.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Const.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_CopyDocs.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_CopyDocs.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_CustomBind.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_CustomBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_DocFinder.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_DocFinder.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_DocMultiImportExcel.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_DocMultiImportExcel.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_DummyAg.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_DummyAg.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_EntBind.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_EntBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_EntCopy.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_EntCopy.avb
+Процедура: Sub HL74_EntityCopy
+Файл источник открыт: d:\testing\hole\modules\HL74_Errors.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Errors.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ExportPromUA.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ExportPromUA.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_FileDlg.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_FileDlg.avb
+Функция: Function OpenFileRead(ByRef FilePath, ByVal InitialDir, FileExt, FileExtDescr, Caption)
+Файл источник открыт: d:\testing\hole\modules\HL74_FormAgree.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_FormAgree.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Forms.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Forms.avb
+Функция: Function Form_SelectTemplate(Op, Form)
+Файл источник открыт: d:\testing\hole\modules\HL74_Help.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Help.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ImportDict1c.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ImportDict1c.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ImportToDoc.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ImportToDoc.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_InternalMovingRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_InternalMovingRetailDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_InternalMovingRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_InternalMovingRetailOLEDB.avb
+Функция: Function InternalMovingRetail(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode, TrNoAddSum)
+Файл источник открыт: d:\testing\hole\modules\HL74_Json.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Json.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Libra.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Libra.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Log.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Log.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Makeseries2DAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Makeseries2DAO.avb
+Процедура: Sub MakeSeries2(Op, TrNo)
+Файл источник открыт: d:\testing\hole\modules\HL74_Makeseries2OLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Makeseries2OLEDB.avb
+Процедура: Sub MakeSeries2(Op, TrNo)
+Файл источник открыт: d:\testing\hole\modules\HL74_MakeSeriesRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_MakeSeriesRetailDAO.avb
+Процедура: Sub MakeSeriesRetail(Op, TrNo, TrNoAdd)
+Файл источник открыт: d:\testing\hole\modules\HL74_MakeSeriesRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_MakeSeriesRetailOLEDB.avb
+Процедура: Sub MakeSeriesRetail(Op, TrNo, TrNoAdd)
+Файл источник открыт: d:\testing\hole\modules\HL74_MCProps.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_MCProps.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_MiscBind.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_MiscBind.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Norms_class.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Norms_class.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Payroll.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Payroll.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_PrintCash.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_PrintCash.avb
+Процедура: Sub PrintCash_PrintCheck(Op, TrNo, Msc)
+Файл источник открыт: d:\testing\hole\modules\HL74_PrintDocs.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_PrintDocs.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_PrintLabels.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_PrintLabels.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RDLAddColumns.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_RDLAddColumns.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RecurseCopy.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_RecurseCopy.avb
+Процедура: Sub HL74_PasteCheck
+Файл источник открыт: d:\testing\hole\modules\HL74_RemoveToRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_RemoveToRetailDAO.avb
+Функция: Function RemoveToRetail(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode, TrNoAddSum)
+Файл источник открыт: d:\testing\hole\modules\HL74_RemoveToRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_RemoveToRetailOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RemoveToWholesaleDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_RemoveToWholesaleDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RemoveToWholesaleOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_RemoveToWholesaleOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RenumberDoc.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_RenumberDoc.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReplaceItem.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ReplaceItem.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ResaveDocs.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ResaveDocs.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnFromDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnFromDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnFromOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnFromOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnFromRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnFromRetailDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnFromRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnFromRetailOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnToDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnToDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnToOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnToOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnToRetailDAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnToRetailDAO.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ReturnToRetailOLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_ReturnToRetailOLEDB.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RT.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_RT.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_RWAddColumns.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_RWAddColumns.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SaveParams.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SaveParams.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SearchReplace.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SearchReplace.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SendDocToEMail.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SendDocToEMail.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SetPriceKindsDisc.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SetPriceKindsDisc.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SetupSolution.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SetupSolution.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SheetCommonFunc.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SheetCommonFunc.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Sheets.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Sheets.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_StartBalancePropSheet.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_StartBalancePropSheet.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_State.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_State.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Sys.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Sys.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_SysLog.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_SysLog.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_TmlTest.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_TmlTest.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_TmlTest_Common.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_TmlTest_Common.avb
+Процедура: Sub TestTemplates(Tmls)
+Файл источник открыт: d:\testing\hole\modules\HL74_TradeEqProps.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_TradeEqProps.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_UpdateBackup.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_UpdateBackup.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_updates.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_updates.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Updatesload.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Updatesload.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_UpdateSolution.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_UpdateSolution.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Users.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Users.avb
+Функция: Function IsUserInGroup(GroupName)
+Файл источник открыт: d:\testing\hole\modules\HL74_Web.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_Web.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_WebGoods.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_WebGoods.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_Welcome.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_Welcome.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_WelcomeStart.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_WelcomeStart.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_WordTemplate.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_WordTemplate.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_WorkArea.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_WorkArea.avb
+Процедура: Sub HL74_AfterCreate
+Файл источник открыт: d:\testing\hole\modules\HL74_XML.avb
+Файл для проверки открыт: d:\testing\hole\modules\HL74_XML.avb
+Файл источник открыт: d:\testing\hole\modules\HL74_ZIP.avb
+Файл не найден: d:\testing\Standard74\modules\ST74_ZIP.avb
+Файл источник открыт: d:\testing\hole\modules\ST74_Charge2DAO.avb
+Файл для проверки открыт: d:\testing\hole\modules\ST74_Charge2DAO.avb
+Функция: Function ChargeOff3(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+Файл источник открыт: d:\testing\hole\modules\ST74_Charge2OLEDB.avb
+Файл для проверки открыт: d:\testing\hole\modules\ST74_Charge2OLEDB.avb
+Функция: Function ChargeOff3(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+Файл источник открыт: d:\testing\hole\modules\WorkArea.avb
+Файл для проверки открыт: d:\testing\hole\modules\WorkArea.avb
+Анализ завершен 12.11.2019 11:07:17

@@ -1,0 +1,500 @@
+Option Explicit
+' Создание XML-отчёта для книг покупок и продаж
+SetLocale("en-us")
+
+Const prmTaxDept = "Налоговая инспекция"
+Const prmGNICodes = "Коды ГНИ"
+Dim TaxDeptCodes
+Dim RepCountInPeriod
+
+'________________________________________________
+' Sub J1201501( xmldom )
+' Реестр налоговых накладных
+'________________________________________________
+Sub J1201501( xmldom )
+	Dim SchemaFileName
+	Dim xmlDECLAR, xmlDECLARHEAD, xmlDECLARBODY, inst
+	Dim Row, Col, CurRow, i, v
+	SchemaFileName = "J1201501"
+
+	TaxDeptCodes = GetTaxDeptCodes
+	If Len( TaxDeptCodes ) = 0 Then Exit Sub
+	RepCountInPeriod = 1 ' вроде бы сдаётся только один раз в периоде ??
+
+	Set xmldom = CreateObject( "MSXML2.DOMDocument" ) '.4.0
+	Set inst = xmldom.createProcessingInstruction("xml","version='1.0' encoding='windows-1251'")
+	xmldom.insertBefore inst, Null
+
+	Set xmlDECLAR = xmldom.createElement( "DECLAR" )
+	xmlDECLAR.SetAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
+	xmlDECLAR.SetAttribute "xsi:noNamespaceSchemaLocation", SchemaFileName & ".xsd"
+
+	Set xmlDECLARHEAD = xmldom.CreateElement( "DECLARHEAD" )
+	AddNode "TIN", Workarea.MyCompany.Code, xmlDECLARHEAD, xmldom
+	AddNode "C_DOC", Mid( SchemaFileName , 1 , 3 ), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_SUB", Mid( SchemaFileName, 4, 3 ), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_VER", CInt( Mid( SchemaFileName, 7, 2 )), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_TYPE", GetDocType( 0 ), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_CNT", RepCountInPeriod, xmlDECLARHEAD, xmldom
+	AddNode "C_REG", GetSTIParam( "C_REG" ), xmlDECLARHEAD, xmldom
+	AddNode "C_RAJ", GetSTIParam( "C_RAJ" ), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_MONTH", Month( ShtBook.Sheet( 1 ).Cell( 10, 11 ).Value ), xmlDECLARHEAD, xmldom
+'	AddNode "PERIOD_MONTH", Month( Workarea.Period.End - 1 ), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_TYPE", GetRepPeriod( SchemaFileName ), xmlDECLARHEAD, xmldom
+'	AddNode "PERIOD_YEAR", Year( Workarea.Period.End - 1 ), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_YEAR", Year( ShtBook.Sheet( 1 ).Cell( 10, 11 ).Value ), xmlDECLARHEAD, xmldom
+	AddNode "D_FILL", Date2Num( Date ), xmlDECLARHEAD, xmldom
+	AddNode "SOFTWARE", StrEscaped( "Акцент " & App.AppType & " " & App.Version ), xmlDECLARHEAD, xmldom
+	xmlDECLAR.AppendChild( xmlDECLARHEAD )
+
+	Set xmlDECLARBODY = xmldom.CreateElement( "DECLARBODY" )
+	AddNode "HNUM", StrEscaped( CellVal( 4, 11, 1 )), xmlDECLARBODY, xmldom
+	v = CellVal( 6, 4, 1 )
+	If v <> "" Then AddNode "HZY", v, xmlDECLARBODY, xmldom
+	v = CellVal( 6, 6, 1 )
+	If v <> "" Then AddNode "HZKV", v, xmlDECLARBODY, xmldom
+	v = CellVal( 6, 8, 1 )
+	If v <> "" Then AddNode "HZM", v, xmlDECLARBODY, xmldom
+	v = CellVal( 8, 4, 1 )
+	If v <> "" Then AddNode "HNAME", StrEscaped( v ), xmlDECLARBODY, xmldom
+	v = CellVal( 10, 4, 1 )
+	If v <> "" Then AddNode "HLOC", StrEscaped( v ), xmlDECLARBODY, xmldom
+	v = CellVal( 12, 4, 1 )
+	If v <> "" Then AddNode "HNPDV", v, xmlDECLARBODY, xmldom
+	v = CellVal( 14, 4, 1 )
+	If v <> "" Then AddNode "HNSPDV", v, xmlDECLARBODY, xmldom
+	v = CellVal( 8, 11, 1 )
+	If v <> "" Then AddNode "H01G01D", Date2Num( v ), xmlDECLARBODY, xmldom
+	v = CellVal( 10, 11, 1 )
+	If v <> "" Then AddNode "H02G01D", Date2Num( v ), xmlDECLARBODY, xmldom
+	v = CellVal( 14, 11, 1 )
+	If v <> "" Then AddNode "H03G01S", v, xmlDECLARBODY, xmldom
+
+	CurRow = 0
+	With ShtBook.Sheet( 2 )
+		For Row = 9 To .Rows
+			If Not IsNumeric( .Cell( Row, 1 ).Value ) Then
+			ElseIf .Cell( Row, 1 ).Value <> 0 Then
+				CurRow = CurRow + 1
+				If .Cell( Row, 2 ).Value <> "" Then AddNodeRow "T1RXXXXG2D", Date2Num( .Cell( Row, 2 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 3 ).Value <> "" Then AddNodeRow "T1RXXXXG3S", StrEscaped( .Cell( Row, 3 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 4 ).Value <> "" Then AddNodeRow "T1RXXXXG4S", StrEscaped( .Cell( Row, 4 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 5 ).Value <> "" And IsNumeric( .Cell( Row, 5 ).Value ) Then
+					AddNodeRow "T1RXXXXG5", .Cell(Row, 5).Value, CurRow, xmlDECLARBODY, xmldom
+				End If
+				For Col = 6 To 14
+					If .Cell( Row, Col ).Value = "" Then
+					ElseIf .Cell( Row, Col ).Value <> 0 Then
+						AddNodeRow "T1RXXXXG" & CStr( Col ), Format2( .Cell( Row, Col ).Value, "#.00" ), CurRow, xmlDECLARBODY, xmldom
+					End If
+				Next
+			End If
+		Next
+		For Col = 6 To 14
+			If .Cell( 7, Col ).Value <> 0 Then AddNode "T1R01G" & CStr( Col ), Format2( .Cell( 7, Col ).Value, "#.00" ), xmlDECLARBODY, xmldom
+		Next
+	End With
+
+	CurRow = 0
+	With ShtBook.Sheet( 3 )
+		For Row = 9 To .Rows
+			If Not IsNumeric( .Cell( Row, 1 ).Value ) Then
+			ElseIf .Cell( Row, 1 ).Value <> 0 Then
+				CurRow = CurRow + 1
+				If .Cell( Row, 2 ).Value <> "" Then AddNodeRow "T2RXXXXG2D", Date2Num( .Cell( Row, 2 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 3 ).Value <> "" Then AddNodeRow "T2RXXXXG3S", StrEscaped( .Cell( Row, 3 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 4 ).Value <> "" Then AddNodeRow "T2RXXXXG4S", StrEscaped( .Cell( Row, 4 ).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell( Row, 5 ).Value <> "" And IsNumeric( .Cell( Row, 5 ).Value ) Then
+					AddNodeRow "T2RXXXXG5", .Cell(Row, 5).Value, CurRow, xmlDECLARBODY, xmldom
+				End If
+				For Col = 6 To 11
+					If .Cell( Row, Col ).Value = "" Then
+					ElseIf .Cell( Row, Col ).Value <> 0 Then
+						AddNodeRow "T2RXXXXG" & CStr( Col ), Format2( .Cell( Row, Col ).Value, "#.00" ), CurRow, xmlDECLARBODY, xmldom
+					End If
+				Next
+			End If
+		Next
+		For Col = 6 To 11
+			If .Cell( 7, Col ).Value <> 0 Then AddNode "T2R01G" & CStr( Col ), Format2( .Cell( 7, Col ).Value, "#.00" ), xmlDECLARBODY, xmldom
+		Next
+	End With
+
+	xmlDECLAR.AppendChild( xmlDECLARBODY )
+	xmldom.insertBefore xmlDECLAR, Null
+End Sub
+
+'________________________________________________
+'книга продаж
+Sub J1201401(xmldom)
+	Dim SchemaFileName
+	Dim xmlDECLAR, xmlDECLARHEAD, xmlDECLARBODY, inst
+	Dim Row, Col, CurRow, i
+	SchemaFileName = "J1201401"
+
+	TaxDeptCodes = GetTaxDeptCodes
+	If Len(TaxDeptCodes)=0 Then Exit Sub
+	RepCountInPeriod = 1 ' вроде бы сдайтся только один раз в периоде ??
+
+	Set xmldom = CreateObject("MSXML2.DOMDocument.4.0")
+	Set inst = xmldom.createProcessingInstruction("xml","version='1.0' encoding='windows-1251'")
+	xmldom.insertBefore inst, Null
+
+	Set xmlDECLAR = xmldom.createElement("DECLAR")
+
+	xmlDECLAR.SetAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
+	xmlDECLAR.SetAttribute "xsi:noNamespaceSchemaLocation", SchemaFileName & ".xsd"
+
+	Set xmlDECLARHEAD = xmldom.CreateElement("DECLARHEAD")
+
+	AddNode "TIN", Workarea.MyCompany.Code, xmlDECLARHEAD, xmldom
+	AddNode "C_DOC", Mid(SchemaFileName,1,3), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_SUB", Mid(SchemaFileName,4,3), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_VER", CInt(Mid(SchemaFileName,7,2)), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_TYPE", GetDocType(0), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_CNT", RepCountInPeriod, xmlDECLARHEAD, xmldom
+	AddNode "C_REG", GetSTIParam("C_REG"), xmlDECLARHEAD, xmldom
+	AddNode "C_RAJ", GetSTIParam("C_RAJ"), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_MONTH", Month(Workarea.Period.End-1), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_YEAR", Year(Workarea.Period.End-1), xmlDECLARHEAD, xmldom
+	'PERIOD_MONTH=CatCells( Array(8, 16, 8, 17), 1)
+	'PERIOD_YEAR=CatRowCells( Array(20, 22, 23, 24), 8, 1)
+	AddNode "D_FILL", Date2Num(Date), xmlDECLARHEAD, xmldom
+	AddNode "SOFTWARE", "Акцент " & App.AppType & Space(1) & App.Version, xmlDECLARHEAD, xmldom
+
+	xmlDECLAR.AppendChild(xmlDECLARHEAD)
+
+	Set xmlDECLARBODY = xmldom.CreateElement("DECLARBODY")
+
+	AddNode "HZY", CellVal(6, 4, 2), xmlDECLARBODY, xmldom
+	AddNode "HZKV", CellVal(6, 6, 2), xmlDECLARBODY, xmldom
+	AddNode "HZM", CellVal(6, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "HNAME", CellVal(8, 2, 2), xmlDECLARBODY, xmldom
+	AddNode "HLOC", CellVal(8, 9, 2), xmlDECLARBODY, xmldom
+	AddNode "HTIN", CellVal(10, 4, 2), xmlDECLARBODY, xmldom
+	AddNode "HNSPDV", CellVal(11, 4, 2), xmlDECLARBODY, xmldom
+
+	AddNode "H01G01D", Date2Num( CellVal(13, 2, 2) ), xmlDECLARBODY, xmldom
+	AddNode "H01G02I", CellVal(13, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "H02G02S", CellVal(15, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "H02G01D", Date2Num( CellVal(15, 2, 2) ), xmlDECLARBODY, xmldom
+	AddNode "H03G02I", Replace( CellVal(17, 8, 2), "'", ""), xmlDECLARBODY, xmldom
+	AddNode "H03G01S", CellVal(17, 2, 2), xmlDECLARBODY, xmldom
+
+	CurRow = 0
+	With ShtBook.Sheet1
+		For Row=8 To .Rows-2
+			If .Cell(Row, 3).Value <>"" Then '№ документа
+				CurRow = CurRow + 1
+
+				If .Cell(Row, 2).Value<>"" Then AddNodeRow "RXXXXG2S", .Cell(Row, 2).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 3).Value<>"" Then AddNodeRow "RXXXXG3D", Date2Num( .Cell(Row, 3).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 4).Value<>"" Then AddNodeRow "RXXXXG4S", .Cell(Row, 4).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 5).Value<>"" Then AddNodeRow "RXXXXG5S", .Cell(Row, 5).Value, CurRow, xmlDECLARBODY, xmldom
+				For Col=6 To 23
+					If .Cell(Row, Col).Value<>"" Then If .Cell(Row, Col).Value<>0 Then AddNodeRow "RXXXXG" & CStr(Col), Format2(.Cell(Row, Col).Value, "#.0"), CurRow, xmlDECLARBODY, xmldom
+				Next
+				If .Cell(Row, 24).Value<>"" Then AddNodeRow "RXXXXG24S", .Cell(Row, 24).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 25).Value<>"" Then AddNodeRow "RXXXXG25D", Date2Num( .Cell(Row, 25).Value ), CurRow, xmlDECLARBODY, xmldom
+			End If
+		Next
+	
+		For Col=6 To 23
+			If .Cell(7, Col).Value<>0 Then AddNode "R01G" & CStr(Col), Format2( .Cell(7, Col).Value, "#.0" ), xmlDECLARBODY, xmldom
+		Next
+	End With
+
+	xmlDECLAR.AppendChild(xmlDECLARBODY)
+	xmldom.insertBefore xmlDECLAR, Null
+End Sub
+
+'________________________________________________
+'книга покупок
+Sub J1201301(xmldom)
+	Dim SchemaFileName
+	Dim xmlDECLAR, xmlDECLARHEAD, xmlDECLARBODY, inst
+	Dim Row, Col, CurRow, i
+	SchemaFileName = "J1201301"
+
+	TaxDeptCodes = GetTaxDeptCodes
+	If Len(TaxDeptCodes)=0 Then Exit Sub
+	RepCountInPeriod = 1 ' вроде бы сдаётся только один раз в периоде ??
+
+	Set xmldom = CreateObject("MSXML2.DOMDocument") '.4.0
+	Set inst = xmldom.createProcessingInstruction("xml","version='1.0' encoding='windows-1251'")
+	xmldom.insertBefore inst, Null
+
+	Set xmlDECLAR = xmldom.createElement("DECLAR")
+	xmlDECLAR.SetAttribute "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"
+	xmlDECLAR.SetAttribute "xsi:noNamespaceSchemaLocation", SchemaFileName & ".xsd"
+
+	Set xmlDECLARHEAD = xmldom.CreateElement("DECLARHEAD")
+
+	AddNode "TIN", Workarea.MyCompany.Code, xmlDECLARHEAD, xmldom
+	AddNode "C_DOC", Mid(SchemaFileName,1,3), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_SUB", Mid(SchemaFileName,4,3), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_VER", CInt(Mid(SchemaFileName,7,2)), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_TYPE", GetDocType(0), xmlDECLARHEAD, xmldom
+	AddNode "C_DOC_CNT", RepCountInPeriod, xmlDECLARHEAD, xmldom
+	AddNode "C_REG", GetSTIParam("C_REG"), xmlDECLARHEAD, xmldom
+	AddNode "C_RAJ", GetSTIParam("C_RAJ"), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_MONTH", Month(Workarea.Period.End-1), xmlDECLARHEAD, xmldom
+	AddNode "PERIOD_YEAR", Year(Workarea.Period.End-1), xmlDECLARHEAD, xmldom
+	'PERIOD_MONTH=CatCells( Array(8, 16, 8, 17), 1)
+	'PERIOD_YEAR=CatRowCells( Array(20, 22, 23, 24), 8, 1)
+	AddNode "D_FILL", Date2Num(Date), xmlDECLARHEAD, xmldom
+	AddNode "SOFTWARE", "Акцент " & App.AppType & Space(1) & App.Version, xmlDECLARHEAD, xmldom
+
+	xmlDECLAR.AppendChild(xmlDECLARHEAD)
+
+	Set xmlDECLARBODY = xmldom.CreateElement("DECLARBODY")
+
+	AddNode "HZY", CellVal(6, 4, 2), xmlDECLARBODY, xmldom
+	AddNode "HZKV", CellVal(6, 6, 2), xmlDECLARBODY, xmldom
+	AddNode "HZM", CellVal(6, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "HNAME", CellVal(8, 2, 2), xmlDECLARBODY, xmldom
+	AddNode "HLOC", CellVal(8, 9, 2), xmlDECLARBODY, xmldom
+	AddNode "HTIN", CellVal(10, 4, 2), xmlDECLARBODY, xmldom
+	AddNode "HNSPDV", CellVal(11, 4, 2), xmlDECLARBODY, xmldom
+
+	AddNode "H01G01D", Date2Num( CellVal(13, 2, 2) ), xmlDECLARBODY, xmldom
+	AddNode "H01G02I", CellVal(13, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "H02G02S", CellVal(15, 8, 2), xmlDECLARBODY, xmldom
+	AddNode "H02G01D", Date2Num( CellVal(15, 2, 2) ), xmlDECLARBODY, xmldom
+	AddNode "H03G02I", Replace( CellVal(17, 8, 2), "'", ""), xmlDECLARBODY, xmldom
+	AddNode "H03G01S", CellVal(17, 2, 2), xmlDECLARBODY, xmldom
+
+	CurRow = 0
+	With ShtBook.Sheet1
+		For Row=10 To .Rows-2
+			If .Cell(Row, 3).Value <>"" Then '№ документа
+				CurRow = CurRow + 1
+				If .Cell(Row, 2).Value<>"" Then AddNodeRow "RXXXXG2D", Date2Num(.Cell(Row, 2).Value), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 3).Value<>"" Then AddNodeRow "RXXXXG3S", .Cell(Row, 3).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 4).Value<>"" Then AddNodeRow "RXXXXG4S", .Cell(Row, 4).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 5).Value<>"" Then AddNodeRow "RXXXXG5S", .Cell(Row, 5).Value, CurRow, xmlDECLARBODY, xmldom
+				For Col=6 To 25
+					If .Cell(Row, Col).Value<>"" Then If .Cell(Row, Col).Value<>0 Then AddNodeRow "RXXXXG" & CStr(Col), Format2(.Cell(Row, Col).Value, "#.0"), CurRow, xmlDECLARBODY, xmldom
+				Next
+				If .Cell(Row, 26).Value<>"" Then AddNodeRow "RXXXXG26S", .Cell(Row, 26).Value, CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 27).Value<>"" Then AddNodeRow "RXXXXG27D", Date2Num( .Cell(Row, 27).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 28).Value<>"" Then AddNodeRow "RXXXXG28D", Date2Num( .Cell(Row, 28).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 29).Value<>"" Then AddNodeRow "RXXXXG29D", Date2Num( .Cell(Row, 29).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 30).Value<>"" Then AddNodeRow "RXXXXG30D", Date2Num( .Cell(Row, 30).Value ), CurRow, xmlDECLARBODY, xmldom
+				If .Cell(Row, 31).Value<>"" Then AddNodeRow "RXXXXG31D", Date2Num( .Cell(Row, 31).Value ), CurRow, xmlDECLARBODY, xmldom
+			End If
+		Next
+
+		For Col=6 To 25
+			If .Cell(9, Col).Value<>0 Then AddNode "R01G" & CStr(Col), Format2( .Cell(9, Col).Value, "#.0" ), xmlDECLARBODY, xmldom
+		Next
+	End With
+
+	xmlDECLAR.AppendChild(xmlDECLARBODY)
+	xmldom.insertBefore xmlDECLAR, Null
+End Sub
+
+'________________________________________________
+Function GetFileName(ByRef fname)
+	Dim FDlg
+
+	Set FDlg = CreateLibObject("FileDialog")
+	FDlg.Caption = "Выберите папку для сохранения отчёта"
+
+	If Len(fname)>0 Then	FDlg.DefaultName = fname
+
+	FDlg.Filter = "XML (*.xml)|*.xml|Все файлы (*.*)|*.*"
+
+	If FDlg.ShowSave = vbOK Then
+		fname = FDlg.PathName
+		GetFileName = True
+	Else
+		GetFileName = False
+	End If
+
+End Function
+
+'________________________________________________
+Function GetXMLFName(xsdPath)
+	Dim s3
+	s3 = CreateObject("Scripting.FileSystemObject").GetBaseName(xsdPath)
+	GetXMLFName = StrRightJstfd(GetSTIParam("C_STI"), 4, "0") & StrRightJstfd(Workarea.MyCompany.Code, 10, "0") & s3 & StrRightJstfd(RepCountInPeriod, 3, "0") & ".XML"
+End Function
+
+'________________________________________________
+Function GetXMLFName1( xsdPath, repMonth, repYear )
+	GetXMLFName1 = StrRightJstfd( GetSTIParam( "C_STI" ), 4, "0" ) & _
+			StrRightJstfd( Workarea.MyCompany.Code, 10, "0" ) & _
+			CreateObject( "Scripting.FileSystemObject" ).GetBaseName( xsdPath ) & _
+			"00001" & _
+			StrRightJstfd( repMonth, 2, "0") & _
+			StrRightJstfd( repYear, 4, "0") & _
+			".XML"
+End Function
+
+'________________________________________________
+' String right-justified
+Function StrRightJstfd(s, Length, Fillchar)
+	StrRightJstfd = String(Length-Len(s), Fillchar) & s
+End Function
+
+'________________________________________________
+Function GetDocType( DefVal )
+'"C_DOC_TYPE"
+	Dim a
+	If vbYes = MsgBox ("Это исправляющий документ?", vbQuestion+vbYesNo+vbDefaultButton2) Then
+		a = InputBox("Введите порядковый номер исправляющего документа", _
+			"Порядковый номер исправляющего документа", "1")
+		If a = "" Then
+			GetDocType = DefVal
+		Else
+			GetDocType = a
+		End If
+	Else
+		GetDocType = DefVal
+	End If
+End Function
+
+'________________________________________________
+Function GetSTIParam(ParamName)
+	Dim ar
+
+	ar = Split(TaxDeptCodes, "/")
+	Select Case ParamName
+	Case "C_REG"
+		GetSTIParam = CStr(ar(0))
+	Case "C_RAJ"
+		GetSTIParam = CStr(ar(1))
+	Case "C_STI"
+		GetSTIParam = CStr(ar(2))
+	Case "T_STI"
+		GetSTIParam = CStr(ar(3))
+	Case Else
+		GetSTIParam = ""
+	End Select
+End Function
+
+'________________________________________________
+Sub AddNode (NodeName, NodeVal, xmlParent, DOMDoc)
+	Dim node
+	Set node = DOMDoc.CreateElement(NodeName)
+	node.Text = NodeVal
+	xmlParent.AppendChild(node)
+End Sub
+
+'________________________________________________
+Sub AddNodeRow (NodeName, NodeVal, RowNum, xmlParent, DOMDoc)
+	Dim node
+	Set node = DOMDoc.CreateElement(NodeName)
+	node.Text = NodeVal
+	node.SetAttribute "ROWNUM", RowNum
+	xmlParent.AppendChild(node)
+End Sub
+
+'________________________________________________
+' Concatenate Cells
+' вернуть строку, содержащую объединённое содержимое перечисленных в ar ячеек
+Function CatCells(ar, sht)
+	Dim i, s
+	With ShtBook.Sheet(sht)
+		For i = 0 To UBound(ar) Step 2
+			s = s & .Cell(ar(i), ar(i+1)).Value
+		Next
+	End With
+	CatCells = s
+End Function
+
+'________________________________________________
+' Concatenate Cells from single row
+' вернуть строку, содержащую объединённое содержимое перечисленных в ar ячеек
+Function CatRowCells(ar, rownum, sht)
+	Dim i, s, ar1()
+	ReDim ar1(UBound(ar)*2+1)
+	For i = 0 To UBound(ar)
+		ar1(i*2) = rownum
+		ar1(i*2+1) = ar(i)
+	Next
+	CatRowCells = CatCells(ar1, sht)
+End Function
+
+'________________________________________________
+Function CellVal(Row, Col, sht)
+	CellVal = Trim(ShtBook.Sheet(sht).Cell(Row, Col).Value)
+End Function
+
+'________________________________________________
+Function Date2Num(d)
+	Date2Num = Replace(FormatDate2(d, "dd/mm/yyyy"), "/", "")
+End Function
+
+'________________________________________________
+Function GetTaxDeptCodes
+	Dim dlg, id, s
+	GetTaxDeptCodes = ""
+	Do
+		id = Workarea.MyCompany.Params.Item( prmTaxDept ).Value
+		If IsNull( id ) Then
+			MsgBox "Задайте налоговую инспекцию", vbCritical
+		Else
+			s = Workarea.Agent( id ).Params( prmGNICodes ).Value2
+			If UBound( Split( s, "/" )) = 3 Then
+				GetTaxDeptCodes = s
+				Exit Do
+			Else
+				MsgBox "В свойствах связанной 'Налоговой инспекции' не указан признак, который соответсвует 'коду ГНИ'.", vbCritical
+			End If
+		End If
+		If Not IsObject( dlg ) Then Set dlg = App.CreateDialog( "ST7_SetTaxDept.adg" )
+	Loop Until dlg.DoModal <> vbOK
+End Function
+
+'________________________________________________
+' Function StrEscaped( s )
+' заменить в строке служебные символы XML на специальные строки
+'________________________________________________
+Function StrEscaped( s )
+	Dim s1
+	s1 = Replace( s, "&", " " )
+	s1 = Replace( s1, """", " " )
+	s1 = Replace( s1, "'", " " )
+	s1 = Replace( s1, "<", " " )
+	StrEscaped = Replace( s1, ">", " " )
+'	s1 = Replace( s, "&", "&amp;" ) ' эта замена должна быть первой!!
+'	s1 = Replace( s1, """", "&quot;" )
+'	s1 = Replace( s1, "'", "&apos;" )
+'	s1 = Replace( s1, "<", "&lt;" )
+'	StrEscaped = Replace( s1, ">", "&gt;" )
+End Function
+
+'________________________________________________
+' PERIOD_TYPE: 1 - місяць, 2 - квартал, 3 - півріччя, 4 - 9 місяців, 5 - рік
+'________________________________________________
+Function GetRepPeriod( DocType )
+	Dim d1, d2, m
+	Select Case DocType
+	Case "J1201501"
+		'If CellVal( 6, 8, 1 ) <> "" Then
+		'	AddNode "PERIOD_TYPE", 1, xmlDECLARHEAD, xmldom
+		'ElseIf CellVal( 6, 6, 1 ) <> "" Then
+		'	AddNode "PERIOD_TYPE", 2, xmlDECLARHEAD, xmldom
+		'Else
+		'	AddNode "PERIOD_TYPE", 5, xmlDECLARHEAD, xmldom
+		'End If
+		With ShtBook.Sheet( 1 )
+			d1 = .Cell( 8, 11 ).Value
+			d2 = DateAdd( "d", 1, LastDayInMonth( .Cell( 10, 11 ).Value ))
+		End With
+		m = DateDiff( "m", d1, d2 )
+		If m >= 12 Then
+			GetRepPeriod = 5
+		ElseIf m >= 9 Then
+			GetRepPeriod = 4
+		ElseIf m >= 6 Then
+			GetRepPeriod = 3
+		ElseIf m >= 3 Then
+			GetRepPeriod = 2
+		Else
+			GetRepPeriod = 1
+		End If
+	End Select
+End Function

@@ -1,0 +1,77 @@
+Option Explicit
+
+'app.Runmodule "d:\server2008\testing\hole\std_toolbar.avb", "SetStdToolbar", Form
+
+Const btnSaveDoc 				= 1		' сохранить
+Const btnService 				= 2		' сервис
+Const btnPrintDoc 				= 3		' печать/прсмотр
+Const btnCalc 						= 4		' Расчет
+Const btnNewDoc 					= 5		' новый
+Const btnPrintCheckTo 		= 6		' печать чек возврата
+Const btnCloseDoc 				= 7		' закрыть
+Const btnShowTrans 				= 8		' показать проводки/выбрать шаблон
+Const btnPrintCheckFrom		= 9		' печать чек продажи
+Const btnRestsDlg				= 10		' Подобрать
+Const btnToExcel 				= 11		' экспорт формы в Excel/Word/HTML
+Const btnToEMail 				= 12		' отправить по E-mail
+Const btnSetPrice 				= 14		' диалог установки цен
+Const btnExportDoc				= 15		' Экспорт в XML
+Const btnLoad 						= 16		' Заполнить
+Const btnPrintPrices 			= 17		' печать ценников
+Const btnPrintLabels 			= 18		' печать этикеток
+Const btnShowRelation 		= 19		' связи
+Const btnImportDoc				= 20		' Импорт из XML
+Const btnCreateDocs				= 21		' Создать документы
+Const btnCompleteWordDoc	= 22		' Заполнить вордовский документ
+Const btnTCDImport				= 23		' ТСД импорт
+
+Sub SetStdToolbar(Form)
+	Dim i 
+
+	With Form.Toolbar
+
+		If .ItemByCommand(1) Is Nothing Then .create 1		'	Сохранить
+		If .ItemByCommand(2) Is Nothing Then .create 2		'	Сервис
+		If .ItemByCommand(3) Is Nothing Then .create 3		'	Печать
+		If .ItemByCommand(4) Is Nothing Then .create 4		'	Расчет
+		If .ItemByCommand(5) Is Nothing Then .create 5		'	Новый
+		If .ItemByCommand(6) Is Nothing Then .create 6		'	Печать чека возврата
+		If .ItemByCommand(7) Is Nothing Then .create 7		'	Закрыть
+		If .ItemByCommand(8) Is Nothing Then .create 8		'	Проводки
+		If .ItemByCommand(9) Is Nothing Then .Create 9		'	Печать чека оплати
+		If .ItemByCommand(10) Is Nothing Then .Create 10	'	Подобрать
+		If .ItemByCommand(11) Is Nothing Then .Create 11	'	экспорт документа в Excel
+		If .ItemByCommand(12) Is Nothing Then .Create 12	'	отправка документа по E-mail
+		If .ItemByCommand(13) Is Nothing Then .Create 13	'	импорт данных в документ из внешнего файла
+		If .ItemByCommand(14) Is Nothing Then .Create 14	'	Диалог формирования цен
+		If .ItemByCommand(15) Is Nothing Then .Create 15	'	Экспорт в XML
+		If .ItemByCommand(16) Is Nothing Then .Create 16	'	Заполнить данными
+		If .ItemByCommand(17) Is Nothing Then .Create 17	'	печать Ценников
+		If .ItemByCommand(18) Is Nothing Then .Create 18	'	печать Этикеток
+		If .ItemByCommand(19) Is Nothing Then .Create 19	'	Связи
+		If .ItemByCommand(20) Is Nothing Then .Create 20	'	Импорт из XML
+		If .ItemByCommand(21) Is Nothing Then .Create 21	'	Создать документы
+		If .ItemByCommand(22) Is Nothing Then .Create 22	'	Заполнить документ Word данными
+		If .ItemByCommand(23) Is Nothing Then .Create 23	' ТСД импорт
+
+'			Command, Caption, DropDown, .Enabled, Group, image, popup, tag, ,ToolTip
+
+		Array(_
+		Array(btnNewDoc, 				"Новый", 			True,	True, False, 	2, 	"1:Копия текущего:100|1:-", 								"CreateNewDoc", 												"Создать новый документ на основании текущего"), 
+		Array(btnSaveDoc, 				"Сохранить", 	False, True, True, 		4, 	"",													"SaveOperation",												"Сохранить документ"), 
+		Array(btnPrintDoc, 				"Печать", 		True, 	True, True, 	5, 	"1:Печать:301|1:Просмотр перед печатью:302", 					"print False", 												"Печать документа или его предварительный просмотр перед печатью"), 
+		Array(btnShowTrans, 			"Проводки", 	True, 	True, True, 	14, 	"1:Выбрать шаблон:401", 								"op.ShowTrans True", 											"Показать проводки по документу"), 
+		Array(btnCloseDoc, 				"Закрыть", 		False,	True, True, 	65, 	"",													"Close", 													"Закрыть документ"), 
+		Array(btnSetPrice, 				"Цены", 			False, 	True, False, 	36, 	"",													"Form_MakePriceKinds Op, ExMap(FORM_CUT_SUM)",							"Сформировать виды цен в прайс листе"), 
+		Array(btnRestsDlg, 				"Подобрать", 	False, 	True, True, 	42, 	"",													"DoAddEntFromRest", 											"Подобрать товар из остатков"), 
+		Array(btnPrintCheckFrom, 	"Чек продажи",	True, 	True, True, 	36, 	"",													"DoPrintCheck Op, Op.Trans(1).Misc(PrintCash_MscNo), True",					"Печать чека на кассовом регистраторе. Сохраните предварительно документ"), 
+		Array(btnImportDoc, 			"Импорт", 		True, 	True, True, 	51, 	"1:XML формат ГНИ:701|1:XML формат M.E.Doc:702", 				"DoImportFromXML 2", 											"Импорт данных из XML файла в документ (M.E.Doc по умолчанию)"), 
+		Array(btnExportDoc, 			"Экспорт", 		True, 	True, True, 	51, 	"1:XML формат ГНИ:701|1:XML формат M.E.Doc:702", 				"DoImportFromXML 2", 											"Экспорт документа в XML файл. Сохраните предварительно документ"), 
+		Array(btnToExcel, 				"В Excel", 		True, 	True, True, 	74,	"1:Экспорт в Word:501|1:Экспорт в HTML:502", 					"Form_ExportToHTML Op, Left(Form.FileName, InStrRev(Form.FileName, ""."")), 2", 	"Экспортировать в Excel/Word/HTML"), 
+		Array(btnShowRelation, 		"Связи", 			False,	True, True, 	78, 	"", 													"Form_ShowReplations Op", 										"Показать связанные документы"), 
+		Array(btnCompleteWordDoc, 	"Договор", 		False, True, True, 		75, 	"", 													"DoMakeWordDoc Op, ExMap", 										"Сформировать договор в Word"), _
+		Array(btnTCDImport, 	"ТСД", 				False, True, True, 		32, 	"", 													"Form_TCDImport Op, ExMap", 										"Импорт данных из ТСД"))
+
+
+
+End Sub

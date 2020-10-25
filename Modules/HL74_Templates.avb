@@ -1,0 +1,21 @@
+Option Explicit
+
+Sub CloneMiscOp(Op)
+	Dim i, j, nTransList, MscID, Tr1
+
+	With workarea.miscs
+		nTransList = Op.TransCount
+		Set Tr1 = Op.Trans(1)
+
+		For i = 1 To .count
+			With .Item(i)
+				MscID = Tr1.MiscID(.MscNo)
+				For j = 2 To nTransList 
+					If (Op.Trans(j).MiscID(.MscNo) <> 0 And MscID = 0) Or MscID <> 0 Then
+						Op.TransList(j).SetMisc .MscNo, MscID
+					End If
+				Next
+			End With
+		Next
+	End With
+End Sub

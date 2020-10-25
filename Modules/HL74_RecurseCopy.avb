@@ -1,0 +1,219 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Копирование элементов"
+'---
+'
+'---
+Sub HL74_PasteCheck
+	Workarea.Map("IsEnabled") = Workarea.Map.Exists("ElemCopy")
+End Sub
+'---
+'
+'---
+Sub HL74_RecurseCopy
+	Dim WM, Done, Elem
+
+	Set WM = workarea.Map
+	Done = True
+
+	With Workarea.Site
+	
+		Set Elem = LoadElemByID(.ID, .Kind)
+
+		If Not Elem Is Nothing Then
+			WM("ElemCopyKind") = .Kind
+			Set WM.Item("ElemCopy") = Elem
+		Else
+			WM.Remove "ElemCopy"
+			WM.Remove "ElemCopyKind"
+			Done = False
+		End If
+
+		If Done Then 
+			MsgBox "Элемент скопирован в буфер" & vbNewLine & .Name, vbInformation, MSG_BOX_CAPTION
+		End If
+	End With
+
+End Sub
+'---
+'
+'---
+Function LoadElemByID(ID, Kind)
+	Select Case Kind
+		Case acFolder 
+			Set LoadElemByID = workarea.folder(ID)
+		Case acAccount
+			Set LoadElemByID = workarea.account(ID)
+		Case acAgent
+			Set LoadElemByID = workarea.Agent(ID)
+		Case acEntity
+			Set LoadElemByID = workarea.Entity(ID)
+		Case acMisc
+			Set LoadElemByID = workarea.Misc(ID)
+		Case acBinder
+			Set LoadElemByID = workarea.Binder(ID)
+		Case acTemplate
+			Set LoadElemByID = workarea.Template(ID)
+		Case Else
+			Set LoadElemByID = Nothing
+	End Select 
+End Function
+'---
+'
+'---
+Function LoadElemRoot(Kind)
+	Select Case Kind
+		Case acFolder 
+			Set LoadElemRoot = workarea.folders
+		Case acAccount
+			Set LoadElemRoot = workarea.accounts
+		Case acAgent
+			Set LoadElemRoot = workarea.Agents
+		Case acEntity
+			Set LoadElemRoot = workarea.Entities
+		Case acMisc
+			Set LoadElemRoot = workarea.Miscs
+		Case acBinder
+			Set LoadElemRoot = workarea.Binders
+		Case acTemplate
+			Set LoadElemRoot = workarea.Templates
+		Case Else
+			Set LoadElemRoot = Nothing
+	End Select 
+End Function
+'---
+'
+'---
+Sub HL74_RecursePaste
+	Dim WM, Elem, CurrentElem
+
+	Set WM = workarea.Map
+
+	If WM.Exists("ElemCopy") Then
+		With Workarea.Site
+			Set Elem = WM.Item("ElemCopy")
+
+			If Not Elem Is Nothing Then
+				If Elem.ID <> .ID And WM("ElemCopyKind") = .Kind Then	
+					If .ID = 0 Then
+						Set CurrentElem = LoadElemRoot(.Kind)
+					Else
+						Set CurrentElem = LoadElemByID(.ID, .Kind).Children
+					End If
+
+					If MsgBox("Вставить из буфера элемент ?" & vbNewLine & _
+									Elem.Name,_
+									vbOKCancel + vbQuestion, MSG_BOX_CAPTION) = vbOK Then
+
+						CreateElem CurrentElem, Elem, .Kind
+						workarea.window.refresh
+					End If
+				End If
+			End If
+		End With
+
+		WM.Remove "ElemCopy"
+	Else
+		MsgBox "Нет данных для копирования", vbExclamation
+	End If
+	
+End Sub
+'---
+'
+'---
+Sub CreateElem(Root, Elem, Kind)
+	Dim i, NewElem
+
+	Select Case Kind
+		Case acFolder
+			Set NewElem = Root.Create("(Копия) " & Elem.Name)
+		Case acAccount
+			Set NewElem = Root.Create(Elem.Type, "(Копия) " & Elem.Code, "(Копия) " & Elem.Name)
+		Case Else
+			Set NewElem = Root.Create(Elem.Type, "(Копия) " & Elem.Name)
+	End Select 
+
+	If Not NewElem Is Nothing Then 
+		AddElemProps Elem, NewElem, Kind
+		If NewElem.Modified Then NewElem.Save
+	End If
+
+	If Elem.HasChildren Then
+		With Elem.Children
+			For i = 1 To .Count
+				CreateElem NewElem.Children, .Item(i), Kind
+			Next
+		End With
+	End If
+
+End Sub
+'---
+'
+'---
+Sub AddElemProps(Elem, NewElem, Kind)
+	NewElem.Tag = Elem.Tag
+	NewElem.Memo = Elem.Memo
+
+	Select Case Kind
+		Case acFolder
+			CopyProps Elem, NewElem, Array("FormID", "TemplateID")
+
+		Case acAccount
+			CopyProps Elem, NewElem, Array("PlanID", "SaldoType")
+
+		Case acAgent
+			CopyProps Elem, NewElem, Array("Code", "Contact", "Country", "DateIn", "DateOut", "EMail", "Passport", "Phone", "RegNo", "TabNo", "VatNo", "WWW")
+
+		Case acEntity
+			CopyProps Elem, NewElem, Array("AccSelf", "AccID", "Art", "Bar", "Cat", "Nom", "UnSelf", "UnitID")
+			CopyRecipeEntries Elem.ID, NewElem.ID
+
+		Case acMisc
+			CopyProps Elem, NewElem, Array("Date1", "Date2", "Date3", "Long1", "Long2", "Long3", "String1", "String2", "String3", "Sum1", "Sum2", "Sum3")
+
+		Case acTemplate
+			NewElem.SetScript Elem.GetScript
+			NewElem.FormID = Elem.FormID
+
+		Case acBinder
+
+	End Select
+End Sub
+'---
+'
+'---
+Sub CopyProps(SrcElem, NewElem, aProps)
+	Dim i, cmd
+
+	For i = 0 To UBound(aProps)
+		cmd = "NewElem." & aProps(i) & "=" & "SrcElem." & aProps(i)
+		CopyProp cmd
+	Next
+End Sub
+'---
+'
+'---
+Sub CopyProp(Cmd)
+	On Error Resume Next
+	Execute cmd
+	Err.Clear
+End Sub
+'---
+'
+'---
+Sub CopyRecipeEntries(DstRecipeID, SrcRecipeID)
+	Dim SQL
+
+	SQL = "INSERT INTO RP_CONTENTS ( RP_ID, ENT_ID, RC_QTY, RC_NO, RC_CY1, RC_CY2, RC_PERCENT, RC_TAG, AG_ID, UN_ID ) " & _
+			"Select " & DstRecipeID & ", RP_CONTENTS.ENT_ID, RP_CONTENTS.RC_QTY, RP_CONTENTS.RC_NO, RP_CONTENTS.RC_CY1, " & _
+			"RP_CONTENTS.RC_CY2, RP_CONTENTS.RC_PERCENT, RP_CONTENTS.RC_TAG, RP_CONTENTS.AG_ID, RP_CONTENTS.UN_ID " & _
+			"FROM RP_CONTENTS " & _
+			"WHERE (((RP_CONTENTS.RP_ID)=" & SrcRecipeID & "))"
+
+	If App.AppType = "DAO" Then
+		Workarea.DAODataBase.Execute SQL
+	Else
+		Set rs = WorkArea.AdoConnection.Execute(sql,, adCmdText)
+	End If
+	
+End Sub

@@ -1,0 +1,44 @@
+Option Explicit
+
+Sub SaveBackupFiles(RD, BackupDir, ConfigVer, ByRef ErrorMsg)
+	Dim FSO, FldName
+	Dim Fld, FldBackup
+
+	ErrorMsg = ""
+
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+
+	On Error Resume Next
+	Set Fld = FSO.GetFolder(BackupDir)
+
+	If Not IsEmpty(Fld) Then
+		FldName = Fld.Path & "\" & "ConfigVer"
+
+		On Error Resume Next
+		Set FldBackup = FSO.GetFolder(FldName)
+
+		If IsEmpty(FldBackup) Then
+			Set FldBackup = FSO.CreateFolder(FldName)
+			On Error Resume Next
+
+			If IsEmpty(FldBackup) Then 
+				ErrorMsg = "Невозможно создать папку " & FldName
+				Exit Sub
+			End If
+		End If
+
+		BackUpFiles RD.DBPath & "\..\", FldBackup
+		
+	Else		
+		ErrorMsg = "Не обнаружена папка для сохранения."
+	End If
+
+End Sub
+
+'----
+'
+'----
+Sub BackUpFiles(Path, FldBackup)
+
+
+SaveBackupFiles "c:\temp", "Normal25032"

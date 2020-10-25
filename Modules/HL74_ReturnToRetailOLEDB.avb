@@ -1,0 +1,324 @@
+Option Explicit
+'#include "HL74_const.avb"
+
+'-----------------
+' набор процедур для обеспечения операций возврата товара от покупателя OLEDB
+'	Last updated : 24.05.2007
+'-----------------
+
+Function ReturnToRetail(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BasAccCode, BasAccMode, TrNoRetail)
+	Dim Errors, DictSeries, i, CurrPrice
+	Dim MC, DocID, OnDate, AgID, AccID, AccIDRetail, agBuyerID
+	Dim TrLstTo, TrLstFrom, TrLstRetail, mt, IsError
+
+	Set Errors = CreateObject("Scripting.Dictionary")
+	Set DictSeries = CreateObject("Scripting.Dictionary")
+
+	Set TrLstFrom = Op.TransList(TrNoFrom)
+	Set TrLstTo = Op.TransList(TrNoTo)
+	Set TrLstRetail = Op.TransList(TrNoRetail)
+
+	ClearTrans TrLstTo
+	ClearTrans TrLstRetail
+
+	MC = WorkArea.MyCompany.ID
+	OnDate = Op.Date
+	DocID = Op.ID
+	AgID = TrLstTo.Item(1).AgFromID
+	AccID = TrLstTo.Item(1).AccCrID
+	AccIDRetail = TrLstRetail.Item(1).AccDBID
+	agBuyerID = TrLstTo.Item(1).AgToID
+
+	If ChargeMode = 3 Then 
+		ReturnToRetail = ManualCharge(Op, TrNoTo, TrNoFrom, TrLstRetail, Errors, MC)
+		Exit Function
+	Else
+		Set Mt = Meter
+		Mt.Open "Обработка ...", 0, TrLstFrom.Rows
+
+		For i = 1 To TrLstFrom.Rows
+			With TrLstFrom.Item(i)
+				If .EntId <> 0 Then
+					If .Qty > 0 And .Entity.Type > 1002 Then
+						If flBalAccount Then AccID = .Entity.AccID
+						If flAgFrom Then AgID = .AgFromID
+
+						CurrPrice = 0
+						DoReturnToRetail .EntID, .Qty, CurrPrice, TrLstTo, TrLstRetail, AccID, AgID, agBuyerID, OnDate, DocID, ChargeMode, flWrite, DictSeries, Errors, i, MC, AccIDRetail
+						.Price = CurrPrice
+					End If
+				End If
+			End With
+
+			Mt.Pos = Mt.Pos + 1 		' нарастили индикатор
+		Next
+
+		If Errors.Count <> 0 Then
+			If IsViewError Then
+				Set Workarea.Map.Item("ErrorOp") = Op
+				ViewError Errors
+			End If
+			ReturnToRetail = False
+		Else
+			ReturnToRetail = True
+		End If
+
+	End If
+
+End Function
+
+'-----------------
+'
+'-----------------
+Sub ClearTrans(Trans)
+	Trans.Rows = 1
+
+	With Trans.Item(1)
+		.EntId = 0
+		.Qty = 0
+		.Sum = 0
+	End With
+
+End Sub
+'---
+'
+'---
+Function GetEntRetailPriceRT(AccID, EntID, AgID, OnDate, DocID, MC)
+	Dim Cn, Cmd, Rs, Price, PriceKind
+
+	Set Cn = WorkArea.AdoConnection
+	Cn.CursorLocation = 2 'курсор на нашей стороне
+
+	Set Cmd = CreateObject("ADODB.Command")
+	Set Cmd.ActiveConnection = Cn 
+
+	' строим остатки
+	Cmd.CommandText = "st7_RestEntRetail"
+
+	AddParameters Cmd, AgID, 3, 10
+	AddParameters Cmd, AccID, 3, 10
+	AddParameters Cmd, EntID, 3, 10
+	AddParameters Cmd, DocID, 3, 10
+	AddParameters Cmd, OnDate, 7, 20
+	AddParameters Cmd, MC, 3, 10
+
+	' сообщаем, что команда это инструкция хранимая процедура
+	Cmd.CommandType = 4	
+	' выполнили запрос
+	Set Rs = Cmd.Execute	' выполняем команду 
+
+	If Rs.EOF Then
+		Price = 0
+	ElseIf rs.Fields(0).Value <> 0 Then
+		Price = rs.Fields(1).Value / rs.Fields(0).Value
+	End If
+
+	If Price = 0 Then
+		With WorkArea.Agent(AgID).Params
+			If .Exists(prmAgDefPrice) Then
+				If .Item(prmAgDefPrice).Value2 <> 0 Then
+					Set PriceKind = Workarea.PriceKind(.Item(prmAgDefPrice).Value2)
+					Price = PriceKind.GetEntPrice(EntID, OnDate, WorkArea.DefPriceList)
+				End If
+			End If
+		End With
+	End If
+
+	GetEntRetailPriceRT = Price
+	
+End Function
+'-----------------
+'
+'-----------------
+Function GetRestEntSeriesSoldRetail(EntID, agStorageID, accStorageID, agBuyerID, accAddID, ChargeMode, DocID, onDate, MC)
+	Dim Cn, Cmd, Rs, Price
+
+	Set Cn = WorkArea.AdoConnection
+	Cn.CursorLocation = 2 'курсор на нашей стороне
+
+	Set Cmd = CreateObject("ADODB.Command")
+	Set Cmd.ActiveConnection = Cn 
+
+	' строим остатки
+	Select Case ChargeMode
+		Case 1
+			Cmd.CommandText = "st7_ReturnToRetail_FIFO"
+		Case 2
+			Cmd.CommandText = "st7_ReturnToRetail_LIFO"
+		Case 3
+			Cmd.CommandText = "st7_RestEntRetail_Mid"
+	End Select
+
+	AddParameters Cmd, EntID, 3, 10
+	AddParameters Cmd, accStorageID, 3, 10
+	AddParameters Cmd, agStorageID, 3, 10
+	AddParameters Cmd, agBuyerID, 3, 10
+	AddParameters Cmd, accAddID, 3, 10
+	AddParameters Cmd, OnDate, 7, 20
+	AddParameters Cmd, DocID, 3, 10
+	AddParameters Cmd, MC, 3, 10
+
+	' сообщаем, что команда это инструкция хранимая процедура
+	Cmd.CommandType = 4	
+	' выполнили запрос
+	Set Rs = Cmd.Execute	' выполняем команду 
+
+	If Not Rs.eof Then
+		GetRestEntSeriesSoldRetail = Rs.GetRows()
+	Else
+		GetRestEntSeriesSoldRetail = Array()
+	End If
+
+End Function
+'-----------------
+'
+'-----------------
+Sub DoReturnToRetail(EntID, Qty, ByRef CurrPrice, TrLstTo, TrLstRetail, AccID, AgID, agBuyerID, OnDate, DocID, ChargeMode, flWrite, DictSeries, Errors, TrRowNo, MC, AccIDRetail)
+	Dim aSeries
+	Dim TotalQty
+	Dim aOneSeries 
+	Dim i, RowSum, RowAddSum
+
+	TotalQty = Qty
+	CurrPrice = GetEntRetailPriceRT(AccID, EntID, AgID, OnDate, DocID, MC)
+
+	If CurrPrice = 0 Then
+		Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TotalQty, TrRowNo, AccID, AgID)
+		Exit Sub
+	End If
+
+	While TotalQty > 0
+		aSeries = GetRestEntSeriesSoldRetail(EntID, AgID, AccID, agBuyerID, AccIDRetail, ChargeMode, DocID, onDate, MC)
+
+		If UBound(aSeries) = -1 Then
+			' нет серий на остатке
+			Errors.Add Errors.Count + 1, Array(acErrorNoSeries, EntID, TotalQty, TrRowNo, AccID, AgID)
+			TotalQty = 0
+		Else
+			For i = 0 To UBound(aSeries, 2)
+				If TotalQty = 0 Then Exit For
+
+				If Not DictSeries.Exists(aSeries(0, i)) Then DictSeries.Add aSeries(0, i), Array(aSeries(1, i), aSeries(2, i), aSeries(3, i))
+				aOneSeries = DictSeries.Item(aSeries(0, i))
+
+				If aOneSeries(0) > 0 Then
+
+					If TotalQty > aOneSeries(0) Then 
+						RowSum = aOneSeries(1)
+						AddRowToTransRetail TrLstTo, EntID, AccID, AgID, -aOneSeries(0), aSeries(0, i), -RowSum, True
+						AddRowToTransRetail TrLstRetail, EntID, AccIDRetail, AgID, 0, aSeries(0, i), -aOneSeries(2), False
+						TotalQty = TotalQty - aOneSeries(0)
+						aOneSeries(0) = 0
+						aOneSeries(1) = 0
+						aOneSeries(2) = 0
+					Else
+						RowSum = aOneSeries(1) / aOneSeries(0)
+						RowAddSum = aOneSeries(2) / aOneSeries(0)
+						AddRowToTransRetail TrLstTo, EntID, AccID, AgID, -TotalQty, aSeries(0, i), -RowSum * TotalQty, True
+						AddRowToTransRetail TrLstRetail, EntID, AccIDRetail, AgID, 0, aSeries(0, i), -RowAddSum * TotalQty, False
+						aOneSeries(0) = aOneSeries(0) - TotalQty
+						aOneSeries(1) = aOneSeries(1) - RowSum * TotalQty
+						aOneSeries(2) = aOneSeries(2) - RowAddSum * TotalQty
+						TotalQty = 0
+					End If
+
+					DictSeries.Item(aSeries(0, i)) = aOneSeries
+				
+				End If
+			Next
+
+			If TotalQty <> 0 Then
+				Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TotalQty, TrRowNo, AccID, AgID)
+				TotalQty = 0
+			End If
+		End If
+	Wend
+End Sub
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub AddRowToTransRetail(ByRef TrLst, EntID, AccID, AgID, ByRef Qty, SeriesID, RowSum, Mode)
+	Dim RowNo
+
+	If TrLst.Item(TrLst.Rows).EntID <> 0 Then
+		RowNo = TrLst.Rows + 1
+	Else
+		RowNo = TrLst.Rows
+	End If
+
+	With TrLst.Item(RowNo)
+		.EntID = EntID
+
+		If Mode Then
+			.Qty = Qty
+			.AccCRId = AccID
+		Else
+			.Qty = 0
+		End If
+
+		.Sum = RowSum
+		.Price = Abs(.Price)
+		.AgFromId = AgID
+		.SeriesID = SeriesID
+	End With
+End Sub
+'-----------------
+'
+'-----------------
+Function ManualCharge(Op, TrNoTo, TrNoFrom, TrLstRetail, Errors, MyCoID)
+	Dim i, trPrice, AccIDRetail
+	Dim DictSeries
+	Dim RestQty
+	Dim OpDate
+	Dim OpID
+	Dim Dlg
+
+	AccIDRetail = TrLstRetail.Item(1).AccCrID
+	Set DictSeries = CreateObject("Scripting.Dictionary")
+	Set Dlg = App.CreateDialog("ST7_ManualRetFrom.adg")
+
+	With Dlg.Map
+		Set .Item("Op") = Op
+		.Item("TrNoFrom") = TrNoFrom
+		.Item("TrNoTo") = TrNoTo
+	End With
+
+	If Dlg.DoModal = vbOK Then
+		For i = 1 To Op.TransList(TrNoTo).Rows
+			With Op.Trans(TrNoTo, i)
+				.Qty = -.Qty
+				.Price = Abs(.Price)
+
+				If .EntID <> 0 Then
+					If .SeriesID = 0 Then
+						Errors.Add Errors.Count + 1, Array(acErrorNoSeriesSet, .EntId , Abs(.Qty) - RestQty, i, .AccDbID, .AgFromID) ' ошибка - недостаточно количества				
+					Else				
+						TrPrice = GetEntRetailPriceRT(.AccCrID, .EntID, .AgFromID, Op.Date, Op.ID, MyCoID)
+						AddRowToTransRetail TrLstRetail, .EntID, AccIDRetail, .AgToID, 0, .SeriesID, .Qty * TrPrice - .Sum, False
+					End If
+				End If
+			End With
+		Next
+		ManualCharge = True
+	Else
+		ManualCharge = False
+	End If
+
+End Function
+
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Sub AddParameters(Cmd, ArgValue, ArgType, ArgLong)
+	Dim Prm
+
+	' устанавливаем параметры
+	Set Prm = Cmd.CreateParameter(, ArgType, 1, ArgLong)	' 	создаем параметр 
+	Prm.Value = ArgValue														'	присваиваем значение
+	Cmd.Parameters.Append Prm												'	добавляем параметр в коллекцию параметров команды
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+

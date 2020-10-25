@@ -1,0 +1,177 @@
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+Option Explicit
+'---
+'
+'---
+Const DataCodePagePath = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Jet\4.0\Engines\Xbase\DataCodePage"
+Const XML_FILE_NAME = "hl74_Import_1c2.xml"
+Const MSG_BOX_CAPTION = "Импорт информации из справочников 1С"
+
+HL74_ImportDict1C ""
+
+'---
+'
+'---
+Sub HL74_ImportDict1C(dbfFileName)
+	Dim oXml, EntRoot, AgRoot
+
+	Set oXml = New XML
+	If dbfFileName = "" Then dbfFileName = XML_FILE_NAME
+
+	If oXml.Create() Then
+		oXml.FileName = dbfFileName
+
+		If oXml.Load() Then
+			Set EntRoot = Workarea.Entities.Create(0, "1c")
+			Set AgRoot = Workarea.Agents.Create(0, "1c")
+
+			ImportElems oXml.xml.documentElement.selectNodes("/dictionaryimport/entities").item(0), EntRoot.Children, acEntity, 1004
+			ImportElems oXml.xml.documentElement.selectNodes("/dictionaryimport/agents").item(0), AgRoot.Children, acAgent, 1
+		Else
+			MsgBox "Ошибка чтения XML файла " &XML_FILE_NAME & vbNewLine & oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+		End If
+	Else
+		MsgBox "Ошибка создания объекта XML" & vbNewLine & oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+	End If
+End Sub
+'---
+'
+'---
+Sub ImportElems(xmlRoot, ElRoot, ElKind, DefType)
+	Dim i, aData, DBFName, MsgError, ElName, ElType, Rs, El, ElParent
+	Dim ElTree, pName, fName, ConnectionString, PrevCodePage
+
+	DBFName = checknull(xmlRoot.GetAttribute("dbf"), "")
+	ConnectionString = checknull(xmlRoot.GetAttribute("connectionstring"), "")
+	PrevCodePage = SetCodePage(checknull(xmlRoot.GetAttribute("codepage"), ""))
+
+	If DBFName <> "" And ConnectionString <> "" Then
+		If OpenDBFFile(DBFName, ConnectionString, Rs, MsgError) Then
+			Set ElTree = createlibobject("Map")
+			Set xmlRoot = xmlRoot.ChildNodes
+
+			While Not rs.eof
+				ElName = Trim(checknull(rs.fields("descr").Value, ""))
+				ElType = iif(CLng(rs.fields("isfolder").Value) = 1, 0, DefType)
+				ElParent = checknull(rs.fields("parentid").Value, 0)
+
+				Set El = ElRoot.Create(ElType, ElName)
+
+				If ElTree.Exists(ElParent) Then workarea.MoveTo ElKind, El.ID, ElTree(ElParent)
+				If ElType = 0 Then 	ElTree(Rs.Fields("id").Value) = El.ID
+
+				For i = 0 To xmlRoot.Length - 1
+					With xmlRoot.Item(i)
+						fName = .getattribute("field")
+						pName = .getattribute("name")
+
+						If fname <> "" Then
+							Select Case .NodeName
+								Case "fact"
+									If El.Facts.exists(pName) Then 
+										El.Facts(Date).Item(pName).Value = Rs.Fields(fName).Value
+									End If
+								Case "param"
+									If El.Params.Exists(pName) Then
+										El.Params(pName).Value = Rs.Fields(fName).Value
+									End If
+								Case Else
+									Execute "El." & .NodeName & "=" & CheckValue(Rs.Fields(fName).Value)
+							End Select
+						End If
+					End With
+
+				Next
+
+				If El.Modified Then El.Save
+				Rs.MoveNext
+			Wend
+		End If
+	End If
+
+	SetCodePage PrevCodePage
+
+End Sub
+'---
+'
+'---
+Function CheckValue(CheckedValue)
+	Select Case VarType(CheckedValue)
+		Case vbString
+			CheckValue = Chr(34) & Trim(CheckedValue) & Chr(34)
+		Case vbDate
+			CheckValue = "cdate(" & Chr(34) & Trim(CheckedValue) & Chr(34) & ")"
+		Case Else
+			CheckValue = Trim(CStr(CheckedValue))
+	End Select
+End Function
+'---
+'
+'---
+Function OpenDBFFile(FileName, ConnectionString, Rs, MsgError)
+	Dim Pos, fDate, checkDate, RD, FilePath, Conn, Cmd
+
+	OpenDBFFile = False
+	MsgError = ""
+
+	Set RD = CreateLibObject("Redirect")
+	FilePath = RD.GetFullPath(FileName)
+
+	If FilePath <> "" Then
+		Pos = InStrRev(FilePath, "\")
+		ConnectionString = Replace(ConnectionString, "@Path", Left(FilePath, Pos))
+
+		Set Conn = CreateObject("ADODB.Connection")
+		Set Cmd = CreateObject("ADODB.Command")
+
+		Conn.ConnectionString = ConnectionString
+		Conn.Open
+
+		Set Cmd.ActiveConnection = Conn
+		Cmd.CommandType = 1
+
+		Cmd.CommandText = "Select * from " & FileName & " order by isfolder, parentid, id"
+
+		On Error Resume Next
+		Set Rs = Cmd.Execute
+
+		If Err.Number = 0 Then
+			OpenDBFFile = Not rs.eof
+		Else
+			MsgError = Err.Description & "(#" & Err.Number & ")"
+		End If
+	End If
+
+	err.Clear
+	
+End Function
+'---
+'
+'---
+Function SetCodePage(NewCodePage)
+	Dim WshShell
+	
+	If NewCodePage = "" Then 
+		SetCodePage = ""
+		Exit Function
+	End If
+
+	Set WshShell = CreateObject("WScript.Shell")
+
+	On Error Resume Next
+	SetCodePage = WshShell.RegRead(DataCodePagePath)
+
+	If Err.Number <> 0 Then
+		MsgBox "Ошибка : ошибка при попытке изменить значение реестра"
+		SetCodePage = ""
+	Else
+		WshShell.RegWrite DataCodePagePath, NewCodePage, "REG_SZ"
+	End If
+
+	Err.Clear
+
+End Function
+'---
+'
+'---

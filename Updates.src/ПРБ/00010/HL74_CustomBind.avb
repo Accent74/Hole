@@ -1,0 +1,236 @@
+Option Explicit
+
+Class CustomBind
+	Private IsAppTypeDAO, QueryType, Columns
+	Public size, GetDataRef, MaxRows, Query, Params, Op
+
+	Private Sub Class_Initialize
+		IsAppTypeDAO = (App.AppType = "DAO")
+		QueryType = 1
+		size = "900;500"
+		MaxRows = 20
+		Set Op = Nothing
+		Params = Array()
+
+		If IsAppTypeDAO Then
+			Query = GetQueryTextDAO()
+		Else
+			Query = GetQueryTextOLEDB()
+		End If
+
+		Set Columns = CreatelibObject("Map")
+		Set GetDataRef = Nothing
+	End Sub
+
+	Public Sub AddColumn(ColName, ColWidth, ColAlign, ColFormat)
+		If ColWidth = 0 Then ColWidth = 100
+		If ColAlign = 0 Then ColAlign = acLeft
+		
+		Columns(Columns.Count + 1) = Array(ColName, ColWidth, ColAlign, ColFormat)
+	End Sub
+
+	Public Property Let TypeQuery(QueryTypeValue)
+		QueryType = QueryTypeValue
+
+		If IsAppTypeDAO Then
+			Query = GetQueryTextDAO()
+		Else
+			Query = GetQueryTextOLEDB()
+		End If
+
+	End Property
+
+	Public Sub OnCustomBind(Command, Param, ByRef RetValue)
+		Select Case LCase(Command)
+			Case "size"
+	       RetValue = size
+			Case "columns"
+	       RetValue = JoinMap()
+			Case "data"
+				If Right(Param, 1) = " " Then
+					Param = RTrim(Param)
+
+					If GetDataRef Is Nothing Then
+						If IsAppTypeDAO Then
+							RetValue = GetDataStdDAO(Param)
+						Else
+							RetValue = GetDataStdOLEDB(Param)
+						End If
+					Else
+		  				RetValue = GetDataRef(Param)
+					End If
+				End If
+		End Select
+	End Sub
+	
+	Private Function JoinMap()
+		Dim i, keys, RetValue
+
+		keys = Columns.Keys
+		RetValue = ""
+
+		For i = 1 To Columns.Count
+			If RetValue <> "" Then RetValue = RetValue & ";"
+			RetValue = RetValue & Join(Columns(i), ":")
+			If Right(RetValue, 1) = ":" Then RetValue = Left(RetValue, Len(RetValue) - 1)
+		Next
+
+		JoinMap = RetValue
+
+	End Function
+
+	Private Function GetQueryTextDAO()
+		Select Case QueryType
+			Case 1			' наименование
+				GetQueryTextDAO	= "PARAMETERS EntName Text ( 255 );" & _
+										"Select TOP 20 ENTITIES.ENT_NAME AS EntityName " &_
+										"FROM ENTITIES " &_
+										"WHERE (((ENTITIES.ENT_NAME) Like '*' & [EntName] & '*')) " &_
+										"ORDER BY ENTITIES.ENT_NAME;"
+			Case 2			' наименование, остатки, цена хранения
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntityName, ST7_oddments_of_the_goods.Qty, ST7_oddments_of_the_goods.Sum " & _
+												"FROM ST7_oddments_of_the_goods"
+
+			Case 3			' наименование, остатки, цена из прайса
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntityName, " & _
+												"(select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID and p.prl_id = [pID] and p.prc_id = [pKindID] and p.prc_date <= [DocDate] order by p.prc_date desc), " & _
+												"ST7_oddments_of_the_goods.Qty " & _
+												"FROM ST7_oddments_of_the_goods"
+
+		End Select
+	End Function
+
+	Private Function GetQueryTextOLEDB()
+		Select Case QueryType
+			Case 1			' наименование
+				GetQueryTextOLEDB	= "st7_FindEntityByFirstChar"
+			Case 2			' наименование, остатки, цена хранения
+				GetQueryTextOLEDB	= "ST7_oddments_of_the_goods"
+			Case 3			' наименование, остатки, цена из прайса
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_price"
+
+		End Select
+	End Function
+
+	Private Function GetDataStdDAO(Text)
+		Dim QD, Rs, MaxRec, aData, i
+
+		Set QD = WorkArea.DAODataBase.CreateQuerydef("")
+		QD.SQL = GetQueryTextDAO()
+		QD.Parameters(0).Value = Text
+
+		Select Case QueryType	
+			Case 1
+
+			Case 2
+				' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				For i = 0 To UBound(Params)
+					QD.Parameters(i + 1).Value = Eval(Params(i))
+				Next
+
+			Case 3
+				' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				For i = 0 To UBound(Params)
+					QD.Parameters(i + 1).Value = Eval(Params(i))
+				Next
+				QD.Parameters(i + 1).Value = Workarea.DefPriceList
+
+				If DefPrice Is Nothing Then
+					QD.Parameters(i + 2).Value = 0
+				Else
+					QD.Parameters(i + 2).Value = DefPrice.ID
+				End If
+		End Select
+
+		Set Rs = QD.OpenRecordSet
+
+		If Not Rs.EOF Then
+			Rs.MoveLast
+			MaxRec = Rs.RecordCount
+			Rs.MoveFirst
+			aData = Rs.GetRows(MaxRec)
+		Else
+			aData = Array()
+		End If
+
+		If UBound(aData) <> -1 Then
+			If UBound(aData, 2) = MaxRows  Then aData(0, MaxRows) = "..."
+		End If
+
+		GetDataStdDAO = aData
+	End Function
+
+	Private Sub SetPrmProps(prmValue, ByRef prmType, ByRef prmLen)
+		prmType = VarType(prmValue)
+
+		Select Case prmType
+			Case vbInteger, vbLong
+				prmLen = 10
+
+			Case vbDate
+				prmLen = 20
+
+			Case vbString
+				prmLen = 255
+
+			Case vbCurrency
+				prmLen = Null
+		End Select
+	End Sub
+
+	Private Function GetDataStdOLEDB(Text)
+		Dim aData, aPrm(), SQL, prmValue, prmType, prmLen
+		Dim i
+
+		SQL = GetQueryTextOLEDB()
+		ReDim aPrm(0)
+		aPrm(0) = Array(Text, 200, 255)
+
+		Select Case QueryType	
+			Case 1
+
+			Case 2	' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				ReDim Preserve aPrm(UBound(Params) + 1)
+				
+				For i = 0 To UBound(Params)
+					prmValue = Eval(Params(i))
+					SetPrmProps prmValue, prmType, prmLen
+					aPrm(i + 1) = Array(prmValue, prmType, prmLen)
+				Next
+
+			Case 3	' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				ReDim Preserve aPrm(UBound(Params) + 3)
+				
+				For i = 0 To UBound(Params)
+					prmValue = Eval(Params(i))
+					SetPrmProps prmValue, prmType, prmLen
+					aPrm(i + 1) = Array(prmValue, prmType, prmLen)
+				Next
+
+				If DefPrice Is Nothing Then
+					aPrm(i + 2) = Array(0, 3, 10)
+				Else
+					aPrm(i + 2) = Array(DefPrice.ID, 3, 10)
+				End If
+
+				aPrm(i + 1) = Array(Workarea.DefPriceList, 3, 10)
+		End Select
+
+		If Not ADO_Query(SQL, aPrm, aData) Then
+			aData = Array()
+		ElseIf UBound(aData, 2) = MaxRows  Then 
+			aData(0, MaxRows) = "..."
+		End If
+
+		GetDataStdOLEDB = aData
+	End Function
+
+	Private Sub Class_Terminate
+		
+	End Sub
+End Class
+'---
+'
+'---

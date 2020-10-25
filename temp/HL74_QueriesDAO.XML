@@ -1,0 +1,39 @@
+<scripts configversion="020" configname="ПРБ" configdate="20/08/2018"><query type="DAO" name="HL74_ElemFindReplace_TestAg" cmd="add" lastmodifieddate="5/18/2018 6:04:58 PM">select 'JOURNAL' as T, count(*) from JOURNAL where 2569 in (J_AG1, J_AG2) UNION ALL
+select 'ACC_PARAMS' as T, count(*) from ACC_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from ACC_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'AG_PARAMS' as T, count(*) from AG_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from AG_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'BIND_PARAMS' as T, count(*) from BIND_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from BIND_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'DB_PARAMS' as T, count(*) from DB_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from DB_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'DOC_PARAMS' as T, count(*) from DOC_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from DOC_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'ENT_PARAMS' as T, count(*) from ENT_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from ENT_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'FLD_PARAMS' as T, count(*) from FLD_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from FLD_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'FRM_PARAMS' as T, count(*) from FRM_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from FRM_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'JRN_PARAMS' as T, count(*) from JRN_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from JRN_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'MISC_PARAMS' as T, count(*) from MISC_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from MISC_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'RCP_PARAMS' as T, count(*) from RCP_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from RCP_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'RPE_PARAMS' as T, count(*) from RPE_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from RPE_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'SER_PARAMS' as T, count(*) from SER_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from SER_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'TML_PARAMS' as T, count(*) from TML_PARAMS
+where PRM_LONG = 2569 and PRM_ID in (Select PRM_ID from TML_PARAM_NAMES where PRM_REF = 3) UNION ALL
+select 'AG_FACTS' as T, count(*) from AG_FACTS
+where FA_LONG = 2569 and FA_ID in (Select FA_ID from AG_FACT_NAMES where FA_REF = 3) UNION ALL
+select 'DB_FACTS' as T, count(*) from DB_FACTS
+where FA_LONG = 2569 and FA_ID in (Select FA_ID from DB_FACT_NAMES where FA_REF = 3) UNION ALL
+select 'DOC_FACTS' as T, count(*) from DOC_FACTS
+where FA_LONG = 2569 and FA_ID in (Select FA_ID from DOC_FACT_NAMES where FA_REF = 3) UNION ALL
+select 'ENT_FACTS' as T, count(*) from ENT_FACTS
+where FA_LONG = 2569 and FA_ID in (Select FA_ID from ENT_FACT_NAMES where FA_REF = 3) UNION ALL select 'MISC_FACTS' as T, count(*) from MISC_FACTS
+where FA_LONG = 2569 and FA_ID in (Select FA_ID from MISC_FACT_NAMES where FA_REF = 3);
+</query></scripts>

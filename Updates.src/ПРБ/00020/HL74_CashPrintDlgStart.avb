@@ -1,0 +1,4 @@
+Option Explicit
+
+Workarea.Map("PrintCashID") = 3866
+App.CreateDialog("HL74_CashPrint.adg").DoModal

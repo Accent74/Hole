@@ -1,0 +1,100 @@
+Option Explicit
+'---------------------------------------------------
+' процедура формирует серии партионного учета 
+' для объектов проводки. Используется в типовых шаблонах
+' 
+' Свойства партии товара формируются следующим образом
+' Код партии			ID строки документа, по которой серия была зарегистрирована
+' Наименование			Дата документа + № документа
+' Поставщик				поставщик товара
+' Приходная цена		Приходная цена товара
+' Дата						Дата создания серии
+' Номер						Код приходного документа
+'
+'---------------------------------------------------
+Sub MakeSeries2(Op, TrNo)
+	Dim i
+	Dim NewSeries
+	Dim Mtr
+	Dim OpTrans			' проводка хозяйственной операции для объектов которой формируются партии
+	Dim SeriesName		' наименование партии
+	Dim SeriesDate		' дата поступления для партий
+	Dim seriesCode
+	Dim OpID, SeriesOutPrice
+	
+	Set OpTrans = Op.TransList(TrNo)
+
+	SeriesName = Left(CStr(Op.Date) & " № " & IIf (Op.DocNo = "", "<Без номера>", Op.DocNo) & " " & OpTrans.AgFromBind.Name, 50)
+	SeriesDate = Op.Date
+	OpID = Op.ID
+
+	Set Mtr = PrepareMeter(OpTrans.Rows)
+
+		' цикл по всем объектам учета
+		For i = 1 To OpTrans.Rows
+			' переместить показатель прогресса
+			Mtr.StepIt
+
+			With OpTrans(i)
+				If .EntID <> 0 Then
+					' если объект учета указан
+					SeriesCode = Iif(.Params("Код").Value2 <> "", .Params("Код").Value2, SeriesName)
+
+					If .SeriesID = 0 Then
+						'  если у него нет партии, то добавляем ее 
+						Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+					Else
+						' если есть, то загружаем ее
+						Set NewSeries = .Entity.SeriesColl.ItemID(.SeriesID)
+							If NewSeries Is Nothing Then
+								Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+							Else
+								' партия существует, обновляем ее свойства, но только для родительского документа
+								With Newseries
+									If CLng(.Number) = OpID Or CLng(.Number) = 0 Then
+										.Name 		= SeriesName					' наименование партии
+										.Code 		= SeriesCode 
+										.DateIn		= SeriesDate					' дата поступления партии
+										.Number		= CStr(OpID)					' номер партии
+									End If
+								End With
+							End If
+					End If
+
+					' обновляем остальные свойства партии
+					NewSeries.AgFromID = 	.AgFromID			' поставщик партии
+					NewSeries.PriceIn = .Price					' приходная цена партии
+					NewSeries.PriceOut = .Params("Цена").Value2					' цена реализации партии
+
+					' сохранили свойства партии
+					NewSeries.Save										
+
+					' запомнили ID партии в проводке
+					.SeriesID = NewSeries.ID
+				End If
+			End With
+		Next
+		
+	' выключили индикатор
+	Mtr.Close
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function PrepareMeter(Rows)
+	Dim Mtr
+
+	' создали индикатор прогресса
+	Set Mtr = Meter	
+
+	' сформировали индикатор прогресса
+	With Mtr
+		.Caption = "Создание партий ..."
+		.Max = Rows
+		.Min = 1
+		.Open
+	End With
+
+	Set PrepareMeter = Mtr
+End Function

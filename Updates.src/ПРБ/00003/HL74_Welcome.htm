@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<title>Добро пожаловать !</title>
+		<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+		<script language="VBScript">
+
+Dim WA
+Dim Dlg
+Dim AlreadyShow
+
+function Checkbox1_onclick()
+	If not AlreadyShow then
+		WA.Params("Показать диалог приветствия").Value = Checkbox1.checked
+	else
+		WA.Params("Показать диалог приветствия").Value = true
+	end if
+end function
+
+function CloseWindow()
+	With WA.Map.Item("Welcome")
+		.CloseModeless
+	end With
+end Function
+
+function GetBuild(ConfigName)
+	Dim i
+	Dim VersionNo
+	Dim cList
+	Dim hope
+	
+	GetBuild = "7.000"
+	cList = ""
+	hope = 0
+	VersionNo = ""
+
+	With WA
+		For i = 1 To 9
+			If .UserParam("CONFIG_NAME" & cStr(i)) = ConfigName then
+				VersionNo = .UserParam("CONFIG_VERSION" & cStr(i))
+				GetBuild = "7." & VersionNo
+			Else
+				IF not isnull(.userparam("CONFIG_NAME" & cStr(i))) then
+					IF isnull(.userparam("CONFIG_DESCRIPTION" & cStr(i))) then
+						cList = cList & .userparam("CONFIG_NAME" & cStr(i)) 
+					else
+						cList = cList & .userparam("CONFIG_DESCRIPTION" & cStr(i)) 
+					end If
+					
+					cList = cList & " v. " & .userparam("CONFIG_VERSION" & cStr(i)) & vbCrLf
+				elseif hope = 0 then
+					hope = i
+				end If
+			end If
+		Next
+
+		configlist.innertext = cList
+
+		With configlist.Style
+			.fontfamily ="Verdana"
+			.color="#006600"
+			.textalign = "center"
+			.fontsize = 10
+		end with
+
+		IF VersionNo = "" then
+			.UserParam("CONFIG_NAME" & cStr(hope)) = ConfigName
+			.UserParam("CONFIG_VERSION" & cStr(hope)) = "0"
+		end If
+		
+	End With
+
+end function
+
+function window_onload()
+	AlreadyShow	= false
+	
+	Checkbox1.checked = WA.Params("Показать диалог приветствия").Value2
+
+	with build
+		.innerText = GetBuild("ПРБ")
+		With .Style
+			.fontfamily ="Verdana"
+			.color="#006600"
+			.textalign = "center"
+		end with
+	end With
+
+	lnkStartWork.focus
+end Function
+
+function show_whatnew()
+	Dim WinAPI
+	
+	Set WinAPI = WA.Map.Item("WinAPI")
+	WinAPI.HtmlHelp WA.Map("WhatsNew")
+end function
+
+function show_help()
+	Dim WinAPI
+	
+	Set WinAPI = WA.Map.Item("WinAPI")
+	WinAPI.HtmlHelp WA.Map("Help")
+end function
+
+		</script>
+	</head>
+	<body onload="window_onload()">
+		<table id="Table1" border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tbody>
+				<tr>
+					<td width="30%" colspan="2" 
+                        
+                        style="font-family: Arial, Helvetica, sans-serif; font-size: large; font-weight: bold; color: #006600" 
+                        align="center">
+                        <img alt="" src="images\frb.bmp" /></td>
+					<td align="center" 
+                        style="font-family: Arial, Helvetica, sans-serif; font-size: large; font-weight: bold; color: #006600" 
+                        width="70%">Первый 
+                        <br />
+                        Республиканский
+                        <br />
+                        бухгалтер<br>
+					</td>
+					<td>
+						<p align="center" 
+                            
+                            style="font-family: Arial, Helvetica, sans-serif; font-size: large; font-weight: bold; color: #006600">
+                            &nbsp;</p>
+					</td>
+				</tr>
+				<tr>
+					<td height="15" width="330"><br>
+					</td>
+					<td height="15"><br>
+					</td>
+					<td height="15">&nbsp;</td>
+				</tr>
+				<tr>
+					<td colspan="1" rowspan="1" height="39" width="330"><br>
+					</td>
+					<td height="39"><br>
+					</td>
+					<td id="build" height="39">
+						<p align="center"><font color="#006600" face="Verdana" size="2">7.0.1</font></p>
+					</td>
+				</tr>
+				<tr>
+					<td width="330"><a href="vbscript:closeWindow%28%29" id="lnkStartWork"><img alt="Закрыть окно и начать работу с программой" src="images/tobegin.png" border="0"></a></td>
+					<td><br>
+					</td>
+					<td id="configlist" rowSpan="4">
+						<P align="center"><br>
+						</P>
+					</td>
+				</tr>
+				<tr>
+					<td height="50" width="330"><br>
+					</td>
+					<td height="50"><FONT size="2"><br>
+						</FONT>
+					</td>
+					<td height="50"><FONT size="2"></FONT><br>
+					</td>
+				</tr>
+				<tr>
+					<td height="30" width="330"><a href="vbscript:show_help%28%29"><img alt="Подсказка по работе с решением" src="images/help.png" border="0"></a></td>
+					<td height="30"><br>
+					</td>
+					<td height="30"><br>
+					</td>
+				</tr>
+				<tr>
+					<td height="30" width="330"><a href="http://www.accentsupport.com/Updates.aspx" target=_blank id="UpdateURL"><img alt="Открыть страницу с обновлениями" src="images/updates.png" border="0"></a></td>
+					<td height="30"><br>
+					</td>
+					<td height="30"><br>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="1" rowspan="1" height="30" width="330"><a href="vbscript:show_whatnew%28%29"><img alt="Что нового в последней версии решения ?" src="images/whatnews.png" border="0"></a></td>
+					<td height="30"><br>
+					</td>
+					<td id="warning" height="30">
+					</td>
+				</tr>
+				<tr>
+					<td colspan="3" width="100%" >
+						<DIV align="center">
+							<hr color="#006600" size="1" style="width: 100%">
+						</DIV>
+					</td>
+				</tr>
+				<tr>
+					<td width="30%"><input id="Checkbox1" name="Checkbox1" onclick="vbscript:Checkbox1_onclick()" type="checkbox"><font 
+                            color="#006600" style="font-family: Arial, Helvetica, sans-serif">Больше 
+							не показывать</font></td>
+					<td colspan="2" width="70%"><P align="right" style="font-family: Arial, Helvetica, sans-serif"><STRONG style="color: #006600">
+                            <FONT color="#006600">
+                            (c) 2015 </FONT>СПД Серёгин А.</STRONG></P>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</body>
+</html>

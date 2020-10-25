@@ -1,0 +1,43 @@
+Option Explicit
+
+Function EAN13_MakeCode(FirstChars, Code)
+	Dim CodeEAN13, n, nFull
+
+	n = Len(Code)
+	nFull = n + Len(FirstChars)
+
+	If n > 12 Then
+		CodeEAN13 = Right(Code, 12)
+	ElseIf nFull < 12 Then
+		CodeEAN13 = FirstChars & String(12 - nFull, "0") & Code
+	ElseIf nFull = 12 Then
+		CodeEAN13 = FirstChars & Code
+	Else
+		CodeEAN13 = Code
+	End If
+
+	EAN13_MakeCode = CodeEAN13 & EAN13_GetCRC(CodeEAN13)
+	
+End Function
+
+Function EAN13_GetCRC(BarCode)
+	Dim i, Sum1, Sum2, num, Sum
+
+	Sum1 = 0
+	Sum2 = 0
+
+	For i = 1 To Len(BarCode)
+		num = CLng(Mid(BarCode, i, 1))
+
+		If Int(i / 2 ) * 2 <> i Then
+			Sum1 = Sum1 + Num
+		Else
+			Sum2 = Sum2 + Num
+		End If
+	Next
+
+	Sum = Sum1 + 3 * Sum2
+
+	EAN13_GetCRC = -Int(-Sum / 10) * 10 - Sum
+	
+End Function

@@ -1,0 +1,111 @@
+Option Explicit
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const LABEL_TEMPLATE = "TSC_label_pattern.txt"
+Const MSG_BOX_CAPTION = "Акцент: печать этикеток. TSC TDP-225"
+'---
+'
+'---
+Sub PrintLabels(TrList)
+	Dim TSC, MscNo, PortName, aLabelPattern
+	Dim prm
+
+	If CreateTSC(TSC) Then
+		MscNo = Com_GetMscNoByDBPrm(prmDBZebraPrint)
+		
+		If MscNo <> 0 Then
+			With TrList.Item(1).MiscBind(MscNo)
+				PortName = iif(.String2 = "", "USB", .String2)
+				aLabelPattern = ReadPattern(iif(.String3 = "", LABEL_TEMPLATE, .String3))
+			End With
+
+			If UBound(aLabelPattern) <> -1 Then
+				Tsc.tsc_openport PortName
+				prm = Array(TSC, aLabelPattern)
+				TrList.EnumTrans GetRef("PrintLabelRow"), prm
+				Tsc.tsc_closeport
+			End If
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Function PrintLabelRow(ByRef Tr, ByRef prm)
+	Dim TSC, aLabelPattern, i, tsc_cmd, pos, Expr
+	Dim PatternFileName
+
+	Set TSC = prm(0)
+
+	PatternFileName = com_getparamvalue(Tr.Entity, prmEntLabelTemplate, "")
+
+	If PatternFileName <> "" Then
+		aLabelPattern = ReadPattern(PatternFileName)
+	Else
+		aLabelPattern = prm(1)
+	End If
+
+	PrintLabelRow = True
+
+	If UBound(aLabelPattern) = -1 Then Exit Function
+ 	tsc.tsc_clearbuffer
+
+	For i = 0 To UBound(aLabelPattern)
+		tsc_cmd = aLabelPAttern(i)
+		pos = InStr(tsc_cmd, "@")
+
+		If pos <> 0 Then
+			Expr = Eval(Mid(tsc_cmd, Pos + 1))
+			Expr = Replace(Expr, Chr(34), "`")
+			tsc_cmd = Left(tsc_cmd, pos - 1) & Chr(34) & Expr & Chr(34)
+		End If
+
+		TSC.tsc_sendcommand tsc_cmd
+	Next
+
+	TSC.tsc_printlabel tr.Params(prmTrQty).Value2, "1"
+
+End Function
+'---
+'
+'---
+Function ReadPattern(PatternFileName)
+	Dim RD, FSO, txtFile, txtBuffer
+
+	ReadPattern = Array()
+	Set RD = CreateLibObject("Redirect")		
+	PatternFileName = RD.GetFullPAth(PatternFileName)
+
+	If PatternFileName <> "" And isfileexists(PatternFileName) Then
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set txtFile = FSO.OpenTextFile(PatternFileName, 1)
+		txtBuffer = txtFile.ReadAll
+		txtFile.Close
+
+		If txtBuffer <> "" Then
+			ReadPattern = Split(txtBuffer, vbNewLine)
+		End If
+	Else
+		MsgBox "Файл шаблона не найден:" & PatternFileName, vbExclamation, MSG_BOX_CAPTION
+	End If
+End Function
+'---
+'
+'---
+Function CreateTSC(ByRef TSC)
+	On Error Resume Next
+
+	Set Tsc = CreateObject("TSCComLib.TSCPrinter")
+	CreateTSC = (Err.Number = 0)
+
+	If Err.Number <> 0 Then
+		MsgBox "Ошибка создания ActiveX TSCComLib.TSCPrinter" & vbNewLine & _
+					"#" & Err.Number & " " & Err.description, MSG_BOX_CAPTION
+	End If
+
+	Err.Clear
+End Function
+'---
+'
+'---

@@ -1,0 +1,4 @@
+CODEPAGE 1251
+BLOCK 10, 10, 250, 100, "2", 0, 1, 1, 1, 0, @Tr.EntBind.Name
+TEXT 10, 65, "2", 0, 1, 1, @"Цена:" & formatnumber(Tr.Price, 2,,, 0)
+BARCODE 30,85,"EAN13", 50 ,1,0,2,2,@Tr.EntBind.Bar

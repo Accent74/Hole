@@ -1,0 +1,93 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	008
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "008"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If Not updater.fail Then AddMiscProps updater
+	If Not updater.fail Then AddTrParams updater	
+	
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'------
+'
+'------
+Sub AddTrParams(updater	)
+	Dim Op, prm
+
+	Set op = workarea.CreateOperation
+	With Op.Trans(1).Params
+		If Not .Exists("Таможенная цена") Then 
+			Set prm = .Create(vbCurrency, "Таможенная цена")
+			If Not prm Is Nothing Then
+				writelog Array("Создан параметр проводки:", prm.Name, "тип:", prm.Type)
+			Else
+				writelog Array("Ошибка создания параметра проводки:", prm.Name, "тип:", prm.Type)
+			End If
+		End If
+
+		If Not .Exists("% таможенной цены") Then 
+			Set prm = .Create(vbCurrency, "% таможенной цены")
+			If Not prm Is Nothing Then
+				writelog Array("Создан параметр проводки:", prm.Name, "тип:", prm.Type)
+			Else
+				writelog Array("Ошибка создания параметра проводки:", prm.Name, "тип:", prm.Type)
+			End If
+		End If
+
+	End With
+End Sub
+'------
+'
+'------
+Sub AddMiscProps(updater)
+	Dim MscID, Msc, SQL
+
+	MscID = Workarea.Params(prmDBCashPrint).Value2
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			SQL = "update misc_attr set msc_visible=63, ms3_name='Путь для обмена файлами', ml2_name = 'Счет для остатков', ml2_type=2, ml3_name = 'Подразделение', ml3_type = 3 where msc_no=" & Msc.MscNo
+
+			If App.AppType = "DAO" Then
+				Workarea.DAODataBase.Execute SQL
+			Else
+				GetRs SQL
+			End If
+		End If
+	End If
+End Sub
+'------
+'
+'------

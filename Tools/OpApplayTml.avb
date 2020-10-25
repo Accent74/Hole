@@ -1,0 +1,50 @@
+Option Explicit
+'#include "HL74_AssistantLog.avb"
+
+stop
+OpApplayTml
+
+Sub OpApplayTml
+	Dim i, tmlOp, Op, j, Tr, ohtmlog
+
+	Set oHTMLog = New htmlog
+
+	oHTMLog.Open "Обработка шаблонов", ""
+
+	With workarea.site.operations
+		oHTMLog.writetext LOG_MSG_OK, "Процесс начат"
+		oHTMLog.writetext LOG_MSG_INFORMATION, "Всего операций: " & .Count
+
+		For i = 1 To .count
+			Set Op = .Item(i)
+
+			If Op.TemplateID <> 0 Then
+				Set tmlOp = Workarea.CreateOperation
+				tmlOp.TemplateID = Op.TemplateID
+				tmlOp.TemplateInvoker2.FireAll
+
+				If Op.TransCount < tmlOp.TransCount Then
+					For j = Op.TransCount + 1 To tmlOp.TransCount
+						Set Tr = tmlOp.Trans(j)
+
+						With Op.TransList(j)
+							.SetAccDb Tr.AccDbID
+							.SetAccCr Tr.AccCrID
+							.SetAgFrom Tr.AgFromID
+							.SetAgTo Tr.AgToID
+						End With
+					Next
+
+					If Op.Save(8 + 16) Then
+						oHTMLog.writetext LOG_MSG_INFORMATION, formatdate2(Op.Date, "Обновлена: dd/mm/yyyy № ") + Op.DocNo
+					Else
+						oHTMLog.writetext LOG_MSG_ERROR, formatdate2(Op.Date, "Ошибка сохранения операции: dd/mm/yyyy № ") + Op.DocNo
+						Exit Sub
+					End If
+				End If
+			End If
+		Next
+	End With
+
+	oHTMLog.writetext LOG_MSG_OK, "Процесс завершен"
+End Sub

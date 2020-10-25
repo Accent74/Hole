@@ -1,0 +1,219 @@
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+Dim oNorms, nVal, oNorm
+
+stop
+Set oNorms = New Norms
+Set oNorm = oNorms.Item(1)
+nVal = oNorm.GetValue(1, 1)
+MsgBox nVal
+oNorm.SetValue 1, 1, nVal + 1
+MsgBox oNorm.GetValue(1, 1)
+
+
+'norms
+'	count				Public Property Get
+'	item					Public Property Get
+'	create				Public Function
+'	delete				Public Function
+'	showdialog		Public Sub
+'
+'norm
+'	ID						public property Get
+'	name					Public Property Get/Let
+'	Memo					Public Property Get/Let
+'	code					Public Property Get/Let
+'	Getvalue			Public Property Get
+'	SetValue			Public Property Let
+'	ShowDialog		Public Sub
+'	Modified			Public Property Get/Let
+'
+
+Class Norm
+	Private ID_, Name_, Code_, XName_, YName_, Memo_, Modified_
+
+	Public Sub SetValue(X, Y, Value)
+		Dim SQL, aData, ErrorMsg
+
+		If IsNumeric(X) And IsNumeric(Y) Then
+			workarea.begintrans
+
+			SQL = "delete from norm_values where nrm_id=" & ID_
+
+			If ExecQuery(SQL, ErrorMsg) = 0 Then
+				SQL = "insert into norm_values (NRM_ID, NRM_X, NRM_Y, NRM_DBL) values (" & ID_ & ", " & X & ", " & Y & ", " & Value & ")"
+
+				If ExecQuery(SQL, ErrorMsg) <> 0 Then 	
+					MsgBox ErrorMsg, vbCritical, "Внимание !"
+					workarea.RollBack
+				Else
+					workarea.CommitTrans
+
+				End If
+			Else
+				MsgBox ErrorMsg, vbCritical, "Внимание !"
+				workarea.RollBack
+			End If
+
+		End If
+	End Sub
+
+	Public Property Get ID
+		ID	 = ID_
+	End Property
+
+	Public Property Get Name
+		Name = Name_
+	End  Property
+
+	Public Property Let Name(Value)
+		If Value <> "" Then
+			Name_ = Value
+			Modified_ = True
+		End If
+	End Property
+
+	Public Property Get Memo
+		Memo = Memo_
+	End Property
+
+	Public Property Let Memo(Value)
+		Memo_ = Value
+		Modified_ = True
+	End Property
+
+	Public Property Get Code
+		Code = Code_
+	End  Property
+
+	Public Property Let Code(Value)
+		If Value <> "" Then
+			Code_ = Value
+			Modified_ = True
+		End If
+	End Property
+
+	Public Property Get GetValue(X, Y)
+		Dim SQL, aData
+
+		GetValue = 0
+
+		If IsNumeric(X) And IsNumeric(Y) Then
+			SQL = "select NRM_DBL from norm_values where NRM_X=" & X & " and NRM_Y=" & Y & " and NRM_ID=" & ID_
+
+			If GetRs2(SQL, aData) Then GetValue = aData(0, 0)
+		End If
+	End Property
+
+	Public Property Get Modified
+		Modified = Modified_
+	End Property
+
+'	ShowDialog		Public Sub
+
+	Private Sub Class_initialize
+		ID_ = 0
+		Name_ = ""
+		Code_ = ""
+		XName_ = ""
+		YName_ = ""
+		Memo_ = ""
+		Modified_ = False
+	End Sub
+
+	Public Property Let ID(Index)
+		Dim SQL, aData
+
+		Name_ = ""
+		Code_ = ""
+		XName_ = ""
+		YName_ = ""
+		Memo_ = ""
+		ID_ = 0
+		Modified_ = False
+
+		If IsNumeric(Index) Then
+			SQL = "select NRM_NAME, NRM_CODE, NRM_XNAME, NRM_YNAME, NRM_MEMO from norms where NRM_ID=" & Index
+
+			If GetRs2(SQL, aData) Then
+				Name_ = aData(0, 0)
+				Code_ = aData(1, 0)
+				XName_ = aData(2, 0)
+				YName_ = aData(3, 0)
+				Memo_ = aData(4, 0)
+				ID_ = Index
+			End If
+		End If
+	End Property
+End Class
+
+Class Norms
+	Private dNorms
+
+	Private Sub Class_initialize
+		Set dNorms = CreateLibObject("Map")
+		ReadNorms
+	
+	End Sub
+
+	Private Sub ReadNorms
+		Dim SQL, aData, i, oNorm
+
+		dNorms.RemoveAll
+		SQL = "select NRM_ID from norms order by NRM_ID"
+
+		If GetRs2(SQL, aData) Then
+			For i = 0 To UBound(aData, 2)
+				Set oNorm = New Norm
+				oNorm.ID = aData(0, i)
+				Set dNorms.Item(oNorm.Code) = oNorm
+			Next
+		End If
+	End Sub
+
+
+	Public Property Get count
+		count = dNorms.Count
+	End Property
+
+	Public Property Get item(Index)
+		Dim keys
+
+		Set item = Nothing
+
+		Select Case VarType(Index)
+			Case vbString
+				If dNorms.Exists(Index) Then
+					Set item = dNorms.Item(Index)
+				End If
+			Case vbInteger
+				Keys = dNorms.Keys
+				Set item = dNorms.Item(Keys(Index - 1))
+		End Select
+	End Property
+
+	Public Function Create(Name)
+		Dim Norm
+
+		Set Create = Nothing
+
+		If Name <> "" Then
+			If Not dNorms.Exists(Name) Then
+				Set Norm = New Norm
+				Norm.Name = Name
+				Set dNorms.Item(Name) = Norm
+				Set Create = Norm
+			End If
+		End If
+	End Function
+
+	Public Function Delete(Name)
+		Delete = False
+	End Function
+
+	Public Sub showdialog
+	End Sub
+
+End Class

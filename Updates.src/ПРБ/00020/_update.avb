@@ -1,0 +1,38 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	020
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "020"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub

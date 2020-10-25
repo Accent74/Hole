@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<imports version="1">	
+	<import	name="Товары с группами (4 вида цен + Акция, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="8" 
+			id="01" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			excelsheetno="Прайс-лист заливка"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="14" kind="prop"/>
+		<field name="bar" fieldno="15" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop" strzero="11"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="Прайс-лист ОПТ" />
+		<field name="price2" fieldno="8" kind="price" prkindid="Прайс-лист МОЦ" />
+		<field name="price3" fieldno="9" kind="price" prkindid="Прайс-лист РОЗНИЦА" />
+		<field name="price4" fieldno="10" kind="price" prkindid="Прайс-лист РОЦ" />
+		<field name="price5" fieldno="11" kind="price" prkindid="Прайс-лист АКЦИЯ" />
+	</import>
+
+	<import	name="Импорт данных по товару" 
+			kind="4"
+			index="cat" 
+			startrow="4" 
+			id="02" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="cat" fieldno="1" kind="prop"/>
+		<field name="name" fieldno="2" kind="prop"/>
+		<field name="Страна" fieldno="4" kind="paramref" node="misc" nodename="Страны"/>
+		<field name="Группа ТН ВЭД" fieldno="5" kind="param"/>
+		<field name="price1" fieldno="6" kind="price" prkindid="1" />
+		<field name="price2" fieldno="7" kind="price" prkindid="2" />
+		<field name="price3" fieldno="8" kind="price" prkindid="3" />
+	</import>
+
+	<import	name="Товар с группами (ДНР, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="9" 
+			id="03" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="9" kind="price" prkindid="2" />
+	</import>
+
+	<import	name="Товар Приход (Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="2" 
+			id="05" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="cat" fieldno="0" kind="prop"/>
+		<field name="name" fieldno="1" kind="prop"/>
+		<field name="Вес" fieldno="12" kind="prop"/>
+		<field name="Вес брутто" fieldno="13" kind="prop"/>
+		<field name="Объем" fieldno="14" kind="param"/>
+		<field name="bar" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="Группа ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Подгруппа ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Код ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Ставка пошлины" fieldno="14" kind="param"/>
+ 		<field name="Страна" fieldno="5" kind="paramref" node="misc" nodename="Страны"/>
+	</import>
+	
+<import	name="Товар с группами (3 вида цен, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="9" 
+			id="06" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="8" kind="price" prkindid="2" />
+		<field name="price3" fieldno="9" kind="price" prkindid="3" />
+</import>
+
+<import	name="Товар с группами (поиск по имени)" 
+			kind="4"
+			index="name" 
+			startrow="2" 
+			id="07" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="0" kind="prop"/>
+</import>
+
+<import	name="Товар с группами (XLSX, поиск по имени)" 
+			kind="4"
+			index="name" 
+			startrow="2" 
+			id="08" 
+			codepage="" 
+			type="xlsx" 
+			typedesc="Файлы Excel 2007 (*.xlsx)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.ACE.OLEDB.12.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 12.0 Xml;HDR=NO;IMEX=1&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="0" kind="prop"/>
+</import>
+	
+<import	name="Анализ счета (XLSX)" 
+			kind="4"
+			index="cat" 
+			indexlen="11"
+			startrow="1" 
+			id="09" 
+			codepage="" 
+			type="xlsx" 
+			typedesc="Файлы Excel 2007 (*.xlsx)"
+			defnodetype="1004"
+			excelsheetno="свойства"
+			connectionstring="Provider=Microsoft.ACE.OLEDB.12.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 12.0 Xml;HDR=NO;IMEX=1&#034;">
+		<field name="cat" fieldno="0" kind="prop" strzero="11"/>
+		<field name="unitid" fieldno="3" kind="unit"/>
+		<field name="name" fieldno="1" kind="prop"/>
+		<field name="Вес" fieldno="7" kind="param"/>
+		<field name="Вес брутто" fieldno="8" kind="param"/>
+		<field name="Объем" fieldno="9" kind="param"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Код ТН ВЭД" fieldno="16" kind="param"/>
+		<field name="Пошлина, %" fieldno="17" kind="fact"/>
+		<field name="Страна" fieldno="19" kind="paramref" node="misc" nodename="Страны"/>
+		<field name="Бренд" fieldno="23" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="Группа" fieldno="25" kind="paramref" node="misc" nodename="Группы"/>
+		<field name="art" fieldno="24" kind="prop"/>
+
+		<field name="folder1" fieldno="20" kind="folder"/>
+		<field name="folder2" fieldno="21" kind="folder"/>
+		<field name="folder3" fieldno="22" kind="folder"/>
+
+</import>
+
+<import	name="Товар с группами (4 вида цен, Excel)" 
+			kind="10"
+			index="cat" 
+			startrow="9" 
+			id="2" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			excelsheetno="Прайс-лист заливка"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=NO; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="8" kind="price" prkindid="2" />
+		<field name="price3" fieldno="9" kind="price" prkindid="98" />
+		<field name="price4" fieldno="10" kind="price" prkindid="99" />
+	</import>
+
+	
+	
+</imports>
+
+	

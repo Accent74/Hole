@@ -1,0 +1,18 @@
+Option Explicit
+
+Dim prm, prmPrinter, prmData
+Dim Op, Msc
+
+Set Op = Workarea.Operation(13)
+Set Msc = Workarea.Misc(159)
+
+'stop
+
+prmData = Array(Op, 1, 1)
+prmPrinter = Array(Msc, "", "0000")
+prm = Array(prmPrinter, prmData)
+
+App.RunModule "HL74_CashPrintM119F.avb", "PrintCash_DoPrintCheckRet", prm
+
+
+

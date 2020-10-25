@@ -1,0 +1,34 @@
+Option Explicit
+
+Function sys_GetSysParams(prmName, prmType)
+	Dim SQL, aData, SysParamValue
+
+	SQL = "select prm_str, prm_long, prm_date from sys_params where prm_name='" & prmName & "'"
+
+	If GetRs2(SQL, aData) Then
+		Select Case prmType
+			Case vbBoolean
+				SysParamValue = CBool(aData(1, 0))
+			Case vbLong
+				SysParamValue = aData(1, 0)
+			Case vbString
+				SysParamValue = aData(0, 0)
+			Case vbDate
+				SysParamValue = aData(2, 0)
+		End Select
+	Else
+		Select Case prmType
+			Case vbBoolean
+				SysParamValue = False
+			Case vbLong
+				SysParamValue = 0
+			Case vbString
+				SysParamValue = ""
+			Case vbDate
+				SysParamValue = CDate(0)
+		End Select
+	End If
+
+	sys_GetSysParams = SysParamValue
+
+End Function

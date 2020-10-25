@@ -1,0 +1,31 @@
+Option Explicit
+
+Dim OL, Fld, mItems, DictAddress
+Dim mItem, EMail, FSO, keys, key, fl
+
+Set DictAddress = CreateObject("Scripting.Dictionary")
+Set Ol = CreateObject("Outlook.Application")
+Set Fld = Ol.Explorers.Session.Folders(2).Folders(2)
+Set mItems = Fld.Items
+
+
+For Each mItem In mItems
+	EMail = mItem.Recipients.Item(1).Address
+	If Not DictAddress.Exists(EMail) Then DictAddress.Add EMail, mItem.To
+Next
+
+If DictAddress.Count > 0 Then
+	Set FSO = CreateObject("SCripting.FileSystemObject")
+	Set Fl = FSO.CreateTextFile("d:\address.txt", True)
+
+	Keys = DictAddress.keys
+
+	For Each key In keys
+		fl.writeline key & ";" & dictAddress(key)
+	Next
+
+	fl.close
+End If
+
+stop
+Set Ol = Nothing

@@ -1,0 +1,32 @@
+Option Explicit
+
+Sub HL74_CopyDocs
+	Dim i, Op, Mtr
+
+	With Workarea.Site.Selected
+		If .Count > 0 Then
+
+			Set Mtr = Meter()
+			Mtr.Open "Копирование операций ...", i, .Count
+
+			For i = 1 To .Count
+				Mtr.Pos = i
+				With .Item(i)
+					Set Op = .Clone(1 + 2 + 4 + 8)
+					Op.Done = False
+					Op.Save 8 + 16
+					Op.SetExtraData .GetExtraData
+				End With
+			Next
+
+			Mtr.Close
+
+			MsgBox "Скопировано операций: "& .Count, vbInformation, "Копирование операций"
+		End If
+	End With
+
+End Sub
+
+Sub HL74_SelectedCheck
+	Workarea.Map("IsEnabled") = (workarea.site.selected.count > 0)
+End Sub

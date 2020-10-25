@@ -1,0 +1,131 @@
+Option Explicit
+
+Const cdlOFNAllowMultiselect = &H200
+Const cdlOFNCreatePrompt = &H2000
+Const cdlOFNExplorer = &H80000
+Const cdlOFNExtensionDifferent = &H400
+Const cdlOFNFileMustExist = &H1000
+Const cdlOFNHelpButton = &H10
+Const cdlOFNHideReadOnly = &H4
+Const cdlOFNLongNames = &H200000
+Const cdlOFNNoChangeDir = &H8
+Const cdlOFNNoDereferenceLinks = &H100000
+Const cdlOFNNoLongNames = &H40000
+Const cdlOFNNoReadOnlyReturn = &H8000
+Const cdlOFNNoValidate = &H100
+Const cdlOFNOverwritePrompt = &H2
+Const cdlOFNPathMustExist = &H800
+Const cdlOFNReadOnly = &H1
+Const cdlOFNShareAware = &H4000
+
+'---
+'
+'---
+Function OpenFileRead(ByRef FilePath, ByVal InitialDir, FileExt, FileExtDescr, Caption)
+	Dim FileDlg, RD, aPath
+
+	If InitialDir = "" Then
+		InitialDir = GetInitialDir(FileExt)
+	End If
+	
+	Set FileDlg = CreateLibObject("FileDialog")
+	FileDlg.Caption = Caption
+	FileDlg.FileMustExists = True
+	FileDlg.InitialDir = InitialDir
+	FileDlg.Filter = FileExtDescr & "|" & FileExt & "|Все файлы (*.*)|*.*"
+
+	If FileDlg.ShowOpen = vbOK Then
+		FilePath = FileDlg.PathName
+	Else
+		FilePath = ""
+	End If
+
+	OpenFileRead = (FilePath <> "")
+
+End Function
+'---
+'
+'---
+Function OpenFileSave(ByRef FilePath, ByVal InitialDir, FileExt, FileExtDescr, Caption)
+	Dim FileDlg
+
+	If InStr(FilePath, "\") <> 0 And InitialDir = "" Then
+		InitialDir = Left(FilePath, InStrRev(FilePath, "\"))
+	End If
+
+	Set FileDlg = CreateLibObject("FileDialog")
+	FileDlg.Caption = Caption
+	FileDlg.FileMustExists = False
+	FileDlg.InitialDir = InitialDir
+	FileDlg.DefaultName = FilePath
+	FileDlg.Filter = FileExtDescr & "|" & FileExt & "|Все файлы (*.*)|*.*"
+
+	If FileDlg.ShowSave = vbOK Then
+		FilePath = FileDlg.PathName
+	Else
+		FilePath = ""
+	End If
+
+	OpenFileSave = (FilePath <> "")
+
+End Function
+'---
+'
+'---
+Function GetInitialDir(FileMask)
+	Dim RD, DirPath, aPath
+
+	Set RD = CreateLibObject("Redirect")
+	aPath = RD.GetPathArray(FileMask)
+
+	If UBound(aPath) <> -1 Then
+		DirPath = aPAth(0)
+		If Right(DirPath, 1) <> "\" Then DirPath = DirPath & "\"
+		GetInitialDir = DirPath
+	Else
+		GetInitialDir = ""
+	End If
+
+End Function
+'---
+' требует comdlg32.ocx
+'---
+Function OpenFileReadMulti(ByRef aFiles, ByVal InitialDir, FileExt, FileExtDescr, Caption)
+	Dim FileDlg, RD, aPath
+
+	On Error Resume Next
+
+	If InitialDir = "" Then
+		InitialDir = GetInitialDir(FileExt)
+	End If
+	
+	Set FileDlg = CreateObject("MSComDlg.CommonDialog")
+
+	If Err.Number = 0 Then
+		FileDlg.DialogTitle = Caption
+		FileDlg.InitDir = InitialDir
+		FileDlg.Filter = FileExtDescr & "|" & FileExt & "|Все файлы (*.*)|*.*"
+
+		'FileDlg.FilterIndex = 2
+		FileDlg.Flags = 2621952
+		FileDlg.MaxFileSize =32000
+
+		FileDlg.ShowOpen
+
+		If FileDlg.Filename <> "" Then
+			aFiles = Split(FileDlg.Filename, vbNullChar)
+		Else
+			aFiles = Array()
+		End If
+	Else
+		MsgBox "Для работы модуля требуется установить контрол MSComDlg.CommonDialog на этом компьютере.", vbExclamation, "Диалог выбора файлов"
+		aFiles = Array()
+	End If
+
+	OpenFileReadMulti = (UBound(aFiles) <> -1)
+
+End Function
+
+'---
+'
+'---

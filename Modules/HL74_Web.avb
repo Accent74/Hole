@@ -1,0 +1,17 @@
+Option Explicit
+
+Sub HL74_OnShowWebTab
+	Dim Agid, Ag
+
+	AgID = CLng(workarea.map("KindID"))
+	Workarea.Map("Result") = False
+
+	If AgID <> 0 Then
+		Set Ag = Workarea.Agent(AgID)
+		If InStr(UCase(Ag.Name), "ÈÌÏÀÊÒ") <> 0 Then
+			Workarea.Map("WebTabURL") = "http://www.accent.ua"
+			Workarea.Map("Result") = True
+		End If
+	End If
+	
+End Sub

@@ -1,0 +1,43 @@
+<AccentExportData><AccentOperations/><AccentFolders><folder ID="528" GUID="{guid {892E10F5-299B-49F5-921A-E7A8D6334712}}" Name="Кадры" FormID="0" Tag="" TID="0" Type="0"><folder ID="536" GUID="{guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}" Name="3. Ведомость начисления заработной платы" FormID="0" Tag="" TID="0" Type="0"/></folder></AccentFolders><AccentTemplates><template GUID="{guid {25836D39-7D62-4A3D-9199-6FBA5303B8FF}}" ID="1818" Memo="" Name="Кадры" Tag="" Type="0" Script=""><template GUID="{guid {49DC4171-90CA-4641-B6A7-371B7C92204F}}" ID="1830" Memo="" Name="Кадры. Заработная плата" Tag="" Type="0" Script=""><template GUID="{guid {DE203DE0-25EE-4419-979D-78F08E88E0EE}}" ID="1831" Memo="" Name="Кадры. Заработная плата. Начисления" Tag="" Type="0" Script=""><template GUID="{guid {97F95299-F6D3-4049-9F64-A9C23B145168}}" ID="1832" Memo="" Name="Кадры. Заработная плата. Начисление по окладу" Tag="" Type="1" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 801
+  op.SetFolder 536
+  op.Name = &quot;Кадры. Заработная плата. Начисление по окладу&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 321
+  '--Объекты учета--
+  op.TransList(1).SetEnt 715
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+"><parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="6/24/2015 8:22:56 PM"/></parameters></template></template></template></template></AccentTemplates><AccentEntities><entity ID="376" GUID="{guid {5E6E0FFE-CEAE-11D5-8141-0002440B6A16}}" Art="" Bar="" Cat="" Name="Налоги и сборы" Nom="" Tag="SYS376" Type="0" Memo="" UnSelf="Ложь" UnitID="0"><entity ID="715" GUID="{guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}" Art="" Bar="" Cat="" Name="Начисления по з\плате" Nom="" Tag="" Type="1002" Memo="" UnSelf="Ложь" UnitID="0"/></entity></AccentEntities><AccentMiscs><misc ID="152" GUID="{guid {6E6DBBB7-8BE0-446B-BA3F-90A6B2C9640C}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Штатное расписание" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"><misc ID="154" GUID="{guid {83B5F756-FFE9-4B36-AE1C-8EB710EA5DCC}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Администрация" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0"><misc ID="155" GUID="{guid {02F9FFAD-C74E-42A6-A63B-5174BF88E7AF}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Бухгалтер" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/><misc ID="153" GUID="{guid {E3A7BE15-C462-4049-9910-C7A6FF8C209D}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Директор" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/></misc></misc></AccentMiscs><AccentAgents/><AccentBanks/><AccentAccounts><account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo=""><account ID="320" GUID="{guid {3272D4AD-F79F-45B9-BAB4-E8A116385B79}}" Code="66" Name="Расчеты по оплате труда" PlanID="70" SaldoType="0" Tag="SYS320" Type="2" Memo=""><account ID="321" GUID="{guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}" Code="661" Name="Расчеты по заработной плате" PlanID="70" SaldoType="0" Tag="SYS321" Type="1" Memo=""/></account></account></AccentAccounts><AccentUnits/><AccentCurs/><parameters><parameter Name="Показать диалог приветствия" Type="3" RefKind="0" Value2="-1"/></parameters><AccentForms><form ANID="0" FileName="HL74_PayRoll.afm" ID="801" Name="Кадры. Ведомость начислений" ShortName="" Tag="" Type="0" TypeName="ProjectItem"/></AccentForms></AccentExportData>

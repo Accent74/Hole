@@ -1,0 +1,302 @@
+Option Explicit
+
+'#include "HL74_XML.avb"
+'#include "HL74_ADO.avb"
+
+Const HL74_PARAM_FILE_NAME = "HL74_Params.xml"
+Const MSG_BOX_CAPTION = "Проверка целостности решения"
+
+'---
+'
+'---
+Sub HL74_CheckParams
+	Dim oXml
+
+	Set oXml = New XML
+
+	If oXML.Create() Then	
+		oXml.FileName = HL74_PARAM_FILE_NAME
+
+		If oXml.Load() Then
+			If Not CheckParams(oXml.xml.documentElement.selectNodes("/config").item(0)) Then
+				MsgBox "В процессе проверки выявлены ошибки" & vbNewLine & _
+							"Программа может работать не корректно" & vbNewLine & _
+							"Обратитесь в службу поддержки.", vbExclamation, MSG_BOX_CAPTION
+			End If
+		End If
+	End If
+
+	If oXml.ErrorMsg <> "" Then
+		MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+	End If
+End Sub
+'---
+'
+'---
+Function CheckParams(xmlRoot)
+	Dim i, IsError, Mtr
+
+	IsError = False
+
+	With xmlRoot.ChildNodes
+		Set Mtr = Meter
+		Mtr.Open MSG_BOX_CAPTION & "...", 0, .Length - 1
+
+		For i = 0 To .Length - 1
+			Mtr.Pos = i
+			With .Item(i)
+				Select Case .nodename
+					Case "agentparams"
+						CheckKindParams "ag", .ChildNodes, IsError
+					Case "agentfacts"
+						CheckKindFacts "ag", .ChildNodes, IsError
+					Case "entparams"
+						CheckKindParams "ent", .ChildNodes, IsError
+					Case "entfacts"
+						CheckKindFacts "ent", .ChildNodes, IsError
+					Case "accparams"
+						CheckKindParams "acc", .ChildNodes, IsError
+					Case "dbfacts"
+						CheckKindFacts "db", .ChildNodes, IsError
+					Case "dbparams"
+						CheckKindParams "db", .ChildNodes, IsError
+					Case "formparams"
+						CheckKindParams "frm", .ChildNodes, IsError
+					Case "transparams"
+						CheckKindParams "jrn", .ChildNodes, IsError
+					Case "tmlparams"
+						CheckKindParams "tml", .ChildNodes, IsError
+					Case "bindparams"
+						CheckKindParams "bind", .ChildNodes, IsError
+					Case "opparams"
+						CheckKindParams "doc", .ChildNodes, IsError
+				End Select
+			End With
+
+			If IsError Then
+				CheckParams = False
+				Exit Function
+			End If
+		Next
+
+		Mtr.Close
+	End With
+
+	CheckParams = True
+End Function
+'---
+'
+'---
+Function GetEnumGrpID(enName)
+	Dim aData, SQL
+
+	GetEnumGrpID = "null"
+
+	SQL = "select enn_id from enum_names where enn_name='" & enName & "'"
+
+	If GetRs2(SQL, aData) Then
+		GetEnumGrpID = "'" & aData(0, 0) & "'"
+	End If
+
+End Function
+'---
+'
+'---
+Sub CheckKindFacts(Kind, xmlRoot, ByRef IsError)
+	Dim i, Rs, tblName, fctName, fctType, fctKind, fctRef, fctRefID, fctValue, fctValueGUID
+	Dim SQL, ErrorMsg, fctOnDate, fctRefName
+
+	For i = 0 To xmlRoot.Length - 1
+		With xmlRoot.Item(i)
+			fctName = .GetAttribute("name")
+			fctType = .GetAttribute("type")
+			fctKind = .GetAttribute("nodetype")
+			fctRef = checknull(.GetAttribute("refkind"), "null")
+			fctOnDate = .GetAttribute("ondate")
+			fctValue = checknull(.GetAttribute("value"), "")
+			fctValueGUID = checknull(.GetAttribute("valueguid"), "")
+			fctRefName = checknull(.GetAttribute("value"), "")
+
+			If fctRef = "18" Then
+				fctRefID = GetEnumGrpID(fctRefName)
+			ElseIf fctRefID = "" Then
+				fctRefID = "null"
+			End If
+
+			tblName = kind & "_fact_names"
+			SQL = "select fa_id from " & tblName & " where fa_name='" & fctName & "' and fa_type=" & fctType & " and node_type=" & fctKind 
+			Set Rs = GetRs(SQL)
+
+			If rs.eof Then
+				SQL = "insert into " & tblName & " (fa_name, fa_type, node_type, fa_ref, fa_refid) values ("
+				SQL = SQL & "'" & fctName & "'," & fctType & "," & fctKind & "," & iif(fctRef="", "null", fctRef) & "," & iif(fctRefID="", "null", fctRefID) & ")"
+
+				If ExecQuery(SQL, ErrorMsg) = 0 Then
+					If fctValueGUID <> "" And fctRef <> "" Then
+						If Kind = "db" Then
+							Workarea.facts.refresh
+							Workarea.facts(fctOnDate).Item(fctName).Value = GetIDByGUID(CLng(fctRef), fctValueGUID)
+						End If
+					ElseIf fctValue <> "" Then
+						If Kind = "db" Then
+							Workarea.facts.refresh
+
+							Select Case fctRef
+								Case "5"
+									Workarea.Facts(fctOnDate).Item(fctName).Value = GetMiscValue(fctValue)
+								Case "18" 
+									Workarea.Facts(fctOnDate).Item(fctName).Value = GetEnumValue(fctValue)
+								Case Else 
+									Workarea.Facts(fctOnDate).Item(fctName).Value = fctValue
+							End Select
+						End If
+					End If
+				Else
+					MsgBox "Ошибка добавления факта:" & fctName & " kind:" & Kind & vbNewLine & ErrorMsg, vbCritical, MSG_BOX_CAPTION
+					IsError = True
+					Exit Sub
+				End If
+			End If
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Sub CheckKindParams(Kind, xmlRoot, ByRef IsError)
+	Dim i, Rs, tblName, prmName, prmType, prmKind, prmRef, prmRefID, prmValue, prmValueGUID
+	Dim SQL, ErrorMsg, prmGuid, prmRefName
+
+	For i = 0 To xmlRoot.Length - 1
+		With xmlRoot.Item(i)
+			prmName = .GetAttribute("name")
+			prmType = .GetAttribute("type")
+			prmKind = .GetAttribute("nodetype")
+			prmRef = checknull(.GetAttribute("refkind"), "null")
+			prmValue = checknull(.GetAttribute("value"), "")
+			prmRefName = checknull(.GetAttribute("value"), "")
+			prmGuid = .GetAttribute("guid")
+			prmValueGUID = checknull(.GetAttribute("valueguid"), "")
+
+			If prmRef = "" Then
+				prmRefID = ""
+			ElseIf prmRef = "18" Then
+				prmRefID = GetEnumGrpID(prmRefName)
+			End If
+
+			If prmGuid = "" And App.AppType = "DAO" Then 
+				prmGuid = createlibObject("WinAPI").NewGuid
+			End If
+
+			tblName = kind & "_param_names"
+			SQL = "select prm_id from " & tblName & " where prm_name='" & prmName & "' and prm_type=" & prmType& " and node_type=" & prmKind 
+			Set Rs = GetRs(SQL)
+
+			If rs.eof Then
+				SQL = "insert into " & tblName & " (prm_name, prm_type, " & iif(prmGuid <> "" Or App.AppType = "DAO", "prm_guid,", "") & " node_type, prm_ref, prm_refid) values ("
+				SQL = SQL & "'" & prmName & "'," & prmType & iif(prmGuid <> "" Or App.AppType = "DAO", ",'" & prmGuid & "'", "") & "," & prmKind & "," & iif(prmRef="", "Null", prmRef) & "," & iif(prmRefID="", "Null", prmRefID) & ")"
+
+				If ExecQuery(SQL, ErrorMsg) = 0 Then
+					If prmRef <> "" And prmValueGUID <> "" Then
+						If Kind = "db" Then
+							Workarea.Params.refresh
+							Workarea.Params(prmName).Value = GetIDByGUID(CLng(prmRef), prmValueGUID)
+						End If
+					ElseIf prmValue <> "" Then
+						If Kind = "db" Then
+							Workarea.Params.refresh
+
+							Select Case prmRef
+								Case "5"
+									Workarea.params.Item(prmName).Value = GetMiscValue(prmValue)
+								Case "18" 
+									Workarea.params.Item(prmName).Value = GetEnumValue(prmValue)
+								Case Else 
+									Workarea.params.Item(prmName).Value = prmValue
+							End Select
+						End If
+					End If
+				Else
+					MsgBox "Ошибка добавления параметра:" & prmName & " kind:" & Kind & vbNewLine & ErrorMsg, vbCritical, MSG_BOX_CAPTION
+					IsError = True
+					Exit Sub
+				End If
+			End If
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Function GetIDByGUID(kind, GUID)
+	Dim SQL, aData
+
+	GetIDByGUID = 0
+
+	Select Case kind
+		Case acAccount
+			SQL = "select acc_id from accounts where acc_guid like '" & guid & "'"
+		Case acMisc
+			SQL = "select msc_id from misc where msc_guid like '" & guid & "'"
+		Case acCurs
+			SQL = "select cur_id from currencies where cur_guid like '" & guid & "'"
+		Case acEntity
+			SQL = "select ent_id from entities where ent_guid like '" & guid & "'"
+		Case acAgent
+			SQL = "select ag_id from agents where ag_guid like '" & guid & "'"
+		Case acForm
+			SQL = "select frm_id from forms where frm_guid like '" & guid & "'"
+		Case acFolder
+			SQL = "select fld_id from folders where fld_guid like '" & guid & "'"
+		Case acTemplate
+			SQL = "select tml_id from templates where tml_guid like '" & guid & "'"
+		Case acBinder
+			SQL = "select bind_id from binders where bind_guid like '" & guid & "'"
+		Case 18			' enums
+			SQL = "select enn_id from enum_names where enn_name like '" & guid & "'"			
+		Case Else
+			SQL = ""
+	End Select
+
+	If SQL <> "" Then
+		If GetRs2(sql, aData) Then
+			GetIDByGUID = adata(0, 0)
+		End If
+	End If
+	
+End Function
+'---
+'
+'---
+Function GetMiscValue(MscName)
+	Dim aData, SQL
+
+	GetMiscValue = 0
+
+	If MscName <> "" Then
+		SQL = "select top 1 msc_id from misc where msc_type = -1 and msc_name like '" & MscName & "'"
+
+		If GetRs2(SQL, aData) Then		
+			GetMiscValue = aData(0, 0)
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetEnumValue(EnumName)
+	Dim En
+
+	GetEnumValue = 0
+	Set En = Workarea.Enum(EnumNAme)
+	
+	If Not En Is Nothing Then
+		If En.Count > 0 Then
+			GetEnumValue = En.ItemID(1)
+		End If
+	End If
+End Function
+'---
+'
+'---

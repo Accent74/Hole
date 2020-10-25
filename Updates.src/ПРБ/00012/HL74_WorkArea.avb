@@ -1,0 +1,714 @@
+Option Explicit
+
+'#include "HL74_Welcome.avb"
+'#include "HL74_ADO.avb"
+
+Const prmAgree	=	"Договора"
+
+'-------
+'
+'-------
+Sub HL74_OnProperties
+	Dim Dlg, MscAgreeID, msc, mscAgreeNo, mscno 		 	
+	Dim Kind, KindID, Lock
+
+	Kind = workarea.map("Kind")
+	KindID = workarea.map("KindID")
+	Lock = workarea.map("Result")
+
+	If CreateLibObject("WinAPI").GetKeyState(16) Or Lock Then Exit Sub ' 16 - acShift
+
+	Set Dlg = Nothing
+
+	Select Case Kind
+		Case acAgent
+			Select Case WorkArea.Agent(KindID).Type
+				Case 3 
+					'Set Dlg = App.CreateDialog("HL74_WorkerData.adg")
+				Case 5
+					'WorkArea.map("MyCompanyID") = KindID
+					'App.RunModule "HL74_MCProps.avb"
+					'Lock = True
+			End Select
+
+		Case acEntity
+
+		Case acMisc
+			MscAgreeID = Workarea.Params(prmAgree).value2
+
+			If MscAgreeID <> 0 Then
+				mscAgreeNo = Workarea.Misc(MscAgreeID).MscNo
+ 			End If
+
+			Set Msc = Workarea.Misc(KindID)
+
+			If Msc.Type > 0 Then
+				If Msc.MscNo = mscAgreeNo Then	
+					Set Dlg = App.CreateDialog("HL74_AgreeProps.adg")
+					Dlg.Map("IsNew") = False
+				End If
+			End If
+
+	End Select
+
+	If Not Dlg Is Nothing Then
+		Dlg.Map("KindID") = KindID
+		Dlg.DoModal
+		Lock = True
+	End If
+
+	workarea.map("Result") = Lock
+End Sub
+
+'-------
+'
+'-------
+Sub HL74_AfterCreate
+	Dim TextScript, Kind, KindID
+	Dim Dlg, wap
+	Dim MscAgreeID
+
+	Kind = workarea.map("Kind")
+	KindID = workarea.map("KindID")
+
+	Select Case Kind
+		Case acTemplate
+			With WorkArea.Template(KindID)
+				If .Type <> 0 Then
+					TextScript = .GetScript
+
+						If InStr(TextScript, "{{ BEGIN_BEFORESAVE") = 0 Then
+							TextScript = TextScript & vbCrLf
+							TextScript = TextScript & _
+														"Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)"& vbCrLf & _
+														"  '{{ BEGIN_BEFORESAVE" & vbCrLf & _
+														"  '}} END_BEFORESAVE" & vbCrLf & _
+														"	If not Workarea.Map(""OpTagEval"") then exit Sub" & vbCrLf & _
+														" 	With Workarea.Template(Op.TemplateID)" & vbCrLf & _
+														"		If .Memo <> """" Then Op.Tag = Eval(.Memo)" & vbCrLf & _
+														" 	End With" & vbCrLf & _
+														"End Sub"& vbCrLf
+							.SetScript TextScript
+							.Save
+						End If
+				End If
+			End With
+
+		Case acEntity	
+'			With WorkArea.Entity(KindID)
+'				If (.Type > 1005 And .Type < 1014) Or .Type > 1017 Then
+'					Set Dlg = App.CreateDialog("HL74_AssetsProps.adg")
+'					Dlg.Map("KindID") = KindID
+'					Dlg.DoModal
+'				End If
+'			End With
+
+		Case acAgent
+
+		Case acMisc
+			MscAgreeID = Workarea.Params(prmAgree).value2
+
+			If MscAgreeID <> 0 Then
+				With Workarea.Misc(KindID)
+					If .Type > 0 Then
+						If Workarea.Misc(MscAgreeID).MscNo = .MscNo Then
+							Set Dlg = App.CreateDialog("HL74_AgreeProps.adg")
+							Dlg.Map("KindID") = KindID
+							Dlg.Map("IsNew") = True
+							Dlg.DoModal
+						End If
+					End If
+				End With
+			End If
+
+	End Select
+End Sub
+'-------
+'
+'-------
+Sub HL74_TemplateProps
+	With App.CreateDialog("HL74_TemplateProps2.adg")
+		.Map("KindID") = WorkArea.Site.ID
+		.DoModal
+	End With
+End Sub
+'-------
+'
+'-------
+Sub HL74_OnLoad
+	Dim Ver
+	Dim cVerBase
+	Dim cVerBuild
+
+	Set Workarea.Map.Item("XMLHTTP") = CreateObject("Msxml2.XMLHTTP")
+	Ver = WorkArea.UserParam("CONFIG_VERSION1")
+
+	If IsNull(Ver) Then Exit Sub
+	Ver = String(3 - Len(Ver), "0") & Ver
+
+	SetWorkAreaMap cVerBase
+
+	With WorkArea.Window
+		.Caption = "Акцент " & token(App.Version, 1, ".") & "." & token(App.Version, 2, ".") & " : " & .Title & " - " & workarea.userparam("CONFIG_DESCRIPTION1") & " [ версия " & Ver & " ]"
+	End With
+
+	Select Case TestExtensions()
+		Case 1
+			MsgBox "В пути доступа к файлам были внесены изменения." & vbCrLf & _
+						"Для дальнейшей нормальной работы программы необходимо ее перезапустить.", vbExclamation, "Внимание !"
+		Case 0 
+	'		If IsFileExists("folders.htm") Then 
+				WorkArea.Assistant.Navigate "folders.htm"
+	'		End If
+		Case -1
+			MsgBox "Программа не смогла изменить файл с настройками путей доступа" & vbNewLine & _
+						"Возможна ее некорректная работа в дальнейшем." & vbNewLine & _
+						"Устраните проблему и перезагрузите программу снова", vbExclamation, "Обновление путей доступа к файлам"
+	End Select
+
+	'Если не установлен план счетов по умолчанию, то выдавать ошибку
+	If Workarea.DefPlanID = 0 Then
+		MsgBox "Установите в свойствах базы данных 'Основной план счетов'", vbCritical, "Не задан основной план счетов"
+	End If
+
+	If WorkArea.Params("Показать диалог приветствия").Value2 = 0 Then Welcome
+
+	If CheckForUpdates() Then
+		App.RunModule "HL74_CheckUpdates.avb", "CheckUpdates"
+		App.RunModule "HL74_updatesload.avb", "main"
+	End If
+
+	App.RunModule "HL74_CheckParams.avb", "HL74_CheckParams"
+
+End Sub
+'-------
+'
+'-------
+Function CheckForUpdates()
+	Dim EnID, Check
+
+	EnID = workarea.params("Проверять обновления").value2
+	
+	Check = False
+ 	If EnID <> 0 Then Check = UCase(Workarea.Enum("Логика").ItemNameID(EnID)) = "ДА"
+	If Check Then Check = IsUserInGroup("Admins")
+
+	CheckForUpdates = Check
+
+End Function
+'-------
+'
+'-------
+Function IsUserInGroup(ByRef GroupName)
+	Dim i, aGroups
+
+	aGroups = workarea.UserGroups
+
+	If UBound(aGroups) = -1 Then
+		IsUserInGroup = True
+		Exit Function
+	End If
+
+	GroupName = UCase(GroupName)
+
+	For i = 0 To UBound(aGroups)
+		If GroupName = UCase(aGroups(i)) Then
+			IsUserInGroup = True
+			Exit Function
+		End If
+	Next
+
+	IsUserInGroup = False
+
+End Function
+'-------
+'
+'-------
+Function TestExtensions()
+	Dim Rd, aPath, i, cmd, buffer
+	Dim Mask, AddToARD, Path2Mask
+	Dim shell, sys, ArdFile, ArdFileName, ArdFilePath, ArdFilePathNew, FSO
+
+	TestExtensions = 0
+
+	Mask = Array("*.bmp", "*.gif", "*.sql", "*.htm", "*.xml", "*.backup", "*.htm", "*.zip")
+	Path2Mask = Array("html\images", "html\images", "scripts", "html", "xml", "data\Backup", "help", "updates")
+	Set RD = CreateLibObject("Redirect")
+	AddToARD = ""
+
+	For i = 0 To UBound(Mask)
+		aPath =	RD.GetPathArray(Mask(i))
+
+		If UBound(aPath) = -1 Then
+			AddToARD = AddToARD & Mask(i) & "=#data\..\" & Path2Mask(i) & vbCrLf
+		End If
+	Next
+
+	If AddToARD <> "" Then
+		ArdFileName = ArdFName()
+		ArdFilePath = RD.AppPath & ArdFileName
+		ArdFilePathNew = RD.DBPath & ArdFileName
+
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set ArdFile = FSO.OpenTextFile(ArdFilePath, 1)
+		buffer = ArdFile.readAll
+		ArdFile.Close
+
+		buffer = buffer & vbCrLf & AddToARD
+
+		Set ArdFile = FSO.CreateTextFile(ArdFilePathNew, True)
+		ArdFile.Write buffer
+		ArdFile.Close
+
+		Set Shell = CreateObject("Shell.Application")
+		cmd = "/c copy " & Chr(34) & ArdFilePathNew & Chr(34) & " " & Chr(34) & ArdFilePath & Chr(34)
+		Shell.ShellExecute "cmd", cmd, RD.DBPath, "runas", 1
+	
+		Set ArdFile = Nothing
+		Set FSO = Nothing
+		Set RD = Nothing
+
+		TestExtensions = 1
+	End If
+
+End Function
+
+'-------
+'
+'-------
+Sub SetWorkAreaMap(cVerBase)
+	Dim a, IsTagOp
+
+	With WorkArea
+		.Map("HelpFile") = "HL74_" & cVerBase & ".chm"
+		a = .Params("Экспорт в Excel через HTML").Value
+		If Not IsNull(a) Then .Map("Export2ExcelViaHTML") = ( UCase(.Enum("Логика").ItemNameID(a)) = "ДА" )
+
+		IsTagOp = .Params("Формировать признак документа по шаблону").Value2
+
+		If IsTagOp <> 0 Then
+			.Map("OpTagEval") = (.Enum("Логика").ItemNameID(IsTagOp) = "Да")
+		Else
+			.Map("OpTagEval") = False
+		End If
+
+		LoadTmlCash
+
+	End With
+End Sub
+
+'-------
+'
+'-------
+Sub DoModalMCPropsDlg
+	Dim PropSheet
+
+	Set PropSheet = App.CreatePropSheet
+
+	With PropSheet
+		.Caption = "Установите параметры предприятия Моя фирма"
+		.WizardMode = False
+
+		.AddPage "HL74_MC_1.adg"
+		.AddPage "HL74_MC_2.adg"
+		.AddPage "HL74_MC_3.adg"
+
+		.DoModal
+	End With
+End Sub
+'-------
+'
+'-------
+Sub HL74_CanToTrash
+	Dim i, ID
+
+	ID = Workarea.Map("KindID")
+
+	With WorkArea.Operation(ID)
+		With .Linked
+			If .Count = 0 Then
+				Workarea.Map("Result") = False
+			Else
+				If MsgBox("Удаляемая хозяйственная операция имеет дочерние хозяйственные операции." & vbCrLf & _
+								"Продолжить операцию удаления ?", vbExclamation + vbOKCancel, "Внимание !") = vbOK Then
+
+					For i = 1 To .Count
+						.Item(i).LinkTo 0
+					Next
+
+					Workarea.Map("Result") = False					
+				Else
+					Workarea.Map("Result") = True
+				End If
+			End If
+		End With
+	End With
+
+End Sub
+'--------------
+'
+'--------------
+Sub HL74_OnTemplateScriptChanged
+	Dim IsChanged, TmlCashe
+	Dim ID
+
+	ID = Workarea.Map("KindID")
+
+	With WorkArea.Template(ID)
+		If .Type <> 0 Then
+			If InStr(.GetScript, "Name2") <> 0 Then
+				.SetScript Replace(.GetScript, "Name2", "Name")
+			End If
+
+			IsChanged = False
+			.SetScript TestTemplate(.GetScript, .ID, IsChanged)
+
+			If .Params.Exists("Изменен") Then .Params("Изменен").Value = Now
+			.Save
+
+			If "SYS" = Left(.Tag, 3) Then 
+				If MsgBox("Вы вносите изменения в системный шаблон !" & vbCrLf & _
+							"Последующие обновления могут изменить этот шаблон." & vbCrLf & _
+							"Сбросить признак системного шаблона ?", vbCritical + vbYesNo, "Акцент " & App.Version) = vbYes Then
+					.Tag = ""
+					.Save
+				End If
+			End If
+
+			If Workarea.Map.Exists("TmlCashe") Then
+				Set TmlCashe = Workarea.Map.Item("TmlCashe")
+
+				If Not TmlCashe.Exists(ID) Then
+					TmlCashe.Add ID, UCase(.GetScript)
+				Else
+					TmlCashe.Item(ID) = UCase(.GetScript)
+				End If
+
+				Set Workarea.Map.Item("TmlCashe") = TmlCashe
+			End If
+		End If
+	End With
+End Sub
+'-------
+'
+'-------
+Function TestTemplate(TmlScript, TmlID, ByRef IsChanged)
+	Dim FuncArray, CmdArray, TrNoArray
+	Dim i, j, Pos, Arg, TrNo, Op
+	
+	IsChanged = False
+	TestTemplate = TmlScript
+	If InStr(TmlScript, "BEGIN_BEFORESAVE") = 0 Then Exit Function
+
+	FuncArray = Array("MAKESERIES2", "CALCTAX", "CALCGROSS", "CHARGEOFF2", "RETURNTO", "RETURNFROM")
+	CmdArray = Split(TmlScript, vbCrLf)
+
+	Set Op = WorkArea.CreateOperation
+	Op.TemplateID = TmlID
+	Op.TemplateInvoker2.FireOnEdit
+
+	For i = 0 To UBound(CmdArray)
+		For j = 0 To UBound(FuncArray)
+			Pos = InStr(UCase(CmdArray(i)), FuncArray(j) & "(")
+
+			If Pos <> 0 Then
+				Arg = Mid(CmdArray(i), Pos)
+				Pos = InStr(Arg, ")")
+				Arg = Left(Arg, Pos)
+				TrNo = CLng(Replace(Token(Arg, 2, ","), ")",""))
+			
+				If TrNo > Op.TransCount Then 
+					CmdArray(i) = ""
+					IsChanged = True
+				ElseIf j <> 0 Then
+					TrNo = CLng(Token(Arg, 3, ","))
+					If TrNo > Op.TransCount Then 	
+						CmdArray(i) = ""
+						IsChanged = True
+					End If
+				End If
+			End If
+		Next
+	Next
+
+	If IsChanged Then TestTemplate = Join(CmdArray, vbCrLf)
+
+End Function
+'-------
+'
+'-------
+Sub SetupAssistant(Kind, KindID)
+	Dim HTMLPages
+
+	HTMLPages = Array("folders.htm", "accounts.htm", "agents.htm", "entities.htm", "miscs.htm", "binders.htm", "templates.htm")
+
+	If (Kind - 1) <= UBound(HTMLPages) Then
+		With WorkArea.Assistant
+			If .Visible Then 
+				.Navigate HTMLPages(Kind - 1)
+				.HTMLDocument.execCommand("refresh")
+			End If
+		End With
+	Else
+		WorkArea.Assistant.Visible = False
+	End If
+
+End Sub
+'-------
+'
+'-------
+Sub HL74_CanDelete
+	Dim aElems, Elem, TmlCashe
+	Dim Flag, TmlID
+	Dim RelatTestValue, RelatTest
+	Dim Kind, KindID
+	
+	Kind = workarea.map("Kind")
+	KindID = workarea.map("KindID")
+
+	aElems = Array("Folder", "Account", "Agent", "Entity", "Misc", "Binder", "Template")
+	Set Elem = Eval("WorkArea." & aElems(Kind - 1)& "(" & KindID & ")")
+
+	RelatTestValue = Workarea.Params("Проверять целостность шаблонов").Value2
+
+	If RelatTestValue = 0 Then 
+		RelatTest = "Нет"
+	Else
+		RelatTest = workarea.enum("Логика").itemnameid(RelatTestValue)
+	End If
+
+	Flag = (Left(Elem.Tag, 3) = "SYS")
+
+	If Flag Then 
+		MsgBox "Запрещено удалять системные элементы.", vbCritical, "Акцент 7.0"
+	ElseIf RelatTest = "Да" Then
+		If Kind = acTemplate Then
+			If Workarea.Map.Exists("TmlCashe") Then
+				Set TmlCashe = Workarea.Map.Item("TmlCashe")
+				If TmlCashe.Exists(KindID) Then 
+					TmlCashe.Remove KindID
+					Set Workarea.Map.Item("TmlCashe") = TmlCashe
+				End If
+			End If
+		Else
+			If Not WorkArea.Map.Exists("TmlCashe") Then LoadTmlCash
+
+			TmlID = IsCanDelete(Kind, KindID)
+			If TmlID <> 0 Then 
+				If MsgBox("Удаляемый элемент используется в шаблоне. Перейти на шаблон ?", vbCritical + vbOKCancel, "Акцент 7.0") = vbOK Then
+				 Hyperlink.Navigate "", "Main!Template=" & CStr(TmlID)
+				End If
+				Flag = True
+			Else
+				Flag = False
+			End If
+		End If
+	End If
+
+	Workarea.Map("Result") = Flag
+
+End Sub
+'-------
+'
+'-------
+Sub HL74_BeforeClose
+	Dim DoBackup
+	Dim LastBackUP
+	Dim BackUpMode
+
+	If IsNull(Workarea.UserParam("BackUpMode")) Then 
+		Exit Sub
+	Else
+		BackUpMode = Workarea.UserParam("BackUpMode")
+	End If
+
+	If IsNull(Workarea.userparam("LAST_BACKUP")) Then
+		DoBackup = True
+	Else
+		LastBackUP = Workarea.userparam("LAST_BACKUP")
+
+		Select Case BackUpMode
+			Case 1
+				DoBackup = (formatdate2(CDate(LastBackUP), "yyyy/mm/dd") <> formatdate2(Now, "yyyy/mm/dd"))
+			Case 2
+				DoBackup = ((Now - LastBackUP) > 7)
+			Case 3
+				DoBackup = (Month(Now) <> Month(LastBackUP))
+		End Select
+
+	End If
+
+	If DoBackup Then App.RunModule "HL74_BackupDB.avb"
+
+End Sub
+
+'-------
+'
+'-------
+Sub HL74_OnChanged
+	Dim Kind, KindID
+
+	Kind = Workarea.Map("Kind")
+	KindID = Workarea.Map("KindID")
+
+	Select Case Kind
+		Case acAgent
+			With Workarea.Agent( KindID )
+				If ((.Type = 3) Or (.Type = 4)) And (.Code = "") And (.VatNo <> "") Then
+					.Code = .VatNo
+					.Save
+				End If
+			End With
+	End Select
+
+End Sub
+
+'-------
+'
+'-------
+Function SearchKindInTemplate(TmlCashe, Kind, KindID, Cmd)
+	Dim i
+	Dim tmlScr, SearchStr
+	Dim kindFind
+	Dim tmlID
+	Dim dKeys
+
+	dKeys = TmlCashe.Keys
+
+	For i = 0 To UBound(dKeys)
+		TmlScr = TmlCashe.Item(dKeys(i))
+
+		Select Case Kind
+			Case acAgent
+				SearchStr = cmd & "TO " & KindID
+				kindFind = (InStr(TmlScr, SearchStr) <> 0)
+				SearchStr = cmd & "FROM " & KindID
+				If Not kindFind Then kindFind = (InStr(TmlScr, SearchStr) <> 0)
+
+			Case acAccount
+				SearchStr = cmd & "CR " & KindID
+				kindFind = (InStr(TmlScr, SearchStr) <> 0)
+				SearchStr = cmd & "DB " & KindID
+				If Not KindFind Then kindfind = (InStr(TmlScr, SearchStr) <> 0)
+
+			Case Else
+				SearchStr = cmd & " " & KindID
+				kindFind = (InStr(TmlScr, SearchStr) <> 0)						
+		End Select
+	
+		If kindFind Then
+			If Not IsNumeric(CharAt(TmlScr, InStr(TmlScr, SearchStr) + Len(SearchStr))) Then
+				If Not WorkArea.Template(dKeys(i)) Is Nothing Then
+					SearchKindInTemplate = dKeys(i)
+					Exit Function
+				End If
+			End If
+		End If
+	Next
+	
+	SearchKindInTemplate = 0
+	
+End Function
+
+'-------
+'
+'-------
+Function IsCanDelete(Kind, KindID)
+	Dim aCommand
+	Dim TmlCashe
+
+	Set TmlCashe = WorkArea.Map.Item("TmlCashe")
+
+	If Kind > 4 Then 
+		IsCanDelete = 0
+	Else
+		aCommand = Array("", "SetFolder", "SetAcc", "SetAg", "SetEnt")
+		IsCanDelete = SearchKindInTemplate(TmlCashe, Kind, KindID, UCase(aCommand(Kind)))
+	End If
+
+End Function
+'-------
+'
+'-------
+Sub LoadTmlCash
+	Dim TmlCashe
+	Dim i, arr, flRows
+
+	Set TmlCashe = CreateObject("Scripting.Dictionary")
+	flRows = GetRs2("SELECT TML_ID, TML_SCRIPT FROM TEMPLATES WHERE TML_TYPE = 1", arr)
+
+	If flRows Then
+		For i = 0 To UBound( arr, 2 )
+			TmlCashe.Add arr( 0, i ), UCase( arr( 1, i ))
+		Next
+	End If
+
+	Set WorkArea.Map.Item("TmlCashe") = TmlCashe
+End Sub
+'-------
+' Function ArdFName - вернуть имя ard-файла для текущего приложения
+'-------
+Function ArdFName
+	Dim ver
+	Select Case Left( App.Version, 3 )
+	Case "6.0"
+		ver = "6"
+	Case "7.0"
+		ver = "7"
+	Case "7.4"
+		ver = "74"
+	End Select
+	ArdFName = App.AppName & ver & Iif( App.AppType = "DAO", "", "s" ) & ".ard"
+End Function
+'---
+'
+'---
+Sub HL74_DeleteElemRecursive
+	Dim KindName, Flag, Root
+
+	KindName = Workarea.Map("ATM_Kind")
+
+	With Workarea.Site
+		If KindName <> "" Then
+			Set Root = Eval(KindName)
+			If MsgBox("Удалить элемент '" &  Root.Name & "' и его дочерние ?", vbQuestion + vbOKCancel, "Внимание !") = vbOK Then
+				Flag = DeleteElemRecurse(Root.Children, .Kind)
+				If Flag Then
+					Flag = Workarea.RemoveElem(.Kind, .ID)
+				End If
+
+				If Not Flag Then
+					MsgBox "При удалении возникли ошибки", vbCritical, "Ошибка !"
+				End If
+
+				workarea.window.refresh
+			End If
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Function DeleteElemRecurse(Root, Kind)
+	Dim i, Flag
+	
+	Flag = True
+
+	For i = 1 To Root.Count
+		With Root.Item(i)
+			If .HasChildren Then
+				Flag = DeleteElemRecurse(.Children, kind)
+				If Not Flag Then Exit For
+			End If
+
+			Flag = Workarea.RemoveElem(Kind, .ID)
+		End With
+
+		If Not Flag Then Exit For
+	Next
+
+	DeleteElemRecurse = flag
+End Function
+'---
+'
+'---

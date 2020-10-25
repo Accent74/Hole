@@ -1,0 +1,51 @@
+Option Explicit
+
+	Dim WinHttp, XMLHTTP, json, dJson, sToken, sURL
+
+	Set XMLHTTP = GetXMLHTTP()
+
+
+	'sid = "cd2c32c7-4ef6-4adf-bb4f-54ad51dd3708"
+	sToken = "ff2c5bc5-f0bc-4db2-8be4-c0ce29c282b0"
+
+'	If sToken = "" Then 
+'		writelog "Не указан токен для счета"
+'		Exit Function
+'	End If
+'
+'	If sid = "" Then 
+'		writelog "Не указан id для счета"
+'		Exit Function
+'	End If
+
+	sURL = "https://vchasno.ua/api/v2/incoming-documents"
+
+	Call XMLHTTP.Open("GET", sURL, False)
+	Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
+	Call XMLHTTP.setRequestHeader("Authorization", sToken)
+
+	Call XMLHTTP.send(Nothing)
+
+	If err.number = 0 Then
+		If XMLHTTP.responseText <> "" Then 
+MsgBox XMLHTTP.responseText
+		Else
+		End If
+	Else
+	End If
+
+'---
+'
+'---
+Function GetXMLHTTP()
+	Dim XMLHTTP
+
+	On Error Resume Next
+	Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
+
+	If Err.Number <> 0 Then
+		Set XMLHTTP = Nothing
+	End If
+
+	Set GetXMLHTTP = XMLHTTP
+End Function

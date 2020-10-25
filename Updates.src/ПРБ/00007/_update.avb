@@ -1,0 +1,110 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	007
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "007"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub writelog(aParam, updater)
+	Dim Text
+
+	Text = formatdate2(Now, "dd-mm-yy hh:nn") & " " & Join(aParam)
+
+	If LogFile Is Nothing Then
+		updater.writelog Text
+	Else
+		LogFile.Writeline Text
+	End If
+End Sub
+'---
+'
+'---
+Function OpenLogFile(FileName)
+	Dim FSO, RD, FullPath, aPath
+
+	Set RD = CreateLibObject("Redirect")
+	aPath = RD.GetPathArray("*.aup")
+
+	If UBound(aPath) <> -1 Then
+		FullPath = aPath(0)
+		If Right(FullPath, 1) <> "\" Then FullPath = FullPath & "\"
+
+		FullPath = FullPath & FileName
+
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set OpenLogFile = FSO.OpenTextFile(FullPath, 8, True)
+	Else
+		Set OpenLogFile = Nothing
+	End If
+
+End Function
+'---
+'
+'---
+Function Getdbname()
+	If App.AppType = "OLEDB" Then
+		Getdbname = workarea.filename
+	Else
+		Getdbname = workarea.daodatabase.name
+	End If
+End Function
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If Not updater.fail Then AddMiscProps updater
+	
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'------
+'
+'------
+Sub AddMiscProps(updater)
+	Dim MscID, Msc, SQL
+
+	MscID = Workarea.Params(prmDBCashPrint).Value2
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			SQL = "update misc_attr set msc_visible=11, ms1_name='Модуль поддержки', ms2_name='Порт', ML1_name='Скорость' where msc_no=" & Msc.MscNo
+
+			If App.AppType = "DAO" Then
+				Workarea.DAODataBase.Execute SQL
+			Else
+				GetRs SQL
+			End If
+		End If
+	End If
+End Sub
+'------
+'
+'------

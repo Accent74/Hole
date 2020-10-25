@@ -1,0 +1,34 @@
+Option Explicit
+
+
+Const DirNameRootDst = "c:\users"
+Const DirNameRootSrc = "D:\Testing\Donetsk "
+
+Dim FldSource, FldDist, FSO, Fld, Flds
+Dim ExcludeFlds, cmd, sys, LogFile
+
+Set sys = CreateObject("Shell.Application")
+Set ExcludeFlds = CreateObject("Scripting.Dictionary")
+ExcludeFlds.Add "classic .net apppool", 1
+ExcludeFlds.Add "default", 1
+ExcludeFlds.Add "defaultapppool", 1
+ExcludeFlds.Add "olimp", 1
+ExcludeFlds.Add "oбщие", 1
+ExcludeFlds.Add "all users", 1
+ExcludeFlds.Add "default user", 1
+ExcludeFlds.Add "public", 1
+ExcludeFlds.Add "все пользователи", 1
+
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set FldDist = FSO.GetFolder(DirNameRootDst)
+Set Flds = FldDist.SubFolders
+
+For Each Fld In Flds
+	If Not ExcludeFlds.exists(LCase(fld.Name)) Then	
+		LogFile = "C:\" & Fld.name & ".log"
+		cmd = "/K xcopy " & DirNameRootSrc & Fld.path & "\Desktop\Donetsk /E /V /I /R /K /Y /F >" & LogFile
+		sys.ShellExecute "cmd.exe", cmd, , , 0
+	End If
+Next
+
+

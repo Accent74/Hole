@@ -1,0 +1,88 @@
+Option Explicit
+
+'#include "Treasurer.avb"
+'#include "Global_Const.avb"
+'#include "Statistic.avb"
+'#include "eAddText.avb"
+
+Sub Workarea_OnLoad
+
+	TreasurerOnLoad
+
+	Workarea.Window.Caption = UCase(Workarea.Window.Title)
+'	If (Workarea.Params("Дата проверки просрочки").Value2 < Date()) Then
+'		App.RunModule "\\Server\FoodsnGoods\Modules\Отмена скидки по просроченным накладным.avb"
+'		Workarea.Params("Дата проверки просрочки").Value2 = Date()
+'	End If
+
+	eAddTextOnLoad
+	AddInclude "Forms.avb", "eForms.avb"
+	AddTextToFileSub "Forms.avb", "FormsOnLoad", "Dim PA : Set PA =", True, "SetMC 'abc-it"
+
+End Sub
+
+Sub Workarea_AfterCreate(Kind, KindID)
+
+	TreasurerAfterCreate Kind, KindID
+
+End Sub
+
+Sub Workarea_BeforeClose
+
+	TreasurerBeforeClose
+
+End Sub
+
+Sub Workarea_OnReportStart(Kind, KindID, RepKind, RepID, ByRef Lock)
+
+	TreasurerOnReportStart Kind, KindID, RepKind, RepID, Lock : If Lock Then Exit Sub
+
+	SetRepStat Kind, KindID, RepKind, RepID
+
+	If RepKind = 111 Then Workarea.Map("ReportID") = RepID		'Модуль VBScript
+
+End Sub
+
+Sub Workarea_OnProperties(Kind, KindID, ByRef Lock)
+
+	Const VK_SHIFT = 16
+	Const VK_CONTROL = 17
+
+	Dim winApi : Set winApi = CreateLibObject("WinAPI")
+	If winApi.GetKeyState(VK_SHIFT) Then Exit Sub
+	If winApi.GetKeyState(VK_CONTROL) Then TreasurerOnProperties Kind, KindID, Lock : Exit Sub
+
+
+	Dim dlgName : dlgName = "CompanyProps_2.adg"
+	Dim showDlg : showDlg = False
+	Select Case Kind
+		Case acAgent
+			If WorkArea.Agent(KindID).Type = 3 Then showDlg = True : dlgName = "WorkerData.adg"
+			If WorkArea.Agent(KindID).Type = 1 Then showDlg = True : dlgName = "CompanyProps_2.adg"
+			If WorkArea.Agent(KindID).Type = 5 Then showDlg = True : dlgName = "CompanyProps_2.adg"
+			If showDlg Then
+				Dim dlg : Set Dlg = App.CreateDialog(dlgName)
+				dlg.Map("ID") = KindID
+				Dlg.DoModal
+				Lock = True
+			End If
+		Case Else
+
+			'TreasurerOnProperties Kind, KindID, Lock : If Lock Then Exit Sub
+
+	End Select
+
+End Sub 
+ 
+Sub Workarea_CanToTrash(ID, ByRef Lock)
+
+	Dim Op : Set Op = Workarea.Operation(ID)
+	Dim LinkedOps : Set LinkedOps = Op.Linked
+	Dim i : For i = 1 To LinkedOps.Count
+		If (LinkedOps(i).FormID = constTaxFormID) Or (LinkedOps(i).FormID = constKorrTaxFormID) Then
+			Workarea.RemoveOperation(LinkedOps(i).ID)
+			Exit For
+		End If
+	Next
+
+End Sub

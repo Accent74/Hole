@@ -1,0 +1,423 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs/>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums/>
+	<AccentWorkarea>
+		<scripts>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'TF' AND name = 'f_split')
+					drop function [dbo].[f_Split]
+			</query>
+
+			<query type="OLEDB" cmd="exec" name="">
+			CREATE function [dbo].[f_Split]
+(
+@String nvarchar(4000),
+@Delimiter char(1)
+) Returns @Results Table (Items nvarchar(4000), IIndex int)
+As
+Begin
+	Declare @Index int
+	Declare @Slice nvarchar(4000)
+	declare @i int
+	Select @Index = 1
+	select @i = 0
+	If @String Is NULL Return
+	While @Index != 0
+		Begin
+			Select @Index = CharIndex(@Delimiter, @String)
+			If (@Index != 0)
+				Select @Slice = left(@String, @Index - 1)
+			else
+				Select @Slice = @String
+			Insert into @Results(Items, IIndex) Values (@Slice, @i)
+			Select @String = right(@String, Len(@String) - @Index)
+			If Len(@String) = 0 break
+			select @i = @i + 1
+		End
+	Return
+End</query>
+			<query type="OLEDB" cmd="exec" name="">GRANT SELECT ON [dbo].[f_Split] TO [ap_public]</query>
+			<query type="OLEDB" name="" cmd="exec">
+				IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'HL74_CustomBind_FindEntityByFirstCharID')
+					drop procedure HL74_CustomBind_FindEntityByFirstCharID
+			</query>
+
+			<query cmd="exec" type = "OLEDB" name="HL74_CustomBind_FindEntityByFirstCharID">
+CREATE PROCEDURE [dbo].[HL74_CustomBind_FindEntityByFirstCharID] 
+      @EntName nvarchar(255)
+AS
+SET NOCOUNT ON
+
+declare @str nvarchar(255)
+declare @ent_item nvarchar(255), @ent_index int
+
+set @EntName = upper(@EntName)
+create table #Ents(ent_id int, ent_name nvarchar(255))
+
+declare ent_find cursor for
+	select items, iindex from dbo.f_Split(@EntName, '%')
+
+open ent_find 
+FETCH NEXT FROM ent_find INTO @ent_item, @ent_index
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+
+		Select @str = '%' + @ent_item + '%'
+
+		if @ent_index = 0
+			insert into #Ents(ent_id, ent_name)
+			select ent_id, ent_name
+			from entities
+			where upper(ent_name) like @str
+				and ent_type &gt; 1000
+			order by ent_name, ent_art desc
+		else
+			delete from #Ents
+			where not upper(ent_name) like @str
+			
+		FETCH NEXT FROM ent_find INTO @ent_item, @ent_index
+	end
+	
+CLOSE ent_find
+DEALLOCATE ent_find
+
+Select TOP 21 ent_name AS EntName
+FROM #Ents 
+ORDER BY ENT_NAME
+
+drop table #Ents
+		</query>
+		<query type="OLEDB" cmd="exec" name="">
+			grant execute on [dbo].[HL74_CustomBind_FindEntityByFirstCharID] to ap_public
+		</query>
+		
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'HL74_CalcRestDsc')
+				drop procedure HL74_CalcRestDsc
+		</query>
+
+		<query cmd="exec" type = "OLEDB" name="HL74_CalcRestDsc">
+CREATE PROCEDURE HL74_CalcRestDsc
+	@AccID int, 
+	@MscID int, 
+	@OnDate datetime, 
+	@DocID int, 
+	@MCID int
+as
+	set nocount on ;
+
+	Select Sum(
+				case 
+					when ACC_DB=@AccID then j_sum
+					else 0
+				end - 
+				case 
+					when ACC_CR=@AccID then j_sum
+					else 0
+				end) AS MscSum
+
+	FROM JOURNAL 
+		INNER Join JRN_MISC On JOURNAL.J_ID = JRN_MISC.J_ID
+	WHERE
+		(JRN_MISC.MSC_ID=@MscID
+		And (ACC_CR=@AccID Or ACC_DB=@AccID))
+		And JOURNAL.J_DONE=2
+		And JOURNAL.MC_ID = @mcid
+		And [DOC_ID] &lt;&gt; @DocID
+		And JOURNAL.J_DATE &lt; @OnDate
+		</query>
+		
+		<query type="OLEDB" cmd="exec" name="">
+			grant execute on HL74_CalcRestDsc to ap_public
+		</query>
+
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'HL74_custombind_goods_oddments_twice_price_series_id')
+				drop procedure HL74_custombind_goods_oddments_twice_price_series_id
+		</query>
+		
+		<query cmd="exec" type="OLEDB" name="HL74_custombind_goods_oddments_twice_price_series_id">
+CREATE PROCEDURE [dbo].[HL74_custombind_goods_oddments_twice_price_series_id]
+		  @EntName nvarchar(255), 
+		  @AgID Int, 
+		  @AccID Int, 
+		  @DocID Int, 
+		  @OnDate DateTime, 
+		  @MC int, 
+		  @pID int, 
+		  @pKindID int
+
+	AS
+	SET NOCOUNT ON
+
+	Declare @str nvarchar(255)
+
+	Set @str = N'%' + @EntName + N'%' 
+
+	---
+	--- Создаем временную таблицу для выборки объектов 
+	---
+
+	CREATE TABLE #Ents(EntID Int)
+	CREATE TABLE #Ent(SerID int, EntID Int, EntQty Money, EntSum Money)
+
+	--- добавляем все ОУ, подходящие по имени
+	INSERT INTO #Ents (EntID)
+	select ent_id
+	from entities 
+	where ENTITIES.ENT_TYPE &gt; 1000 and upper( ENTITIES.ENT_NAME) like upper(@str)
+
+	--вставляем дебет (с плюсами)
+	INSERT INTO #Ent (SerID, EntID,  EntQty, EntSum)
+
+	SELECT	JOURNAL.Ser_ID,
+			JOURNAL.J_ENT, 
+		Sum(CASE 
+			WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN IsNull(J_QTY, 0)
+		ELSE 0
+		END),
+
+		Sum(CASE 
+			WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+		ELSE 0
+		END)
+
+	FROM JOURNAL
+		left join entities as e on e.ent_id = journal.J_ENT 
+	WHERE (JOURNAL.ACC_DB=@AccID) 
+			AND (JOURNAL.J_AG1=@AgID)  
+			AND (JOURNAL.J_DONE=2) 
+			and JOURNAL.MC_ID = @MC
+			AND (JOURNAL.DOC_ID&lt;&gt;@DocID) 
+			AND (JOURNAL.J_DATE &lt; @OnDate)
+			and j_ent in (select EntID from #Ents)
+	group by JOURNAL.J_ENT, JOURNAL.SER_ID
+	
+	--вставляем кредит (с минусами)
+	INSERT INTO #Ent (SerID, EntID,  EntQty, EntSum)
+
+	SELECT 
+		JOURNAL.Ser_ID,
+		JOURNAL.J_ENT, 
+		Sum(CASE 
+			WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN IsNull(-J_QTY, 0)
+		ELSE 0
+		END),
+
+		Sum(CASE 
+			WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+		ELSE 0
+		END)
+
+	FROM JOURNAL 
+		left join entities as e on e.ent_id = journal.J_ENT 
+	WHERE (JOURNAL.ACC_CR=@AccID) 
+			AND (JOURNAL.J_AG2=@AgID)  
+			AND (JOURNAL.J_DONE=2) 
+			and JOURNAL.MC_ID = @MC
+			AND (JOURNAL.DOC_ID&lt;&gt;@DocID) 
+			AND (JOURNAL.J_DATE&lt;@OnDate) 
+			and j_ent in (select EntID from #Ents)
+	group by JOURNAL.J_ENT, JOURNAL.Ser_ID
+
+	--Окончательная выборка
+	SELECT top 21 
+			SerID,
+			left(ENTITIES.ENT_NAME, 30) + left(ser_name, 30), 
+			Sum(EntQty),
+			case 
+				when Sum(EntQty) &lt;&gt; 0 then Sum(EntSum) / Sum(EntQty)
+				else 0
+			end,
+			(select top 1 p.prc_value 
+				from prc_contents as p 
+				where p.ent_id = EntID 
+					and p.prl_id = @pID 
+					and p.prc_id = @pKindID 
+					and p.prc_date &lt;= @OnDate 
+				order by p.prc_date desc) as EntityPrice,
+			Sum (EntSum) AS Sum, 
+			#Ent.EntID as EntID
+
+	FROM #Ent 
+		LEFT JOIN  ENTITIES ON #Ent.EntID= ENTITIES.ENT_ID
+		left join series on ser_id = SerID 
+	GROUP BY 
+		#Ent.SerID, 
+		#Ent.EntID, 
+		left(ENTITIES.ENT_NAME, 30) + left(ser_name, 30), 
+		ENTITIES.ENT_TYPE
+	HAVING Sum (EntSum) &lt;&gt; 0
+	ORDER BY  Sum (EntSum) desc, left(ENTITIES.ENT_NAME, 30) + left(ser_name, 30) 
+
+	drop table #Ent, #Ents
+		</query>
+		<query type="OLEDB" cmd="exec" name="">
+				GRANT EXECUTE ON HL74_custombind_goods_oddments_twice_price_series_id TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'HL74_RestByEntSeries')
+				drop procedure HL74_RestByEntSeries
+		</query>
+		
+		<query cmd="exec" type = "OLEDB" name="HL74_RestByEntSeries">
+CREATE procedure [dbo].[HL74_RestByEntSeries]
+	@AgID as int, 
+	@AccID as int, 
+	@EntID as int, 
+	@SerID as int,
+	@DocID as int, 
+	@DocDate as DateTime, 
+	@MC as int
+as
+	set nocount on 
+	
+	SELECT 	Sum(
+			case 
+				when ACC_DB=@AccID And J_AG1=@AgID then J_QTY
+				when ACC_CR=@AccID And J_AG2=@AgID then -J_QTY
+				else 0
+			end),
+			Sum(
+			case 
+				when ACC_DB=@AccID And J_AG1=@AgID then J_SUM
+				when ACC_CR=@AccID And J_AG2=@AgID then -J_SUM
+				else 0
+			end)
+
+	FROM ENTITIES INNER JOIN JOURNAL ON ENTITIES.ENT_ID = JOURNAL.J_ENT
+	WHERE ((JOURNAL.ACC_DB=@AccID AND JOURNAL.J_AG1=@AgID) or (JOURNAL.ACC_CR=@AccID AND JOURNAL.J_AG2=@AgID))
+		AND JOURNAL.J_DONE=2 
+		AND JOURNAL.DOC_ID&lt;&gt;@DocID 
+		AND JOURNAL.J_DATE&lt;=@DocDate 
+		AND JOURNAL.MC_ID=@MC 
+		AND JOURNAL.J_ENT=@EntID
+		AND JOURNAL.SER_ID=@SerID</query>
+		<query type="OLEDB" cmd="exec" name="">
+			grant execute on [dbo].[HL74_RestByEntSeries] to ap_public
+		</query>
+		
+		<query type="OLEDB" cmd="exec" name="">
+		update ag_param_names
+		set PRM_REF = 3
+		where prm_name like 'Менеджер'
+		</query>
+		<query type="DAO" cmd="exec" name="">
+		update ag_param_names
+		set PRM_REF = 3
+		where prm_name like 'Менеджер'
+		</query>
+
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'ST7_TaxOutDocs')
+				drop procedure ST7_TaxOutDocs
+		</query>
+
+		<query type="OLEDB" cmd="exec" name="ST7_TaxOutDocs">
+CREATE procedure [dbo].[ST7_TaxOutDocs]
+		@Acc361ID int, 
+		@StartDate DateTime, 
+		@EndDate DateTime, 
+		@MCID int, 
+		@TaxRepID int
+
+		as
+
+		set nocount on ;
+
+		SELECT AG_CODE, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM)
+		FROM ((JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG1
+		WHERE JT.TX_ID = @TaxRepID 
+			And JT_ADDR1 = 'Д.А.' 
+			And J.MC_ID = @MCID 
+			And ACC_DB in (select id  from acc_tree where @Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+			And J_DATE &gt;= @StartDate 
+			And J_DATE &lt; @EndDate 
+			And  J_DONE = 2
+		GROUP BY AG_CODE, AG_NAME, J_DATE, DOC_NO
+		order by isnull(AG_CODE, '999999999'), ag_name
+		</query>
+
+		<query type="OLEDB" cmd="exec" name="">
+			GRANT EXECUTE ON ST7_TaxOutDocs TO ap_public
+		</query>
+
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'ST7_TaxInDocs')
+				drop procedure ST7_TaxInDocs
+		</query>
+
+		<query type="OLEDB" cmd="exec" name="ST7_TaxInDocs">
+CREATE procedure [dbo].[ST7_TaxInDocs]
+		@Acc631ID int, 
+		@StartDate DateTime, 
+		@EndDate DateTime, 
+		@MCID int, 
+		@TaxRepID int
+
+		as
+
+		set nocount on ;
+
+		SELECT AG_CODE, AG_NAME, J_DATE, DOC_NO, SUM(J_SUM)
+		FROM ((JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG2
+		WHERE JT.TX_ID = @TaxRepID 
+				And JT_ADDR1 = 'Д.А.' 
+				And J.MC_ID = @MCID 
+				And ACC_CR in (select id  from acc_tree where @Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+				And J_DATE &gt;= @StartDate 
+				And J_DATE &lt; @EndDate And  J_DONE = 2
+		GROUP BY AG_CODE, AG_NAME, J_DATE, DOC_NO
+		order by isnull(AG_CODE, '999999999'), ag_name
+		</query>
+
+		<query type="OLEDB" cmd="exec" name="">
+			GRANT EXECUTE ON ST7_TaxInDocs TO ap_public
+		</query>
+		
+		<query type="OLEDB" name="" cmd="exec">
+			IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'ST7_TaxInDocsB')
+				drop procedure ST7_TaxInDocsB
+		</query>
+		<query type="OLEDB" cmd="exec" name="ST7_TaxInDocsB">
+CREATE procedure [dbo].[ST7_TaxInDocsB]
+		@Acc631ID int, 
+		@StartDate DateTime, 
+		@EndDate DateTime, 
+		@MCID int, 
+		@TaxRepID int
+
+		as
+
+		set nocount on ;
+
+		SELECT AG_CODE, AG_NAME, SUM(J_SUM)
+		FROM (JRN_TAX AS JT INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID) INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG2
+		WHERE JT.TX_ID = @TaxRepID And JT_ADDR1 = 'Д.Б.' 
+			And J.MC_ID = @MCID 
+			And ACC_CR in (select id from acc_tree where @Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+			And J_DATE &gt;= @StartDate 
+			And J_DATE &lt; @EndDate 
+			And  J_DONE = 2
+		GROUP BY AG_CODE, AG_NAME
+		</query>
+
+		<query type="OLEDB" cmd="exec" name="">
+			GRANT EXECUTE ON ST7_TaxInDocsB TO ap_public
+		</query>
+		
+		</scripts>
+	</AccentWorkarea>
+</AccentExportData>

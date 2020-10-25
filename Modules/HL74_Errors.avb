@@ -1,0 +1,30 @@
+' коды ошибок списания
+Const acErrorNoSeries			= 1		'	серии не обнаружены
+Const acErrorNoQuant			= 2		' количества на остатке не достаточно
+Const acErrorNoQtySeries	= 3		' количества в серии недостаточно
+Const acErrorMinusQty			= 4		' отрицательное кол-во
+Const acErrorNoGiveSeries	= 5		'	серии не обнаружены
+Const acErrorNoSeriesSet	= 6		'	серии не указаны
+Const acErrorMinusSum			= 7		' Сумма на остатке отрицательная
+Const acErrorMinusAdd			= 8		' Попытка передать в розницу товар ниже себестоимости
+Const acErrorNoPrice			= 9		' Цена на товар в рознице не указана
+
+'---------------------------------------------------
+'	Процедура отображает на экране список ошибок, 
+' возникших в процессе списания
+' 
+'	Errors - словарь с ошибками
+'	1 - ID объекта учета
+'	2 - количество	
+'	3 - код ошибки 
+'---------------------------------------------------
+Sub ViewError(Errors)
+	Dim Dlg
+	' создаем диалог для отображения
+	Set Dlg = App.CreateDialog("HL74_ChargeErrors.adg")
+	' передаем в него массив с ошибками
+	Set Dlg.Map.Item("Errors") = Errors
+	' отобразили диалог
+	Dlg.DoModal
+End Sub
+

@@ -1,0 +1,31 @@
+'#include "HL74_ADO.avb"
+Option Explicit
+
+Dim SQL, aPrm, aClients, i
+Dim AgreeID, AgreeRoot, Agree, AgreeMain
+
+	Set AgreeRoot = workarea.misc(8198).children
+
+	SQL = "_Export_ClientsForManagers2"
+	aPrm = Array(7718)
+
+	If Query(SQL, aPrm, aClients) Then
+		For i = 0 To UBound(aClients, 2)
+			AgreeID = AgreeRoot.Find(aClients(1, i))
+			If AgreeID = 0 Then
+				Set Agree = AgreeRoot.Create(0, aClients(1, i))
+				Set AgreeMain = Agree.Children.Create(1, aClients(1, i) & ":Наличные")
+				AgreeMain.Long1 = aClients(0, i)
+				AgreeMain.String3 = "1"
+				AgreeMain.Params("Агент:Шаблон для заказов").Value = 3221		' нал
+
+				AgreeMain.Save
+
+				Set AgreeMain = Agree.Children.Create(1, aClients(1, i) & ":Безналичные")
+				AgreeMain.Long1 = aClients(0, i)
+				AgreeMain.String3 = "2"
+				AgreeMain.Params("Агент:Шаблон для заказов").Value = 3222		'	безнал
+				AgreeMain.Save
+			End If
+		Next
+	End If

@@ -1,0 +1,66 @@
+Option Explicit
+
+Class AgAddrBind
+
+	Private CurAgID, CurAddr
+
+	Sub Initialize
+		CurAgID = 0
+		CurAddr = ""
+	End Sub
+
+	Public Property Let AgID(ID)
+		CurAgID = ID
+	End Property
+
+	Public Property Let Addr(ByVal AddrStr)
+		CurAddr = MakeAddress(AddrStr)
+	End Property
+
+	Public Property Get Addr
+		Addr = CurAddr
+	End Property
+	
+	Public Function OnClick()
+		Dim Dlg, Ag
+
+		If CurAgID <> 0 Then
+			Set Ag = Workarea.Agent(CurAgID)
+			Set Dlg = App.CreateDialog("HL74_AgAddrBind.adg")
+		
+			Set Dlg.Map.Item("Ag") = Ag
+
+			If Dlg.DoModal = vbOK Then
+				CurAddr = Dlg.Map("Addr")
+				OnClick = True
+			Else
+				OnClick = False
+			End If
+		End If
+
+	End Function
+
+	Private Function MakeAddress(Addr)
+		Dim i, aAddr, aAddrName, FullAddress
+
+		FullAddress = ""
+		'улица;дом;квартира;индекс;город;страна;;;
+ 		aAddrName = Array("ул.", "д.", "кв.", "", "", "", "", "", "")
+		aAddr = Split(Addr, ";")
+
+		For i = 0 To UBound(aAddr)
+			If aAddr(i) <> "" Then 
+				If aAddrName(i) <> "" Then 
+					FullAddress = FullAddress & " " & aAddrName(i) & " "
+				Else
+					FullAddress = FullAddress & " "
+				End If 
+				FullAddress = FullAddress & aAddr(i)
+			End If
+		Next
+	
+		MakeAddress = Trim(FullAddress)
+
+	End Function
+
+End Class

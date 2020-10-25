@@ -1,0 +1,166 @@
+Option Explicit
+
+'	prmPrinter
+'	0	- 	Msc
+'	1 	-	кассир
+'	2	-	пароль кассира
+'	3 	-	прочее, если нужно
+
+'	prmData для печати чеков
+'	0 	-	операция
+'	1	-	номер проводки
+'	2	-	тип платежа
+
+'	prmData для печати чеков
+'	0	-	вид отчета
+'	1	-	тип отчета (сокращенный или развернутый)
+'	2	-	выводить полный период
+'	3	-	начало периода
+'	4	-	конец периода
+'	5	-	начальный номер
+'	6	-	конечный номер
+
+Const MSG_ERROR_PAYMENT = "Ошибка оплаты фискального чека"
+Const MSG_ERROR_PRINTROW = "Ошибка печати строки фискального чека"
+Const MSG_ERROR_NO_REPORT = "Отчет данным ЭККА не поддерживается"
+Const MSG_BOX_CAPTION = "Печать фискального чека"
+
+Const prmEntCashPrnName = "Наименование для ЭККА"
+
+'---
+'
+'---
+Sub PrintCash_DoPrintCheck(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter(1), prmPrinter(2))
+
+	If Not CashPrn Is Nothing Then
+		PrintCash_PrintCheck CashPrn, prmData
+		PrintCash_Close CashPrn
+	End If
+End Sub
+'---
+'
+'---
+Function PrintCash_Open(PortNo, PortBoud, CashierName, Passw)
+	Dim CashPrn
+
+	On Error Resume Next
+
+	Set PrintCash_Open = Nothing
+	Set CashPrn = CreateObject("ICSFP.ICS_EP_05")
+
+	If Err.Number = 0 Then
+		If CashPrn.FPInit(PortNo, PortBoud, 3, 3) Then
+			If CashPrn.FPSetCashier (0, CashierName, Passw, 0) Then
+				Set PrintCash_Open = CashPrn
+			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function PrintCash_PrintCheck(CashPrn, ByRef prm)
+	Dim Op, TrNo, TrList, DepName, PaymentType
+
+	PrintCash_PrintCheck = True
+
+	Set Op = prm(0)
+	TrNo = prm(1)
+	PaymentType = prm(2)
+
+	Set TrList = Op.TransList(TrNo)
+
+	DepName = TrList.AgFromBind.Name
+
+	TrList.EnumTrans GetRef("PrintCash_PrintOneLine"), CashPrn
+
+	If Not CashPrn.GetLastCommandStatus Then
+		If Not CashPrn.FPPayment(PaymentType, CLng(TrList.Sum * 100), False, True) Then
+			MsgBox MSG_ERROR_PAYMENT, vbCritical, MSG_BOX_CAPTION
+			PrintCash_PrintCheck = False
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function PrintCash_PrintOneLine(Tr, ByRef CashPrn)
+	Dim EntName
+
+	EntName = Tr.EntBind.ParamString(prmEntCashPrnName)
+	If EntName = "" Then EntName = Tr.EntBind.Name
+
+	If CashPrn.FPSale(CLng(Tr.Qty * 10), 1, 0, CLng(Tr.Price * 100), 0, 0, EntName, CLng(Tr.EntBind.Art)) Then
+		PrintCash_PrintOneLine = True
+	Else
+		MsgBox MSG_ERROR_PRINTROW, vbCritical, MSG_BOX_CAPTION
+		PrintCash_PrintOneLine = False
+	End If
+End Function
+'---
+'
+'---
+Function PrintCash_Close(CashPrn)
+	PrintCash_Close = CashPrn.FPClose()
+End Function
+'---
+'
+'---
+Sub PrintCash_PrintReports(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prmData(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter(1), prmPrinter(2))
+
+	Select Case prmData(0)
+		Case 1	'	x-report
+			CashPrn.FPDayReport prmPrinter(2)
+
+		Case 2	'	z-report
+			CashPrn.FPDayClrReport prmPrinter(2)
+
+		Case 3	'	report by art
+			CashPrn.FPXArtReport prmPrinter(2)
+
+		Case 4	'	report by disount
+			MsgBox MSG_ERROR_NO_REPORT, vbExclamation, MSG_BOX_CAPTION
+
+		Case 5	'	report by Date
+			CashPrn.FPPeriodicReport prmPrinter(5), prmData(2), prmData(3)
+
+		Case 6	'	report by no
+			CashPrn.FPPeriodicNumberReport prmPrinter(5), prmData(2), prmData(3)
+
+	End Select 
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintNullCheck(prmPrinter)
+	Dim CashPrn
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter(1), prmPrinter(2))
+
+	If Not CashPrn Is Nothing Then
+		CashPrn.FPNullCheck
+		PrintCash_Close CashPrn
+	End If
+End Sub
+'---
+'
+'---
+

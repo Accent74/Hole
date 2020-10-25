@@ -1,0 +1,39 @@
+Option Explicit
+
+Dim i, prm, Op
+
+prm = 1
+
+With workarea.site.operations
+	For i = 1 To .count
+		Set Op = .item(i)
+
+		With Op.TransList(1)
+			If .Item(1).TransCurs(1).CurID = 0 Then
+				.EnumTrans GetRef("SetCurOneRow"), prm
+			End If
+		End With
+
+		If Op.Modified Then Op.Save
+	Next
+
+End With
+
+Function SetCurOneRow(Tr, ByRef prm)
+	Dim Price, Sum
+
+	SetCurOneRow = True
+
+	Price = Tr.Price
+	Sum = Tr.Sum
+
+	With Tr.TransCurs(1)
+		.CurID = prm
+		.Price = Price
+		.Sum = Sum
+	End With
+
+	Tr.Price = Price
+	Tr.Sum = Sum
+
+End Function

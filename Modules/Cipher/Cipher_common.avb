@@ -1,0 +1,185 @@
+Option Explicit
+
+'---
+'
+'---
+Function GetFolderTml(ByRef FldID)
+	Dim Fld
+
+	GetFolderTml = 0
+
+	With Workarea.Site
+		If .Kind = acFolder Then
+			If .ID <> 0 Then	
+				Set Fld = Workarea.Folder(.ID)
+				GetFolderTml = Fld.TemplateID
+			End If
+
+			FldID = .ID
+		End If
+	End With
+
+End Function
+'---
+'
+'---
+Sub Cipher_CreateOperationFromFile(DataFileName, FormNo, IsAgFrom)
+	Dim TmlID, FldID
+
+	TmlID = GetFolderTml(FldID)
+
+	Set C8400 = New Cipher
+	C8400.ShowError = True
+	C8400.IsAgFrom = IsAgFrom
+	
+	With Workarea
+		C8400.AgRootD = .UserParam(CIPHER_NEW_AG_ROOT)
+		C8400.EntRootID = .UserParam(CIPHER_NEW_ENT_ROOT)
+	End With
+
+	C8400.FindEnt = GetRef("GetEntID")
+	C8400.FindAg = GetRef("GetAgID")
+	C8400.SetDataTrRef = GetRef("SetDataTr")
+	C8400.SetBeforeSaveRef = GetRef("OpBeforeSave")
+	c8400.GetOperationRef = GetRef("GetOperation")
+
+	If FormNo = 4 Then
+		' заказ
+		C8400.BarField = "3"
+		c8400.LineField = "3"
+		c8400.NameField = "4"
+		c8400.QtyField = "8"
+	ElseIf FormNo = 2 Then
+		' инвентаризация
+		C8400.BarField = "1"
+		C8400.DocNoField = "3"
+		c8400.QtyField = "6"			' добавил для того, чтобы очистка работала правильно
+		c8400.IsAgSet = False
+	End If
+
+	C8400.ImportOperationFromFile DataFileName, TmlID, FldID
+	MsgBox "Импорт данных из файла окончен", vbInformation, "Импорт"
+
+End Sub
+'---
+'
+'---
+Sub Cipher_CreateOperation(FormNo, BaseNo, IsAgFrom)
+	Dim TmlID, FldID
+	Dim boud, Port, AgList, EntRootID, AccID, AccInvent
+	Dim IsError
+
+	If Not CheckParams(Boud, Port, AgList, EntRootID, AccID, AccInvent) Then
+		MsgBox "Не установлены параметры работы с ТСД", vbExclamation, "Внимание !"
+		Exit Sub
+	End If
+
+	TmlID = GetFolderTml(FldID)
+	IsError = True
+
+	Set C8400 = New Cipher
+	C8400.ShowError = True
+	C8400.IsAgFrom = IsAgFrom
+	
+	If C8400.ErrMsg = "" Then
+		If C8400.Connect(Port, Boud, 0) Then
+			If C8400.Ping Then
+
+				With Workarea
+					C8400.AgRootD = .UserParam(CIPHER_NEW_AG_ROOT)
+					C8400.EntRootID = .UserParam(CIPHER_NEW_ENT_ROOT)
+				End With
+
+				C8400.FindEnt = GetRef("GetEntID")
+				C8400.FindAg = GetRef("GetAgID")
+				C8400.SetDataTrRef = GetRef("SetDataTr")
+				C8400.SetBeforeSaveRef = GetRef("OpBeforeSave")
+				c8400.GetOperationRef = GetRef("GetOperation")
+
+				If FormNo = 4 Then
+					' заказ
+					C8400.BarField = "3"
+					c8400.LineField = "3"
+					c8400.NameField = "4"
+					c8400.QtyField = "8"
+				ElseIf FormNo = 2 Then
+					C8400.BarField = "1"
+					C8400.DocNoField = "3"
+					'c8400.QtyField = "6"			' добавил для того, чтобы очистка работала правильно
+					c8400.IsAgSet = False
+				End If
+
+				C8400.ImportOperation FormNo, TmlID, FldID
+
+				If C8400.ErrMsg = "" Then
+'					If MsgBox("Очистить данные в ТСД ?", vbQuestion + vbYesNo, "Внимание !") = vbYes Then
+						If C8400.WriteDataFile(FormNo, C8400.SN & "." & Formatdate2(Now(), "yyyy-mm-dd-hh-nn-ss.txt")) Then
+							C8400.ClearBase BaseNo
+							C8400.ClearData FormNo
+						Else
+							MsgBox "Ошибка записи данных в файл "& vbNewLine & C8400.ErrMsg, vbExclamation, "Внимание !"
+							MsgBox "Данные в ТСД не удалены", vbExclamation, "Внимание !"
+						End If
+'					End If
+				End If
+
+				IsError = False
+			End If
+		End If
+	End If
+
+	If IsError Then
+		MsgBox "Невозможно подключиться к ТСД. " & vbNewLine & C8400.ErrMsg, vbExclamation, "Внимание !"
+	End If
+
+End Sub
+'---
+'
+'---
+Function EntNameAndUnit(EntName, ShortName, MaxLen)
+	Dim UnitLen, NewEntName
+
+	UnitLen = Len(ShortName) + 1
+
+	If (Len(EntName) + UnitLen) > MaxLen Then
+		NewEntName = Left(EntName, MaxLen - UnitLen)
+	Else
+		NewEntName = EntName
+	End If
+
+	EntNameAndUnit = NewEntName & "/" & ShortName
+End Function
+'---
+'
+'---
+Function FindEntByBarCode(EntBar)
+	Dim aQueryPrm, aData
+
+	aQueryPrm = Array(Array(EntBar, 201, 13))
+
+	If ADO_Query("cipher_find_ent_by_bar_code", aQueryPrm, aData) Then
+		FindEntByBarCode = aData(0, 0)
+	Else
+		FindEntByBarCode = 0
+	End If
+
+End Function
+'---
+'
+'---
+Sub AddEntBarCode(EntID, ByRef EntBar)
+	Dim aQueryPrm, aData
+
+	aQueryPrm = Array(Array(EntID, 3, 10), Array(EntBar, 201, 13))
+
+	If ADO_Query("cipher_add_ent_bar_code", aQueryPrm, aData) Then
+		If aData(0, 0) = 1 Then
+			MsgBox "Повторение штрих-кода", vbExclamation, "Ошибка !"
+			EntBar = ""
+		End If
+	End If
+
+End Sub
+'---
+'
+'---

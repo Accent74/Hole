@@ -1,0 +1,921 @@
+Option Explicit
+
+'------------
+' RaiseErr(ErrCode, TblRow) - эта "внешняя" процедура вызывает обработчик "события" для ошибки, о которой сигнализирует класс
+'------------
+Sub RaiseErr(ErrCode, TblRow)
+	 Book.ProcessErr ErrCode, TblRow
+End Sub
+
+'------------
+'
+'------------
+Class ExtAsset
+	Public EntID 				' entity ID
+	Public AccDb 				' счет для накопления амортизационных отчислений по данному ОС
+	Public AccCr 				' какой субсчет сч.131 ставить кредитовым в строке проводки для данного ОС
+	Public BegCost 			' балансовая стоимость на начало периода (Дт10)
+	Public Improvements 	' улучшения (и не только) ОС
+	Public BegAmort 			' сумма аморт. отчислений на начало периода (Дт131)
+	Public AgResponsible 	' Материально-ответственное лицо
+	Public Amort				' аммортизация за месяц
+	Public RestCost    		' Остаточная стоимость
+
+	Private flRemCostNeeded
+	Private MethodID 		' Вид метода расчета сумм износа БУ
+	Private WriteOffCost 	' Ликвидационная стоимость
+	Private EksplPeriod 	' Период эксплуатации (если требуется методом) измеряем в месяцах
+	Private RemSum 			' остаточная стоимость на нач. года
+	Private AsstGroup 		' группа ОС
+	Private Percent 			' норма отчислений для группы (налоговый метод)
+	Private InDate 			' Дата ввода в эксплуатацию
+	Private DateVvoda		' Дата ввода в параметре "Ко-во месяцев экспл."
+	Private SkipCalc 		' не рассчитывать износ (нет данных или так задано в параметре ОС)
+	Private TblRow 			' Номер строки в таблице, где заполнять информацию про ОС
+	Private Sum
+	Private EksplPeriodEnd 	' осталось отработать (мес)
+	Private EksplPeriodOst	' осталось отработать (мес) до конца года для 4 и 5 методов
+
+	'------------
+	' Class_Initialize - инициализация/конструктор класса
+	'------------
+	Private Sub Class_Initialize
+		SkipCalc = False
+		flRemCostNeeded = False
+	End Sub
+
+	'------------
+	' Method(flNalogUchet, Period) - выборка свойства Метод расчета
+	' flNalogUchet - Истина=> налоговый учет; Ложь=> бух. учет
+	' Period - период начисления износа
+	'------------
+	Public Property Get Method(flNalogUchet, Period)
+		Dim IsExists, IsExistsBU
+		If Not IsEmpty(MethodID) Then
+			Method = MethodID
+			Exit Property
+		End If
+
+		With Workarea.Entity(EntID)
+			IsExists = .Facts.Exists(pnMethodNY)
+			IsExistsBU = .Facts.Exists(pnMethod) ' не было (s)
+
+			If flNalogUchet Then
+				If IsExists Then
+					MethodID = .Facts(Period.Start).Item(pnMethodNY)
+				Else
+					MethodID = Null
+				End If
+
+				If IsNull(MethodID) And (Not (.Parent Is Nothing)) Then MethodID = GetParamRecursive(.Parent.ID, pnMethodNY)
+				'If IsNull(MethodID) Or MethodID <> dictMethods(3)  Then MethodID = dictMethods(1)				
+			Else
+				If IsExistsBU Then
+					MethodID = .Facts(Period.Start).Item(pnMethod)
+				Else
+					MethodID = Null
+				End If
+
+				If IsNull(MethodID) And (Not (.Parent Is Nothing)) Then MethodID = GetParamRecursive(.Parent.ID, pnMethod)
+					' вынесли обработку ошибки из процедуры, так как объект еще может быть исключен
+			End If
+		End With
+		Method = MethodID
+	End Property
+
+	'------------
+	' Group - Свойство Группа ОС
+	'------------
+	Public Property Get Group
+		If Not IsEmpty(AsstGroup) Then
+			Group = AsstGroup
+			Exit Property
+		End If
+		AsstGroup = GetParamRecursive(EntID, pnGroup)
+		Group = AsstGroup
+	End Property
+
+	'------------
+	' RemCost (Rems) - установка остаточной стоимости на начало года
+	' Rems - сумма для установки
+	'------------
+	Public Property Let RemCost (Rems)
+		Dim a
+		If Not flRemCostNeeded Then Exit Property
+		If Rems>0 Then
+			RemSum = Rems
+		Else							 
+			a = Workarea.Entity(EntID).Params(pnBuyCost).Value
+			If IsNumeric(a) Then 'And Year(InDate)=Year(d) Then 'если ОС куплено в этом году -> ставим покупную стоимость
+				RemSum = a
+			Else
+				SkipCalc = True
+				RaiseErr 10, TblRow
+				RemSum = Null
+			End If
+		End If
+	End Property
+
+	'------------
+	' CalcProps (Period, flNalogUchet, ByRef flRemCostNeeded1, row) - выборка "простых" свойств
+	' Period - период начисления износа
+	' flNalogUchet - Истина=> налоговый учет; Ложь=> бух. учет
+	' flRemCostNeeded1 - флаг. установить в Истина, метод данного ОС требует также расчета остаточной стоимости на начало года
+	' row - в какой строке таблицы заполнять данные об ОС
+	'------------
+	Public Sub CalcProps (Period, flNalogUchet, ByRef flRemCostNeeded1, row)
+		TblRow = row
+		' Группа ОС - хотя нужна только методу Налоговый, показываем всегда (?)
+		
+		If (IsNull(Group) And flNalogUchet) Then RaiseErr 5, TblRow
+		If IgnoreAsset(flNalogUchet) Then
+			'If IsNull(AsstGroup) And flNalogUchet Then ' если для ОС задано "не считать амортизацию" и производится расчет для налог.учета,
+			'то мы не можем определить, считать ли амортизацию по данному ОС или нет
+				SkipCalc = True
+				RaiseErr 17, TblRow
+			'Else'If (flNalogUchet And ((AsstGroup = 2) Or (AsstGroup = 3) Or (AsstGroup = 4))) Then
+				Exit Sub
+			'End If
+		End If
+
+		CalcAccs flNalogUchet, Period.Start
+		
+		If IsNull(Method(flNalogUchet, Period)) Then
+			SkipCalc = True
+			RaiseErr 4, TblRow
+			Exit Sub
+		End If
+
+		If MethodID = dictMethods(4) Or MethodID = dictMethods(5) Then
+			flRemCostNeeded = True
+			flRemCostNeeded1 = True
+		End If
+
+		If MethodID <> dictMethods(1) Then
+			CalcEksplPeriod Period.Start, flNalogUchet
+			
+			'Остаточная стоимость для прямолинейного метода и др.
+			If flNalogUchet Then
+				RestCost = BegCost
+			Else
+				RestCost = BegCost - BegAmort
+			End If
+
+			WriteOffCost = 0
+			With Workarea.Entity(EntID)
+				WriteOffCost = .Params(pnWriteOffCost).Value2
+			End With
+
+			If (RestCost-WriteOffCost < 0.01) And April2011Date(Period) Then
+				SkipCalc = True
+				RaiseErr 20, TblRow
+			End If
+		Else 	' Нужно только методу Налоговый
+			CalcPercent
+		End If
+				
+		' дата ввода обязательна для расчета методом Кумулятивный
+		Select Case MethodID
+		Case dictMethods(0)
+'			If IsEmpty(InDate) Or InDate = 0 Then
+			If IsEmpty(DateVvoda) Or DateVvoda = 0 Or IsEmpty(InDate) Or InDate = 0 Then		
+				If IsEmpty(InDate) Or InDate = 0  Then InDate = Null
+				SkipCalc = True
+				RaiseErr 12, TblRow
+'			ElseIf DateDiff( "m", DateAdd( "d", 1, LastDayInMonth( InDate )), Period.Start ) > EksplPeriod Then
+			ElseIf DateDiff( "m", DateAdd( "d", 1, LastDayInMonth(DateVvoda)), Period.Start ) > EksplPeriod Then
+				EksplPeriod = Null
+				SkipCalc = True
+				RaiseErr 16, TblRow
+			End If
+		End Select
+	End Sub
+
+	'------------
+	' GetParamRecursive(eID, pName) - выборка значения параметра. вспомогательная
+	' "Рекурсивная": если значение параметра не задано у ОУ, то смотрим у его родителя.
+	' Если не задано у родителя, смотрим у его родителя. И т.д.
+	'------------
+	Private Function GetParamRecursive(eID, pName)
+		Dim a, obj
+		With Workarea.Entity(eID)
+			If Not .Params.Exists(pName) Then
+				a = Null
+			Else
+				a = .Params.Item(pName).Value
+			End If
+
+			If (IsNull(a) Or a=0) And (Not (.Parent Is Nothing)) Then a = GetParamRecursive(.Parent.ID, pName)
+			GetParamRecursive = a
+
+		End With
+	End Function
+
+	'------------
+	' CalcPercent - выборка Нормы/процента амортизации за год
+	'------------
+	Private Sub CalcPercent
+'			If Not .IsAsset Then
+'			ElseIf .Asset.Percent>0 Then
+'				Percent = .Asset.Percent
+'			End If
+''			If ( IsEmpty(Percent) Or (Percent=0) ) And (Not (.Parent Is Nothing)) Then Percent = GetParamRecursive(.Parent.ID, pnPercent)
+'			If IsEmpty(Percent) Then Percent = GetParamRecursive(EntID, pnPercent)
+
+		Percent = Checknull( GetParamRecursive(EntID, pnPercent), 0)
+		With Workarea.Entity(EntID)
+			If (Percent > 0) Or (Not .IsAsset) Then
+			ElseIf .Asset.Percent > 0 Then
+				Percent = .Asset.Percent
+			End If
+		End With
+		If (Not IsNumeric(Percent)) Or (Percent = 0) Then
+			SkipCalc = True
+			Percent = Null
+			RaiseErr 11, TblRow
+		End If
+	End Sub
+
+	'------------
+	' CalcEksplPeriod(d) - выборка Срока службы/Периода эксплуатации
+	' d - начало периода, для выборки фактов на дату
+	'------------
+	Private Sub CalcEksplPeriod(d , flNalogUchet)
+	Dim qm
+
+		With Workarea.Entity(EntID)
+			If flNalogUchet Then
+				qm = pnQuantityMonthsNY
+			Else
+				qm = pnQuantityMonths
+			End If
+
+			If .IsAsset Then InDate = .Asset.InActDate
+
+			DateVvoda = .Facts(d).Item(qm).ActualDate		 		 	     	' для стандарта
+			If DateVvoda = #04/01/2011# And DateVvoda <> .Asset.InActDate Then
+				DateVvoda = DateAdd("d",-1,DateVvoda)						  			'	- если дата факта d = 01 апреля 2011  - неправильная
+			End If
+'			DateVvoda = InDate						' для Вайн
+
+			EksplPeriod = .Facts(d).Item(qm).Value2
+		'	для прямолинейного метода (3) 
+			EksplPeriodEnd = EksplPeriod - DateDiff("m", DateVvoda, d) + 1			
+		
+		'	для методов уменьшения остаточной стоимости (4,5)
+			EksplPeriodOst = 12
+			If Year(DateVvoda)= Year(d) Then
+				EksplPeriodOst = 12 - Month(DateVvoda) 			
+			ElseIf Year(Period.Start) = Year(DateVvoda)+(EksplPeriod /12) Then	
+				EksplPeriodOst = Month(DateVvoda)	
+			End If
+
+			If EksplPeriod>0 And EksplPeriodEnd>0 Then Exit Sub
+			
+			' если не заполнен параметр "Ко-во месяцев экспл.", то смотрим св-ва ОС (дата ввода в эксп-ю и срок службы)
+			If .IsAsset And EksplPeriod<=0 Then 
+				DateVvoda = InDate
+				EksplPeriod = CInt(.Asset.UsefulLife*12)
+				EksplPeriodEnd = EksplPeriod - DateDiff("m", DateVvoda, d) + 1
+				If Year(DateVvoda)= Year(d) Then	
+					EksplPeriodOst = 12 - Month(DateVvoda)
+				ElseIf Year(Period.Start) = Year(DateVvoda)+ (EksplPeriod /12) Then	
+					EksplPeriodOst = Month(DateVvoda)	
+				End If
+			End If
+		End With
+
+		If EksplPeriod<=0 Then
+			EksplPeriod = Null
+			EksplPeriodEnd = Null
+			SkipCalc = True
+			If flNalogUchet Then 
+				RaiseErr 19, TblRow
+			Else
+				RaiseErr 13, TblRow
+			End If 
+		Else
+			If EksplPeriodEnd<=0 Then	RaiseErr 16, TblRow
+		End If
+	End Sub
+
+	'------------
+	' CalcAccs(flNalogUchet, d) - выборка из параметров - счетов по кр. и по дт.
+	' flNalogUchet - флаг. "Истина" - расчёт для Налогового учёта, "ложь" - для бух.учёта.
+	' d - начало периода, для выборки фактов на дату
+	'------------
+	Private Sub CalcAccs(flNalogUchet, d)
+	Dim a
+
+		If flNalogUchet Then
+			AccDb = GetParamRecursive(EntID, pnNalogAccIznos)
+			AccCr = GetParamRecursive(EntID, pnNalogAcc)
+			If IsNull(AccCr) Then RaiseErr 8, TblRow
+		Else
+			With Workarea.Entity(EntID)
+				If .facts.exists(pnAcc) Then
+					AccDb = .Facts(d).Item(pnAcc) 		' Счет отнесения затрат
+					If IsNull(AccDb) Or IsEmpty(AccDb) Or AccDb=0 Then				
+						a = .Facts.Item(pnAcc).History
+						If UBound(a,2)<>-1 Then 
+							If Not IsNull(a(1,0)) And  Not IsEmpty(a(1,0)) Then AccDb = a(1, 0)							
+						End If
+'						If EntID=45647 Then MsgBox AccDb
+					End If
+				Else
+					AccDb = Null
+				End If
+				If (IsNull(AccDb) Or IsEmpty(AccDb) Or AccDb=0) And (Not (.Parent Is Nothing)) Then AccDb = GetParamRecursive(.Parent.ID, pnAcc)
+			End With
+
+			If IsNull(AccDb) Or IsEmpty(AccDb) Or AccDb=0 Then RaiseErr 6, TblRow
+
+			AccCr = GetParamRecursive(EntID, pnAccIznos) 				' Счет по кредиту / Износ ОС
+			If IsNull(AccCr) Or IsEmpty(AccCr) Or AccCr=0 Then RaiseErr 7, TblRow
+		End If
+	End Sub
+
+	'------------
+	' IgnoreAsset - проверка параметра ОС - начислять ли износ (ОС в ремонте, и т.п.) 999
+	'------------
+	Private Function IgnoreAsset(flNalogUchet)
+		Dim enm, a, temp, Ent
+'		Dim pnSkip
+
+		IgnoreAsset = False
+		Set enm = Workarea.Enum(enmLogic)
+		Set Ent = Workarea.Entity(EntID)
+
+'		If flNalogUchet Then
+'			pnSkip = pnSkipCalc
+'		Else
+'			pnSkip = pnSkipCalcBY
+'		End If
+		With Ent.Params
+			If .exists(pnSkipCalc) Then
+				a = .Item(pnSkipCalc).Value
+			Else
+				a = Null
+			End If
+		End With
+		
+		If Ent.Asset Is Nothing Then 
+			RaiseErr 21, TblRow
+			SkipCalc = True
+		Else
+
+'			If (workarea.entity(entid).asset.InActdate>#4/1/2011#) Then
+'				temp = BegCost
+'			ElseIf (flNalogUchet) Then	
+'				temp = Workarea.Entity(EntID).Params.Item(pnRestCostNY).Value2
+'			Else
+'				temp = Workarea.Entity(EntID).Params.Item(pnRestCostBY).Value2
+'			End If
+
+			temp = BegCost
+
+			If temp = 0 Then
+				SkipCalc = True
+				IgnoreAsset = True
+			End If
+
+			If Not IsNull(a) Then
+				If flNalogUchet Then
+					If Trim(enm.ItemNameID(a))=enmYes And temp<>0 Then
+'						MsgBox(Trim(enm.ItemNameID(a)))
+						SkipCalc = True
+						RaiseErr 1, TblRow
+						IgnoreAsset = True
+					End If
+				End If
+			End If
+		End If
+	End Function
+
+'------------
+' AmortSum(Period) - Расчет cуммы износа за период выбранным методом
+' Period - период начисления износа
+'------------
+
+Public Property Get AmortSum( Period, flNalogUchet )
+    Dim i, temp
+    	
+    If Not IsEmpty( Sum ) Then ' если уже есть расчитанная сумма то берем ее (разумно)
+        AmortSum = Sum
+        Exit Property
+    End If
+
+	' не считать аммортизацию
+    If SkipCalc Then
+        Sum = 0
+        AmortSum = Sum
+        Exit Property
+    End If
+  
+ 
+    ' начиная отсюда берем налоговый учет!
+    ' ************************************
+    If flNalogUchet Then
+        '			If BegCost-begamort < 0.01 Then убрано по просьбе Светы.
+        If BegCost < 0.01 Then
+            Sum = 0
+            AmortSum = Sum
+            MethodID = Null ' чтобы в таблице отобразило "ошибку"
+            RaiseErr 3, TblRow
+        Else
+					
+            ' для Основных фондов первой группы "вывод из использования" действует. Для остальных групп - амортизация всё равно начисляется
+            If IsNull( AsstGroup ) Then
+
+            ElseIf ( Not InUse( Period.Start )) And ( AsstGroup = 1 ) Then
+                Sum = 0
+                AmortSum = Sum
+            Else
+							a = DecrQuotient
+                 If MethodID = dictMethods( 3 ) Then ' прямолинейный
+									If RestCost-WriteOffCost > 0 And EksplPeriodEnd > 0 Then
+											Sum = DecrQuotient * (RestCost-WriteOffCost) / EksplPeriodEnd
+									Else
+											Sum = 0
+									End If
+                   BegCost = RestCost
+
+                 ElseIf methodid = dictMethods( 4 ) Then
+				 					' Метод уменьшения остаточной стоимости: А(мес)=ОС*(1-(корень n-ной степени из ЛС/ПС))/12
+								 If WriteOffCost = 0 Then
+										a = a * RemSum / EksplPeriodOst
+                    Else
+                        If Year(period.start) = 2011 Then
+                            a = a * workarea.entity(entid).params(pnRestCostNY).value2 * (1 - (WriteOffCost / workarea.entity(EntID).params(pnBuyCost).Value2) ^ (1 / (EksplPeriod / 12))) / EksplPeriodOst
+                        Else
+                            'a = a * RestCost * (1 - (WriteOffCost / workarea.entity(EntID).params(pnBuyCost).Value2) ^ (1 / (EksplPeriod / 12))) / 12
+												a = a * RemSum * (1 - (WriteOffCost / workarea.entity(EntID).params(pnBuyCost).Value2) ^ (1 / (EksplPeriod / 12))) / EksplPeriodOst
+                        End If
+                    End If
+
+								If a <= 0 Then
+					       		 Sum = 0
+								ElseIf (Round(RestCost) =< WriteOffCost) And WriteOffCost<>0 Then
+					        Sum = 0				' для метода Налоговый WriteOffCost=Empty => 0 и это правильно
+								Else
+					        Sum = a
+						     End If
+								RestCost = BegCost				' Зачем?
+                    ' или налоговый (других быть не может
+							ElseIf dictMethods( 5 ) Then
+			            ' Метод ускоренного уменьшения остаточной стоимости: А(мес)=(ОС-ЛС)*2/n/12
+								If Year(Period.Start) = Year(DateVvoda)+ (EksplPeriod /12)  Then
+										RemSum = RemSum - WriteOffCost
+										a = RemSum/EksplPeriodOst
+								Else
+										a = (a * RemSum * 2 / (EksplPeriod/12)) /EksplPeriodOst
+								End If
+								Sum = a
+							Else
+                    Sum = DecrQuotient * BegCost * ( Percent / 100 ) / 4
+                    If ( AsstGroup = 1 ) And ( WrtOff_Sum_1 > ( BegCost - Sum )) Then
+                        Sum = BegCost - WrtOff_Sum_1 ' по первой группе, при достижении фиксир. суммы - нужно списывать
+                    End If
+                End If
+
+						 AmortSum = Round2(Sum, 2)
+            End If
+        End If
+        Exit Property
+    End If
+    ' тут заканчивается налоговый учет
+	' *******************************************************
+	
+	' бухгалтерский учет
+	' *******************************************************
+	
+    Dim yr ' порядковый номер года использования (первый год берем - "нулевой" для упрощения формулы)
+    Dim a
+    Dim flMethodNotSupported ' флаг. Истина => данный метод не поддерживается
+    flMethodNotSupported = False
+
+	' не считать аммортизацию
+    If SkipCalc Then
+        Sum = 0
+        AmortSum = Sum
+        Exit Property
+    End If
+  
+	' если не в использовании
+    If Not InUse( Period.Start ) Then
+        Sum = 0
+        AmortSum = Sum
+        Exit Property
+    End If
+
+    a = DecrQuotient
+
+    Select Case MethodID
+        Case dictMethods(0)
+            ' Кумулятивный метод: А(мес)=(ПС-ЛС)*(n-(i-1))/(n*(n+1)/2)/12
+            yr = DateDiff( "m", DateAdd( "d", 1, LastDayInMonth(DateVvoda)), Period.Start ) \ 12
+            a = a * (BegCost - WriteOffCost) * (EksplPeriod / 12 - yr) / EksplPeriod / ((EksplPeriod / 12 + 1) / 2)
+        Case dictMethods(1)
+            ' Налоговый метод: А(мес)=ОС*коэф.группы
+            a = a * QuartBegCost( Period ) * ( Percent / 100 ) / 12
+            '				a = a*( BegCost - BegAmort ) * ( Percent / 100 ) / 12
+            If IsNull(AsstGroup) Then
+            ElseIf (AsstGroup = 1) And (WrtOff_Sum_1 > (BegCost - BegAmort - a)) Then
+                a = BegCost - BegAmort - WrtOff_Sum_1 ' по первой группе, при достижении фиксир. суммы - нужно списывать
+            End If
+        Case dictMethods(3) ' тройка - прямолинейный метод 9999
+            ' Прямолинейный метод: А(мес)=(ПС-ЛС)/n/12
+            ' если есть остаточная стоимость на 01.04.2011 то А(мес)=(ОС)/n/12
+
+					If RestCost-WriteOffCost > 0 And EksplPeriodEnd > 0 Then
+							a = DecrQuotient * (RestCost-WriteOffCost)/ EksplPeriodEnd
+						Else
+							a = 0
+					End If
+        Case dictMethods(4)
+            ' Метод уменьшения остаточной стоимости: А(мес)=ОС*(1-(корень n-ной степени из ЛС/ПС))/12
+            ' логарифм нуля - минус бесконечность, экспонента минус бесконечности - ноль
+            ' => обрабатываем этот "вырожденный случай". Скорее надо ругаться, что отсутствует ЛС!!!!
+            If WriteOffCost = 0 Then
+                ' может в заданной формуле потеряно деление на n ?
+                a = a * RemSum / EksplPeriodOst
+            Else
+                If Year(period.start) = 2011 Then
+                    a = a * workarea.entity(entid).params(pnRestCostBY).value2 * (1 - (WriteOffCost / workarea.entity(EntID).params(pnBuyCost).Value2) ^ (1 / (EksplPeriod / 12))) / EksplPeriodOst
+                Else
+                    a = a * RemSum * (1 - (WriteOffCost / workarea.entity(EntID).params(pnBuyCost).Value2) ^ (1 / (EksplPeriod / 12))) / EksplPeriodOst
+                End If
+            End If
+        Case dictMethods(5)
+					' Метод ускоренного уменьшения остаточной стоимости: А(мес)=(ОС-ЛС)*2/n/12
+    				'MsgBox(CStr(Year(InDate)+ (EksplPeriod /12)))
+					If (RestCost-WriteOffCost)>0 Then
+						If Year(Period.Start) = Year(DateVvoda)+(EksplPeriod /12)  Then	
+								 a = (RemSum - WriteOffCost)/EksplPeriodOst 
+						Else
+								 a = (a * RemSum * 2 / (EksplPeriod/12)) /EksplPeriodOst
+						End If
+						If (EksplPeriodEnd<=0) Then 
+							a = 	RestCost-WriteOffCost
+						End If
+					Else
+						a = 0
+					End If
+        Case Else
+            flMethodNotSupported = True
+            RaiseErr 2, TblRow
+    End Select
+
+    If a <= 0 Or flMethodNotSupported Then
+			Sum = 0
+		ElseIf (( BegCost - BegAmort - a ) < WriteOffCost) And WriteOffCost<>0 Then
+		   Sum = BegCost - BegAmort - WriteOffCost
+			 RaiseErr 20, TblRow
+		Else
+			Sum = Round2(a, 2)		'Sum = a вай
+    End If
+    AmortSum = Sum
+End Property
+
+	'------------
+	' DataAr(Period, flNalogUchet) - вернуть массив свойств ОС. для таблицы расчёта
+	' Period - период начисления износа
+	' flNalogUchet - флаг. "Истина" - расчёт для Налогового учёта, "ложь" - для бух.учёта.
+	'------------
+	Public Function DataAr(Period, flNalogUchet)
+		Dim ent, ar(17)
+		Set ent = Workarea.Entity(EntID)
+		ar(0) = TblRow
+		ar(1) = EntID
+		ar(2) = ent.Name
+		ar(3) = ent.Nom
+		ar(4) = CStr(InDate)
+		ar(5) = EksplPeriod
+		ar(6) = AsstGroup
+		ar(7) = Percent
+		If flNalogUchet Then
+			ar(8) = BegCost+BegAmort
+		Else
+			ar(8) = BegCost
+		End If
+		ar(9) = BegAmort
+		ar(10) = RestCost
+		ar(11) = RemSum
+		ar(12) = WriteOffCost
+		Amort = AmortSum(Period, flNalogUchet)
+		ar(13) = Amort
+		If Not flNalogUchet Then
+			ar(14) = Improvements
+		End If
+		ar(16) = AccDb
+		ar(17) = AccCr
+		If flNalogUchet Then
+			If RestCost=>0.01 Then
+				ar(15) = RestCost - Amort
+			End If
+		Else
+			If RestCost=>0.01 Then
+'				ar(15) = RestCost + Improvements - Amort
+				ar(15) = RestCost - Amort
+			End If
+		End If
+		DataAr = ar
+	End Function
+
+	'------------
+	' LastCostChange( Period ) - дата последнего изменения стоимости ОС
+	' Period - период начисления износа
+	'------------
+	Private Property Get LastCostChange( Period )
+		Dim rep1, i, j
+		Set rep1 = Workarea.CreateReport( "RepWizard" )
+		rep1.AddColumn 1,,,"1+Дата" ' Дата проводки
+		rep1.AddColumn 12,,,"5+Номер|1+Наименование" ' Столбец - "Первый корреспондент->Наименование"
+		rep1.AddColumn 5,,,"1+Наименование" ' Столбец - "объект учета->Наименование"
+		rep1.Period.Start = InDate
+		rep1.Period.End = Period.Start
+		rep1.Kind = acEntity
+		rep1.KindID = EntID
+		rep1.AccID = Workarea.GetAccID( "10" )
+		rep1.SubAcc = True
+		' выводить остатки
+		rep1.SetRemMode False, 0, 0
+		rep1.SetRemMode True, 0, 0
+		' Выводить обороты по дебету или кредиту
+		rep1.SetTurnMode True, 1, 1
+		rep1.SetTurnMode False, 1, 1
+		rep1.Build
+		With rep1.Root
+			If .Children > 0 Then
+				LastCostChange = .Child( .Children ).Value
+			Else
+				LastCostChange = 0
+				RaiseErr 18, TblRow
+			End If
+		End With
+	End Property
+
+	'------------
+	' InUse( d ) - Используется ли ОС в хоз.деятельности
+	' d - дата. предоложительно, первый день месяца
+	'------------
+	Public Property Get InUse( d )
+		Dim pUsed
+		pUsed = UCase( Workarea.Entity( EntID ).Facts( d ).Item( pUsage ).ValueString )
+		InUse = ( pUsed <> "НЕТ" ) And ( d >= InDate ) And ( InDate <> 0 )
+	End Property
+
+	'------------
+	' QuartBeg( Period ) - Начало "условного квартала" для бух.учёта по Налоговому методу
+	' Period - период начисления износа
+	'------------
+	Public Property Get QuartBeg( Period )
+		Dim d, EnYesNo, dbeg, dend, mm, a, idx, n
+		' qBeg содержит значение, приходящееся на начало условного квартала в любой момент расчёта,
+		' постепенно приближаясь к Period.Start, пока не примет значение, максимально близкое к Period.Start, но не превышающее его
+		Dim qBeg
+		Dim i, j, ar1, ar2(), flUsed, val1
+
+		Set EnYesNo = Workarea.Enum( "Логика" )
+		ar1 = FactHistory( EntID, Workarea.Entity( EntID ).Facts.Item( pUsage ).ID )
+		qBeg = DateAdd( "m", 1, FirstDayInMonth( LastCostChange( Period ))) ' начало условного квартала сразу после "изменения стоимости"
+
+		If qBeg = Period.Start Then
+			QuartBeg = qBeg
+			Exit Property
+		End If
+
+		If UBound( ar1 ) >= 0 Then
+			n = UBound( ar1, 2 )
+
+			If ar1( 0, n ) <= qBeg Then
+				' если все изменения статуса использования произошли не позже последнего "изменения стоимости"
+				mm = DateDiff( "m", qBeg, Period.Start )
+				QuartBeg = DateAdd( "m", -( mm Mod 3 ), Period.Start )
+				Exit Property
+			End If
+
+			' находим статус Использования ОС на момент последнего "изменения стоимости"
+			For i = 0 To n
+				If ar1( 0, i ) > qBeg Then
+					idx = i
+					Exit For
+				End If
+			Next
+
+			' ar1( 4, idx ) = PRM_LONG = ID элемента перечисления
+			val1 = UCase( EnYesNo.ItemNameID( ar1( 4, idx )))
+
+			' если первое изменение статуса будет уже за периодом начисления износа
+			If ar1( 0, idx ) > Period.Start Then
+				If val1 = "НЕТ" Then
+					mm = DateDiff( "m", qBeg, Period.Start )
+					QuartBeg = DateAdd( "m", -( mm Mod 3 ), Period.Start )
+				Else
+					QuartBeg = qBeg
+				End If
+				Exit Property
+			End If
+
+			' перебираем периоды использования, приближаясь к Period.Start и вычисляя максимальное значение qBeg
+			dbeg = qBeg
+			Do
+				If val1 = "ДА" Then
+					dbeg = DateCeilM( ar1( 0, idx ))
+				ElseIf val1 = "НЕТ" Then
+					dend = DateCeilM( ar1( 0, idx ))
+					mm = mm + DateDiff( "m", dbeg, dend )
+					qBeg = DateAdd( "m", -( mm Mod 3 ), dend )
+					mm = mm Mod 3
+				End If
+				idx = idx + 1
+				If idx > n Then
+					Exit Do
+				ElseIf ar1( 0, idx ) > Period.Start Then
+					Exit Do
+				End If
+				val1 = UCase( EnYesNo.ItemNameID( ar1( 4, idx )))
+			Loop
+
+			If val1 = "ДА" Then
+				mm = mm + DateDiff( "m", dbeg, Period.Start )
+				If mm >= 3 Then qBeg = DateAdd( "m", -( mm Mod 3 ), Period.Start )
+			End If
+			QuartBeg = qBeg
+		Else
+			' количество месяцев после последнего изменения цены
+			mm = DateDiff( "m", qBeg, Period.Start )
+			QuartBeg = DateAdd( "m", -( mm Mod 3 ), Period.Start )
+		End If
+	End Property
+
+	'------------
+	' Private Function DateCeilM( d )
+	' Вернуть дату, "округлённую вверх до начала месяца"
+	' Если дата d приходится на первое число месяца, вернуть d, иначе вернуть первое число следующего месяца
+	'------------
+	Private Function DateCeilM( d )
+		If d = FirstDayInMonth( d ) Then
+			DateCeilM = d
+		Else
+			DateCeilM = DateAdd( "m", 1, FirstDayInMonth( d ))
+		End If
+	End Function
+	'----
+	'
+	'----
+	Private Function April2011Date (Period)
+		Dim Pdate
+		Pdate = Period.Start
+		If Year(Pdate) > 2011 Then
+			April2011Date = True
+		Else
+			If Year(Pdate) = 2011 And Month(Pdate) > 3 Then
+				April2011Date = True
+			Else
+				April2011Date = False
+			End If
+		End If	 
+	End Function
+	'-----
+	'
+	'-----
+'	Public Property Get QuartBeg( Period )
+'		Dim d, EnYesNo, dbeg, dend, mm, a
+'		Dim i, j, ar1, ar2(), flUsed, val1
+'
+'		Set EnYesNo = Workarea.Enum( "Логика" )
+'		ar1 = FactHistory( EntID, Workarea.Entity( EntID ).Facts.Item( pUsage ).ID )
+'		d = FirstDayInMonth( LastCostChange( Period ))
+'
+'		If UBound( ar1 ) >= 0 Then
+'			For i = 0 To UBound( ar1, 2 )
+'				val1 = UCase( EnYesNo.ItemNameID( ar1( 4, i )))
+'				If IsEmpty( flUsed ) And ( val1 = "ДА" ) Then
+'					dbeg = ar1( 0, i )
+'					flUsed = True
+'				ElseIf ( Not flUsed ) And ( val1 = "ДА" ) Then
+'					dbeg = ar1( 0, i )
+'					flUsed = True
+'				ElseIf flUsed And ( val1 = "НЕТ" ) Then
+'					dend = ar1( 0, i )
+'					flUsed = False
+'					mm = mm + DateDiff( "m", dbeg, dend )
+'				End If
+'			Next
+'			If flUsed Then
+'				mm = mm + DateDiff( "m", dbeg, Period.Start ) - 1
+'			End If
+'		Else
+'			' количество месяцев после последнего изменения цены
+'			mm = DateDiff( "m", d, Period.Start ) - 1
+'		End If
+'		QuartBeg = DateAdd( "m", -( mm Mod 3 ), Period.Start )
+'	End Property
+
+	'------------
+	' QuartBegCost( Period ) - Остаточная стоимость ОС на начало условного квартала
+	' Period - период начисления износа
+	'------------
+	Public Property Get QuartBegCost( Period )
+		Dim rep1, rep2, a, d
+		d = QuartBeg( Period )
+
+		QuartBegCost = 0
+		Set rep1 = Workarea.CreateReport( "RepWizard" )
+		rep1.AddColumn 5,,,"1+Наименование" ' Столбец - "объект учета->Наименование"
+		rep1.Period.Start = d
+		rep1.Period.End = d
+		rep1.Kind = acEntity
+		rep1.KindID = EntID
+		rep1.AccID = Workarea.GetAccID( "10" )
+		rep1.SubAcc = True
+		' выводить остатки
+		rep1.SetRemMode False, 1, 0
+		rep1.SetRemMode True, 1, 0
+		' Выводить обороты по дебету или кредиту
+		rep1.SetTurnMode True, 1, 1
+		rep1.SetTurnMode False, 1, 1
+		rep1.Build
+		With rep1.Root
+			a = .StartDb - .StartCr
+		End With
+		Set rep1 = Nothing
+
+		Set rep1 = Workarea.CreateReport( "RepWizard" )
+		rep1.AddColumn 5,,,"1+Наименование" ' Столбец - "объект учета->Наименование"
+		rep1.Period.Start = d
+		rep1.Period.End = d
+		rep1.Kind = acEntity
+		rep1.KindID = EntID
+		rep1.AccID = Workarea.GetAccID( "131" )
+		rep1.SubAcc = True
+		' выводить остатки
+		rep1.SetRemMode False, 1, 0
+		rep1.SetRemMode True, 1, 0
+		' Выводить обороты по дебету или кредиту
+		rep1.SetTurnMode True, 1, 1
+		rep1.SetTurnMode False, 1, 1
+		rep1.Build
+		With rep1.Root
+			QuartBegCost = a + .StartDb - .StartCr
+		End With
+	End Property
+End Class
+
+'________________________________________________
+Function FactHistory( ent_id, fact_id )
+	Dim sql, ar
+	sql = " SELECT FA_FDATE, FA_CY, FA_DATE, FA_DOUBLE, FA_LONG, FA_STRING" & _
+			" FROM ENT_FACTS" & _
+			" WHERE FA_ID = " & fact_id &  " And EL_ID = " & ent_id & _
+			" ORDER BY FA_FDATE;"
+
+	Select Case App.AppType
+	Case "DAO"
+		GetRows_DAO sql, ar
+	Case Else
+		GetRows_ADO sql, adCmdText, ar
+	End Select
+	FactHistory = ar
+End Function
+
+' Типы команд: инструкция SQL, таблица, хранимая процедура
+Const adCmdText = 1, adCmdTable = 2, adCmdStoredProc = 4
+
+'________________________________________________
+' Function GetRows_ADO( sql, Options, ByRef ar )
+' Выполнение запроса без передачи параметров
+' Если запрос не вернул строк, функция возвращает False и пустой массив в "ar"
+' Если запрос вернул сколько-то строк, функция возвращает True и массив данных в "ar"
+' ADO
+'________________________________________________
+Function GetRows_ADO( sql, Options, ByRef ar )
+	ar = Array()
+	GetRows_ADO = False
+	With WorkArea.AdoConnection.Execute( sql, , Options )
+		If .eof Then Exit Function
+		ar = .GetRows
+	End With
+	GetRows_ADO = True
+End Function
+
+'________________________________________________
+' Function GetRows_DAO( sql, ByRef ar )
+' Выполнение запроса без передачи параметров
+' Если запрос не вернул строк, функция возвращает False и пустой массив в "ar"
+' Если запрос вернул сколько-то строк, функция возвращает True и массив данных в "ar"
+' DAO
+'________________________________________________
+Function GetRows_DAO( sql, ByRef ar )
+	Dim rs, n
+	ar = Array()
+	GetRows_DAO = False
+	Set rs = WorkArea.DAODataBase.OpenRecordset( sql )
+	If rs.eof Then Exit Function
+	rs.MoveLast
+	n = rs.RecordCount
+	rs.MoveFirst
+	ar = rs.GetRows( n )
+	GetRows_DAO = True
+End Function

@@ -1,0 +1,608 @@
+'#include "HL74_Common.avb"
+'#include "HL74_Const.avb"
+
+' модуль для работы с принтером чеков, подключенным к COM порту
+'
+Option Explicit
+
+'	prmPrinter
+'	0	- 	Msc
+'	1 	-	кассир
+'	2	-	пароль кассира
+'	3 	-	прочее, если нужно
+
+'	prmData для печати чеков
+'	0 	-	операция
+'	1	-	номер проводки
+'	2	-	тип платежа
+
+'	prmData для печати отчетов 
+'	0	-	вид отчета
+'	1	-	тип отчета (сокращенный или развернутый)
+'	2	-	выводить полный период
+'	3	-	начало периода
+'	4	-	конец периода
+'	5	-	начальный номер
+'	6	-	конечный номер
+
+Const MSG_ERROR_NO_REPORT = "Отчет данным ЭККА не поддерживается"
+Const MSG_ERROR_PRN_REPORT = "Отчет печати отчета"
+
+Const MSG_ERROR_PAYMENT 		= "Ошибка оплаты фискального чека"
+Const MSG_ERROR_RET 				= "Ошибка чека возврата"
+Const MSG_ERROR_CASHIER 		= "Ошибка регистрации кассира"
+Const MSG_ERROR_PRINTROW 		= "Ошибка печати строки фискального чека"
+Const MSG_ERROR_PRN_OPEN 		= "Ошибка доступа к принтеру"
+Const MSG_ERROR_NO_COM 			= "Ошибка создания OLE/COM объекта"
+Const MSG_ERROR_PRINT_OUT 		= "Ошибка печати чека выемки денег"
+Const MSG_ERROR_PRINT_IN	 	= "Ошибка печати чека внесения денег"
+Const MSG_ERROR_OPEN_DRAWER	= "Ошибка открытия денежного ящика"
+Const MSG_ERROR_RESET_CHECK 	= "Ошибка аннулирования чека"
+Const MSG_ERROR_CLOSE_CHECK 	= "Ошибка закрытия чека"
+
+Const MSG_NO_SUPPPORT = "Функция для данного принтера не поддерживается"
+Const MSG_BOX_CAPTION = "Печать фискального чека"
+
+Const MAX_STR_LEN = 40			' длина строки
+
+'Const prmEntCashPrnName = "Наименование для ЭККА"
+'Const prmTrPrice = "Цена"
+
+'---
+'
+'---
+Sub PrintCash_DoPrintCheck(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	If IsNumeric(Msc.String2) Then
+		Set CashPrn = PrintCash_Open(CLng(Msc.String2), Msc.Long1, prmPrinter)
+
+		If Not CashPrn Is Nothing Then
+			PrintCash_PrintCheck CashPrn, prmData
+			PrintCash_Close CashPrn, CLng(Msc.String2)
+		End If
+	Else
+		MsgBox "Номер порта должен быть числом", vbExclamation, MSG_BOX_CAPTION
+	End If
+End Sub
+'---
+'
+'---
+Sub PrintCash_DoPrintCheckRet(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	If IsNumeric(Msc.String2) Then
+		Set CashPrn = PrintCash_Open(CLng(Msc.String2), Msc.Long1, prmPrinter)
+
+		If Not CashPrn Is Nothing Then
+			PrintCash_PrintCheckRet CashPrn, prmData
+			PrintCash_Close CashPrn, CLng(Msc.String2)
+		End If
+	Else
+		MsgBox "Номер порта должен быть числом", vbExclamation, MSG_BOX_CAPTION
+	End If
+
+End Sub
+'---
+'
+'---
+Function PrintCash_GetBoudRate(BoudRate)
+	Select Case BoudRate
+		Case 4800
+			PrintCash_GetBoudRate = 1
+		Case 9600
+			PrintCash_GetBoudRate = 2
+		Case 19200
+			PrintCash_GetBoudRate = 3
+		Case 38400
+			PrintCash_GetBoudRate = 4
+		Case 57600
+			PrintCash_GetBoudRate = 5
+		Case 115200
+			PrintCash_GetBoudRate = 6
+		Case Else
+			PrintCash_GetBoudRate = 0
+	End Select
+End Function
+'---
+'
+'---
+Function PrintCash_Open(PortNo, BoudRate, prmPrinter)
+	Dim CashPrn, CashierName, Passw, Result
+
+	CashierName = prmPrinter(1)
+
+	Set PrintCash_Open = Nothing
+	Set CashPrn = New ComPrn
+
+	If CashPrn.Open(PortNo, BoudRate) Then
+		Set PrintCash_Open = CashPrn
+	Else
+		MsgBox MSG_ERROR_PRN_OPEN & vbNewLine & CashPrn.ErrorMessage, vbCritical, MSG_BOX_CAPTION
+	End If
+
+End Function
+'---
+'
+'---
+Function PrintCash_PrintCheck(CashPrn, ByRef prm)
+	Dim Op, TrNo, TrList, DepName, PaymentType
+	Dim OneLinePrm, Result
+
+	PrintCash_PrintCheck = True
+
+	Set Op = prm(0)
+	TrNo = prm(1)
+	PaymentType = 1	'prm(2)
+	OneLinePrm = Array(CashPrn, prm(3))
+
+	Set TrList = Op.TransList(TrNo)
+	DepName = TrList.AgFromBind.Name
+
+	Result = 0
+
+	If CashPrn.OpenCheck(Op.DocNo) Then
+		TrList.EnumTrans GetRef("PrintCash_PrintOneLine"), OneLinePrm
+
+		If CashPrn.LastErrorNo = 0 Then
+			If Not CashPrn.CloseCheck(TrList.Sum) Then
+				MsgBox MSG_ERROR_CLOSE_CHECK & vbNewLine & CashPrn.ErrorMessage, vbCritical, MSG_BOX_CAPTION
+			End If
+		End If
+	End If
+
+	PrintCash_PrintCheck = (Result = 1)
+
+End Function
+'---
+'
+'---
+Function PrintCash_PrintOneLine(Tr, ByRef OneLinePrm)
+	Dim EntName, CashPrn, IsDisc
+
+	Set CashPrn = OneLinePrm(0)
+	IsDisc = OneLinePrm(1)
+
+	EntName = Tr.EntBind.ParamString(prmEntCashName)
+	If EntName = "" Then EntName = Tr.EntBind.Name
+
+	' Продажа товара со скидкой : название, количество, цена, сумма, код артикула
+	PrintCash_PrintOneLine = (CashPrn.PrintRow(EntName, Tr.Qty, Tr.Price, Tr.EntBind.Art))
+End Function
+
+'---
+'
+'---
+Function PrintCash_PrintCheckRet(CashPrn, ByRef prm)
+	MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+	PrintCash_PrintCheckRet = True
+End Function
+'---
+'
+'---
+Function PrintCash_PrintOneLineRet(Tr, ByRef OneLinePrm)
+'	Dim EntName, CashPrn
+'
+'	Set CashPrn = OneLinePrm(0)
+'
+'	EntName = Tr.EntBind.ParamString(prmEntCashPrnName)
+'	If EntName = "" Then EntName = Tr.EntBind.Name
+'
+'	PrintCash_PrintOneLineRet = True
+'
+'	' Продажа товара: название, количество, цена (в копейках), делимость, налог1, налог2, код артикула
+'	If Tr.EntBind.Art = "" Then
+'		PrintCash_PrintOneLineRet = (CashPrn.FiscalLine(EntName, Tr.Qty, CLng(Tr.Price * 100), 0, 0, 0,1) <> 0)
+'	Else
+'		PrintCash_PrintOneLineRet = (CashPrn.FiscalLine(EntName, Tr.Qty, CLng(Tr.Price * 100), 0, 0, 0, Tr.EntBind.Art) <> 0)
+'	End If
+End Function
+
+'---
+'
+'---
+
+Function PrintCash_Close(CashPrn, PortNo)
+	PrintCash_Close = (CashPrn.Close() = 1)
+	Set CashPrn = Nothing
+End Function
+'---
+'
+'	prmData для печати чеков
+'	0	-	вид отчета
+'	1	-	тип отчета (сокращенный или развернутый)
+'	2	-	выводить полный период
+'	3	-	начало периода
+'	4	-	конец периода
+'	5	-	начальный номер
+'	6	-	конечный номер
+'
+'---
+Sub PrintCash_PrintReports(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc, IsErr, dStart, dEnd
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+	IsErr = 1
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintNullCheck(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+	Dim Op
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		If Not CashPrn.PrintNullCheck() Then
+			MsgBox MSG_ERROR_PRN_REPORT & vbNewLine & CashPrn.ErrorMessage, vbCritical, MSG_BOX_CAPTION
+		End If
+
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckOut(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+	Dim Op
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckIn(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+	Dim Op
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_OpenCashDrawer(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+End Sub
+'---
+'
+'---
+Function PrintCash_ResetCheck(prm)
+	Dim CashPrn, prmPrinter, prmData, Msc
+
+	prmPrinter = prm(0)
+	prmData = prm(1)
+
+	Set Msc = prmPrinter(0)
+
+	Set CashPrn = PrintCash_Open(Msc.String2, Msc.Long1, prmPrinter)
+
+	If Not CashPrn Is Nothing Then
+		MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION		
+		PrintCash_Close CashPrn, CLng(Msc.String2)
+	End If
+
+End Function
+'---
+'
+'---
+Class ComPrn
+	Private fso, fcom, ErrorMsg, ErrorNo
+	Private MaxLen, MyCo, WinAPI
+
+	Public Cashier
+	
+	Private Sub Class_Initialize
+			
+		Set fcom = Nothing
+		MaxLen = MAX_STR_LEN
+		Set MyCo = Workarea.MyCompany
+
+		Cashier = ""
+
+		On Error Resume Next
+		Set fso = CreateObject("Scripting.FileSystemObject")
+		Set WinAPI = CreateLibObject("WinAPI")
+
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+		If ErrorNo <> 0 Then 	
+			Err.Clear
+			Set fso = Nothing
+		End If
+
+	End Sub
+'---
+'
+'---
+	Public Sub PrintLine(sText)
+		fcom.writeline WinAPI.AnsiToOEM(sText)
+	End Sub
+'---
+'
+'---
+	Public Function Open(PortNo, BoudRate)
+		If ErrorNo <> 0 Then 
+			Open = False
+			Exit Function
+		End If
+
+		On Error Resume Next
+		Set fcom = fso.OpenTextFile("COM" & PortNo, 2, True)
+
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+		Open = (ErrorNo = 0)
+	End Function
+'---
+'
+'---
+	Public Function PrintNullCheck
+		PrintHeader ""
+		PrintLine "НУЛЕВОЙ ЧЕК"
+		PrintFooter
+
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+		PrintNullCheck = (ErrorNo = 0)
+
+	End Function 
+'---
+'
+'---
+	Private Sub Class_Terminate
+		If Not fcom Is Nothing Then fcom.Close
+	End Sub
+'---
+'
+'---
+	Private Function alignment(ByVal StrValue, StrAlignment)
+		Dim StrRet, n
+
+		If Len(StrValue) > MaxLen Then 
+			StrRet = Left(StrValue, MaxLen)
+		ElseIf Len(StrValue) = MaxLen Then
+			StrRet = StrValue
+		Else
+			Select Case StrAlignment
+				Case acLeft
+					StrRet = StrValue & Space(MaxLen - Len(StrValue))
+	
+				Case acRight
+					StrRet = Space(MaxLen - Len(StrValue)) & StrValue
+	
+				Case acCenter
+					n = (MaxLen - Len(StrValue))
+					StrRet = Space( n \ 2) & StrValue
+					
+			End Select
+		End If
+
+		alignment = StrRet
+	End Function
+'---
+'
+'---
+	Private Function multiline(ByVal InText, Mode)
+		Dim OutText
+	
+		OutText = ""
+	
+		While InText <> ""
+			If OutText <> "" Then OutText = OutText & vbNewLine
+
+			If Mode <> 0 Then
+				OutText = OutText & alignment(Left(InText, MaxLen), Mode)
+			Else
+				OutText = OutText & Left(InText, MaxLen)
+			End If
+				
+			If Len(InText) > MaxLen Then
+				InText = Mid(InText, MaxLen + 1)
+			Else
+				InText = ""
+			End If
+		Wend
+	
+		multiline = OutText
+	End Function
+'---
+'
+'---
+	Private Sub PrintHeader(DocNo)
+		Dim Addr
+
+		On Error Resume Next
+
+		Addr = com_addressnormalize(MyCo.Address)
+
+		If DocNo <> "" Then
+			PrintLine multiline("ЧЕК № " & DocNo, acCenter)
+		End If
+
+		PrintLine Chr(27) + "3"
+		PrintLine Chr(27) + "!" + Chr(01)
+		PrintLine multiline(com_getparamvalue(MyCo, prmAgAlterName, MyCo.Name), acCenter)
+		PrintLine multiline(com_addressnormalize(MyCo.Address), acCenter)
+		PrintLine alignment("ИКЮЛ:" & MyCo.Code, acLeft)
+		PrintLine alignment("Кассир:" & Cashier, acLeft)
+		PrintLine String(MaxLen, "-")
+'		PrintLine Chr(27) + "!" + Chr(0)
+'		PrintLine Chr(27) + "3" + Chr(0)
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+	End Sub
+'---
+'
+'---
+	Private Sub PrintFooter
+		On Error Resume Next
+
+		PrintLine String(MaxLen, "-")
+		PrintLine FormatDate2(Now(), "dd-mm-yyyy hh:nn")
+		PrintLine Chr(10)
+		PrintLine Chr(10)
+		PrintLine Chr(10)
+		PrintLine Chr(10)
+		PrintLine Chr(10)
+		PrintLine Chr(10)
+
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+	End Sub
+
+'---
+'
+'---
+	Public Function Close
+		On Error Resume Next
+		If Not fcom Is Nothing Then fcom.Close
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+		Close = (ErrorNo = 0)
+
+	End Function
+'---
+'
+'---
+	Public Property Get ErrorMessage
+		If ErrorNo <> 0 Then
+			ErrorMessage = "#" & ErrorNo & vbNewLine & ErrorMsg
+		Else
+			ErrorMessage = ""
+		End If
+	End Property
+'---
+'
+'---
+	Public Function CloseCheck(TotalSum)
+		If ErrorNo <> 0 Then 
+			CloseCheck = False
+			Exit Function
+		End If
+
+		PrintLine String(MaxLen, "-")
+		PrintLine "Итого по чеку: " & FormatNumber(TotalSum, 2) & " руб." 
+
+		PrintFooter
+		fcom.close
+		CloseCheck = (ErrorNo = 0)
+
+	End Function
+'---
+'
+'---
+	Public Function OpenCheck(DocNo)
+		If ErrorNo <> 0 Then 
+			OpenCheck = False
+			Exit Function
+		End If
+
+		On Error Resume Next
+
+		PrintHeader DocNo
+
+		ErrorNo = Err.Number
+		ErrorMsg = Err.Description
+
+		OpenCheck = (ErrorNo = 0)
+	End Function
+
+'---
+'
+'---
+	Public Function PrintRow(EntName, EntQty, EntPrice, EntArt)
+		If ErrorNo <> 0 Then 
+			OpenCheck = False
+			Exit Function
+		End If
+
+		On Error Resume Next
+
+		If Not fcom Is Nothing Then
+			PrintLine multiline(com_strzero(EntArt, 8) & " " & EntName, acLeft)
+			PrintLine " Цена:" & FormatNumber(EntPrice, 2) & " руб. X " & FormatNumber(EntQty, 0) & " = " & FormatNumber(EntPrice * EntQty, 2) & " руб."
+
+			If Err.Number <> 0 Then
+				ErrorNo = Err.Number
+				ErrorMsg = Err.Description
+			End If
+
+		End If
+
+		PrintRow = (ErrorNo = 0)
+	End Function
+'---
+'
+'---
+	Public Property Get LastErrorNo
+		LastErrorNo = ErrorNo
+	End Property
+
+End Class

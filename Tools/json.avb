@@ -1,0 +1,94 @@
+Dim buffer, DictJson
+
+Buffer = "{""id"":""404"",""name"":""Andrey"",""first_name"":""Andrey"",""middle_name"":""Alexandrovich"",""last_name"":""Chernikov"",""user_name"":""rollinx"",""gender"":""Male"",""email"":""chernikov@gmail.com"",""photo_album"":[{""id"":1,""name"":""Я с инстаграммом""},{""id"":2,""name"":""Я на фоне заниженного таза""}]}"
+Set DictJson = CreateObject("Scripting.Dictionary")
+
+stop
+Serilize Buffer, 1, DictJson
+
+Sub Serilize(ByRef Buffer, ByVal Pos, ByRef ParentDict)
+	Dim i, OneChar, ChildDict, Key, Value
+	Dim StartKey, StartValue
+	Dim WaitKey, WaitValue, StartArray
+
+	StartKey = False
+	StartValue = False
+	StartArray = False
+	WaitKey = False
+	WaitValue = False
+
+	For i = Pos To Len(Buffer)
+		OneChar = CharAt(buffer, i)
+
+		Select Case OneChar
+			Case "{"
+				If i > 1 Then
+					Set ChildDict = CreateObject("Scripting.Dictionary")
+					Serilize Buffer, i, ChildDict
+					ParentDict.Add Key, ChildDict
+				Else
+					WaitKey = True
+					Key = ""
+				End If
+
+			Case "["
+	'			массив начало
+				StartArray = True
+
+			Case "]"
+	'			массив конец
+				StartArray = False
+
+			Case Chr(34)
+				'	работаем с ключем или значением
+				If WaitKey And Not StartKey Then
+					' следующие символы - ключ
+					StartKey = True
+					WaitKey = False
+				ElseIf StartKey Then
+					' окончен ключ
+					StartKey = False
+				ElseIf WaitValue And Not StartValue Then
+					' следующие символы - значение
+					StartValue = True
+					WaitValue = False
+				ElseIf StartValue Then
+					' окончили ввод значения - запоминаем
+					StartValue = False
+					ParentDict.Add Key, Value
+				Else
+					' данные для массива
+				End If
+
+			Case ":"
+				' ждем значение
+				WaitValue = True
+				StartValue = False
+
+			Case ","
+				'	очистить ключ и значение
+				StartKey = False
+				WaitKey = True
+				WaitValue = False
+				StartValue = False
+				Key = ""
+				value = ""
+
+			Case "}"
+				'	вернуть элемент
+				Exit Sub
+		
+			Case Else
+				If StartKey Then
+					key = key & OneChar
+				Else
+ 'If StartValue Then
+					value = value & OneChar
+				End If
+		End Select
+	Next
+End Sub
+
+		
+	
+	

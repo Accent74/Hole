@@ -1,0 +1,85 @@
+sTop
+
+email = "andrew.grin.1968@gmail.com"	'WScript.Arguments(0) 
+passwd = "MyGoogleAccount"	'WScript.Arguments(1) 
+FileName = ""	'WScript.Arguments(2) 
+ReminderMinutes = 10
+DelayMinutes = 2
+EventMinutes = 10
+
+text = "Тестовое сообщение события"
+
+'Set fso = CreateObject("Scripting.FileSystemObject")
+'Set ts = fso.OpenTextFile(FileName, 1, False)
+'text = ts.ReadAll		
+'ts.Close
+'text = Replace(text, vbCr, " ") 
+'text = Replace(text, vbLf, " ") 
+'text = Replace(text, vbCrLf, " ") 
+'text = Replace(text, ":", "-")
+
+BeginEntry = "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gCal='http://schemas.google.com/gCal/2005'><content type=""html"">" 
+ContentEntry = "</content><gCal:quickadd value=""true""/>"
+EndEntry = "</entry>"
+ReminderEntry ="<gd:reminder minutes='" + CStr(ReminderMinutes) + "' method='sms'/>"
+
+authUrl = "https://www.google.com/accounts/ClientLogin" 
+calendarUrl = "http://www.google.com/calendar/feeds/default/private/full" 
+
+Set objHTTP = CreateObject("Microsoft.XMLHTTP") 
+objHTTP.open "POST", authUrl, False 
+
+objHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded" 
+objHTTP.send "Email=" + email + "&Passwd=" + passwd + "&service=cl&source=Gulp-CalGulp-1.05" 
+'WScript.Echo objHTTP.status 
+'WScript.Echo "Headers:" + objHTTP.getAllResponseHeaders() 
+
+strAuthTokens = objHTTP.responseText 
+strAuthTokens = Replace(strAuthTokens, vbCr, "") 
+strAuthTokens = Replace(strAuthTokens, vbLf, "") 
+strAuthTokens = Replace(strAuthTokens, vbCrLf, "") 
+strAuthTokens = Replace(strAuthTokens, "SID", "&SID", 1, 1) 
+strAuthTokens = Replace(strAuthTokens, "LSID", "&LSID") 
+strAuthTokens = Replace(strAuthTokens, "Auth", "&Auth") 
+
+MsgBox strAuthTokens 
+strAuthTokens = Right(strAuthTokens, Len(strAuthTokens)-Len("Auth=")-InStr(strAuthTokens, "Auth=")+1) 
+MsgBox strAuthTokens 
+
+Set objHTTP = Nothing 
+
+Set objHTTP = CreateObject("Microsoft.XMLHTTP") 
+objHTTP.open "POST", calendarUrl, False 
+objHTTP.setRequestHeader "Content-Type", "application/atom+xml" 
+objHTTP.setRequestHeader "Authorization", "GoogleLogin auth=" & strAuthTokens
+
+calendarEntry = "<entry xmlns='http://www.w3.org/2005/Atom'" _ 
+& " xmlns:gd='http://schemas.google.com/g/2005'>" _ 
+& "<category scheme='http://schemas.google.com/g/2005#kind'" _ 
+& " term='http://schemas.google.com/g/2005#event'></category>" _ 
+& "<title type='text'>" & "SMS" & "</title>" _ 
+& "<content type='text'></content>" _ 
+& "<gd:transparency" _ 
+& " value='http://schemas.google.com/g/2005#event.opaque'>" _ 
+& "</gd:transparency>" _ 
+& "<gd:eventStatus" _ 
+& " value='http://schemas.google.com/g/2005#event.confirmed'>" _ 
+& "</gd:eventStatus>" _ 
+& "<gd:where valueString='" & text & "'></gd:where>" _ 
+
+dt = DateAdd( "n", ReminderMinutes + DelayMinutes, Now)
+objHTTP.send calendarEntry & "<gd:when startTime=" & GetDateTime(dt) & " endTime=" & GetDateTime(DateAdd("n", EventMinutes, dt)) & ">" & ReminderEntry & "</gd:when>" & EndEntry
+'WScript.Echo  objHTTP.status 
+'WScript.Echo "Headers:" + objHTTP.getAllResponseHeaders() 
+
+strResponse = objHTTP.responseText 
+MsgBox strResponse
+'WScript.Echo strResponse
+
+Function PadZero(value)  
+   PadZero = String(2 - Len(value), "0") &  value		    
+End Function	
+
+Function GetDateTime(value)  
+   GetDateTime = "'" & Year(value) & "-" & PadZero(Month(value)) & "-" & PadZero(Day(value)) & "T" & PadZero(Hour(value)) & ":" & PadZero(Minute(value)) & ":" & PadZero(Second(value)) & "'"	   
+End Function

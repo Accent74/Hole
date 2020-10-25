@@ -1,0 +1,148 @@
+﻿<Reports>
+	<y2017 imageno="1" name="2017" year="2017">
+		<m2017 imageno="8" name="Месяц">
+
+			<месяц imageno="8" name = "Январь">
+				<report period="m1" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m1" imageno="47" name="Декларация о прибыли (упрощенная)" cmd="Декларация_Упрощенный налог.ash"></report>
+				<report period="m1" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m1" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Февраль">
+				<report period="m2" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m2" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m2" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Март">
+				<report period="m3" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m3" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m3" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Апрель">
+				<report period="m4" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m4" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m4" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Май">
+				<report period="m5" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m5" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m5" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Июнь">
+				<report period="m6" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m6" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m6" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m6" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Июль">
+				<report period="m7" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m7" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m7" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m7" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Август">
+				<report period="m8" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m8" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m8" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m8" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Сентябрь">
+				<report period="m9" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m9" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m9" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Октябрь">
+				<report period="m10" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m10" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m10" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Ноябрь">
+				<report period="m11" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>		
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m11" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m11" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Декабрь">
+				<report period="m12" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m12" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m12" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+		</m2017>
+	</y2017>
+	<y2016 imageno="1" name="2016" year="2016">
+		<m2016 imageno="8" name="Месяц">
+
+			<месяц imageno="8" name = "Январь">
+				<report period="m1" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m1" imageno="47" name="Декларация о прибыли (упрощенная)" cmd="Декларация_Упрощенный налог.ash"></report>
+				<report period="m1" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m1" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Февраль">
+				<report period="m2" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m2" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m2" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Март">
+				<report period="m3" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m3" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m3" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Апрель">
+				<report period="m4" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m4" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m4" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Май">
+				<report period="m5" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>
+				<report period="m5" imageno="47" name="Приложение А к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение А.ash"></report>
+				<report period="m5" imageno="47" name="Приложение Б к Декларации о прибыли (упрощенной)" cmd="Декларация_Упрощенный налог_Приложение Б.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Июнь">
+				<report period="m6" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m6" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m6" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m6" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Июль">
+				<report period="m7" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m7" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m7" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m7" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Август">
+				<report period="m8" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m8" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01082016.ash"></report>
+				<report period="m8" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m8" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Сентябрь">
+				<report period="m9" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m9" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m9" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Октябрь">
+				<report period="m10" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m10" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m10" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Ноябрь">
+				<report period="m11" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>		
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m11" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m11" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+			<месяц imageno="8" name = "Декабрь">
+				<report period="m12" imageno="47" name="Налоговая декларация по подоходному налогу" cmd="ДПН.2016.01.01.ash"></report>			
+				<report period="m9" imageno="47" name="Декларация о прибыли" cmd="Декларация_о_прибыли.01102016.ash"></report>
+				<report period="m12" imageno="47" name="Приложение А к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+				<report period="m12" imageno="47" name="Приложение Б к Декларации о прибыли" cmd="Декларация_о_прибыли_Приложение А.ash"></report>
+			</месяц>
+		</m2016>
+	</y2016>
+</Reports>

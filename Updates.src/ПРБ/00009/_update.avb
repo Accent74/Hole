@@ -1,0 +1,82 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	009
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "009"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If Not updater.fail Then AddMiscProps updater
+	
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'------
+'
+'------
+Sub AddMiscProps(updater)
+	Dim MscID, Msc, SQL
+
+	MscID = Workarea.Params(prmDBCashPrint).Value2
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			SQL = "update misc_attr set MSC_VISIBLE=1785, MS1_NAME='Номер договора', ML1_NAME='Корреспондент', " & _
+				"ML1_TYPE=3, ML2_NAME='Валюта', ML2_TYPE=28, ML3_NAME='Вид договора', MC1_NAME='Сумма договора'," & _ 
+				"MC2_NAME='Сумма НДС', MD1_NAME='Дата начала', MD2_NAME='Дата окончания' where msc_no=" & msc.mscno
+			If App.AppType = "DAO" Then
+				Workarea.DAODataBase.Execute SQL
+			Else
+				GetRs SQL
+			End If
+		End If
+	End If
+
+	MscID = Workarea.Params(prmDBAgree).Value2
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			SQL = "update misc_attr set MSC_VISIBLE=1785, MS1_NAME='Номер договора', ML1_NAME='Корреспондент', " & _
+				"ML1_TYPE=3, ML2_NAME='Валюта', ML2_TYPE=28, ML3_NAME='Вид договора', MC1_NAME='Сумма договора'," & _ 
+				"MC2_NAME='Сумма НДС', MD1_NAME='Дата начала', MD2_NAME='Дата окончания' where msc_no=" & msc.mscno
+			If App.AppType = "DAO" Then
+				Workarea.DAODataBase.Execute SQL
+			Else
+				GetRs SQL
+			End If
+		End If
+	End If
+
+End Sub
+'------
+'
+'------

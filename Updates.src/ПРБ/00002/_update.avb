@@ -1,0 +1,216 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	002
+'-------------------
+Option Explicit
+
+'#include "HL74_Common.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+
+Const acProjItemForm	= 0
+Const acProjItemDlg	= 1
+Const acProjItemReport	= 2
+Const acProjItemModules	= 4
+
+Const ver = "002"
+'---
+'
+'---
+Sub writelog(aParam, updater)
+	updater.writelog formatdate2(Now, "dd-mm-yy hh:nn") & " " & Join(aParam, " ")
+End Sub
+'---
+'
+'---
+Function AddProjectItem(acProjItem, ProjectItemName, ProjItemFileName, updater)
+	Dim NewItem, i
+	
+	AddProjectItem = 0
+	If updater.fail Then Exit Function
+
+	With workarea.projectitems(acProjItem + 1)
+		For i = 1 To .Count
+			Set NewItem = .Item(i)
+			If NewItem.Name = ProjectItemName And NewItem.FileName = ProjItemFileName Then Exit For
+			Set NewItem = Nothing
+		Next
+	
+		If NewItem Is Nothing Then
+			Set NewItem = .Create(ProjectItemName, ProjItemFileName)
+			
+			If Not NewItem Is Nothing Then
+				writelog Array("В проект добавлен элемент:", ProjectItemName, " файл:", ProjItemFileName), updater
+			Else
+				writelog Array("Ошибка при добавлении в проект элемента:", ProjectItemName, " файл:", ProjItemFileName), updater
+				updater.fail = True
+			End If
+		End If
+
+		AddProjectItem = NewItem.ID
+	End With
+End Function
+'---
+'
+'---
+Sub AddReport(Kind, FindCode, ReportName, ReportFile, updater)
+	Dim i, ElemReps, ElemID, Elem
+
+	If updater.fail Then Exit Sub
+
+	Select Case Kind
+		Case acAccount
+			ElemID = Workarea.GetAccID(FindCode)
+	
+			If ElemID = 0 Then
+				writelog Array("Невозможно добавить отчет:", ReportName, " файл:", ReportFile, "Отсутствует счет:", FindCode), updater
+				updater.fail = True
+			Else
+				Set ElemReps = Workarea.Account(ElemID).RepElems
+			End If
+	End Select
+
+	If updater.fail Then Exit Sub
+
+	For i = 1 To ElemReps.count
+		With ElemReps.Item(i)
+			If .FileName = ReportFile And .Name = ReportName Then Exit Sub
+		End With
+	Next
+
+	If ElemReps.Create(12, ReportName, ReportFile) Is Nothing Then
+		writelog Array("Ошибка при добавлении отчета:", ReportName, " файл:", ReportFile), updater
+		updater.fail = True
+	Else
+		writelog Array("Добавлен отчет:", ReportName, " файл:", ReportFile), updater
+	End If
+
+End Sub
+'---
+'
+'---
+Sub AddParamMscRef(ElParams, prmName, mscName, updater)
+	Dim MscID, NewParam
+
+	If updater.fail Then Exit Sub
+	If ElParams.Exists(prmName) Then Exit Sub
+
+	MscID = Workarea.Miscs.Find(mscName)
+	Set NewParam = ElParams.CreateRef(prmName, acMisc, MscID)
+
+	If NewParam Is Nothing Then
+		writelog Array("Ошибка создания параметра:", prmName), updater
+	End If
+
+	NewParam.Value2 = MscID
+ 
+End Sub
+'---
+'
+'---
+Sub Main(Updater)
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	UpdateBarCodes(updater)
+	If Not updater.fail Then UpdateOperations updater
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+End Sub
+'------
+'
+'------
+Sub UpdateBarCodes(updater)
+	Dim SQL, aData, i, Op, count, AccID
+
+	AccID = workarea.getAccID("281")
+
+	SQL = "select DISTINCT doc_id from journal where acc_db = " & AccID & " and acc_cr <> " & AccID
+
+	If GetRs2(SQL, aData) Then
+		count = Array(0, 0, 0)
+
+		For i = 1 To UBound(aData, 2)
+			Set Op = Workarea.Operation(aData(0, i))
+			If Not Op Is Nothing Then
+				Op.TransList(1).EnumTrans GetRef("CheckOneRow"), count
+				If Op.Modified Then Op.Save
+			End If
+		Next
+
+		writelog Array("Всего:", Count(0), "Исправлено:", Count(1), "Ошибки:", Count(2)), updater
+	End If
+End Sub
+'------
+'
+'------
+Function CheckOneRow(Tr, ByRef Count)
+	Dim Code
+
+	CheckOneRow = True
+	If Tr.EntID = 0 Then Exit Function
+
+	Code = Tr.Params(prmTrCode).Value2
+	Count(0) = Count(0) + 1
+
+	If Com_CheckEAN13(Code) Then	
+		With Tr.Entity
+			If .Bar = "" Then 
+				Count(1) = Count(1) + 1
+				.Bar = Code
+				.Save
+			ElseIf .Bar <> Code Then
+				Count(2) = Count(2) + 1				
+			End If
+
+		End With
+	End If
+End Function
+'------
+'
+'------
+Sub updateoperations(updater)
+	Dim aData, i, prm, SQL, Op
+
+	SQL = "Select DOCUMENTS.DOC_ID " & _
+				"FROM FORMS INNER Join DOCUMENTS On FORMS.FRM_ID = DOCUMENTS.FRM_ID " & _
+				"WHERE (((FORMS.FRM_GUID)={guid {87905063-D1EE-11D5-8141-0002440B6A16}}));"
+
+
+	If GetRs2(SQL, aData) Then
+
+		For i = 0 To UBound(aData, 2)
+			Set Op = Workarea.Operation(aData(0, i))
+			Op.TransList(1).EnumTrans GetRef("UpdateOneRow"), prm
+			Op.Save
+		Next
+
+	End If
+End Sub
+'------
+'
+'------
+Function UpdateOneRow(Tr, ByRef prm)
+	UpdateOneRow = True
+
+	Tr.Params(prmTrPrice).Value2 = Tr.Price
+	Tr.Params(prmTrSum).Value2 = Tr.Sum
+
+	With Tr.TransCurs(1)
+		.LockRate True
+		.CurID = 1
+		.Price = Tr.Params(prmTrPrice).Value2
+		.Sum = Tr.Params(prmTrSum).Value2
+	End With
+
+	Tr.Price = Tr.Params(prmTrPrice).Value2
+	Tr.Sum = Tr.Params(prmTrSum).Value2
+
+End Function
+'------
+'
+'------

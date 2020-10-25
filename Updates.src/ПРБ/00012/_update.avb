@@ -1,0 +1,94 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	012
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "012"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		App.RunModule "HL74_CheckParams.avb", "HL74_CheckParams"
+		update_SetAccProps
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'------
+'
+'------
+
+Sub update_SetAccProps
+	Dim En, EnID
+
+	Set En = workarea.enum("Методы расчета износа")
+
+	EnID = 0
+
+	If Not en Is Nothing Then
+		If En.Count > 0 Then
+			EnID = En.ItemID(1)
+		End If
+	End If
+
+	SetAccProps "1313", "", "103", EnID
+	SetAccProps "1314", "", "104", EnID
+	SetAccProps "1315", "", "105", EnID
+	SetAccProps "1316", "", "106", EnID
+	SetAccProps "1319", "", "109", EnID
+
+	SetAccProps "103", "1313", "", EnID
+	SetAccProps "104", "1314", "", EnID
+	SetAccProps "105", "1315", "", EnID
+	SetAccProps "106", "1316", "", EnID
+	SetAccProps "109", "1319", "", EnID
+
+End Sub
+'------
+'
+'------
+Sub SetAccProps(AccCode, AccAmortCode, AccFirstCost, EnID)
+	Dim Acc, AccID
+
+	AccID = Workarea.GetAccID(AccCode)
+	
+	If AccID <> 0 Then
+		Set Acc = Workarea.Account(AccID)
+		Acc.Params.Refresh
+
+		If Not Acc Is Nothing Then
+			If AccAmortCode <> "" Then com_SetParamValue Acc, prmAccAmort, workarea.GetAccID(AccAmortCode)
+			If AccFirstCost <> "" Then com_SetParamValue Acc, prmAccFirstCost, workarea.GetAccID(AccFirstCost)
+			com_SetParamValue Acc, prmAccAssetsMethod, EnID
+		End If
+	End If
+End Sub
+'------
+'
+'------

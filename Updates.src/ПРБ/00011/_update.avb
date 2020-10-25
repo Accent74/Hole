@@ -1,0 +1,151 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'	011
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "011"
+Const update_xml_filename = "HL74_update_"
+
+Const mscGuid = "895BDF7C-61E2-4CBB-BFBA-690958D12ADD"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	' исправляем предыдущие огрехи
+	CheckTemplateType
+	If Not updater.fail Then update_managers
+	If Not updater.fail Then Ini_forms "HL74_Invoice (WT).afm"
+	If Not updater.fail Then Ini_forms "HL74_ArrivalOrder (WT).afm"
+	If Not updater.fail Then Ini_forms "HL74_SellingOrder (WT).afm"
+
+	' исправляем предыдущие огрехи
+	updateforms "9350382E-5FE1-4586-B698-27D7198B49B9", "HL74_Dismantling_act.afm"
+	updateforms "E595CFFE-87C6-4C36-9224-D6620470BB68", "HL74_PriceChanging.afm"
+	updateforms "879051AF-D1EE-11D5-8141-0002440B6A16", "HL74_SupplierReturn (WT).afm"
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array(String(10, "-"), "Процесс установки завершен успешно."), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'------
+'
+'------
+Sub update_managers
+	Dim SQL, Rs, MscID, ErrorMsg
+	Dim Char
+
+	Char = iif(app.apptype = "DAO", "*", "%")
+	SQL = "select msc_id from misc where msc_guid like '" & Char & mscGuid & Char & "'"
+	Set Rs = GetRs(SQL)
+
+	If Not Rs.eof Then
+		SQL = "update misc set msc_ref=1, msc_refid=1 where msc_id=" & checknull(Rs.Fields(0).Value, 0)
+		ExecQuery SQL, ErrorMsg
+		If ErrorMsg <> "" Then MsgBox ErrorMsg,vbExclamation, "Обновление " & solution_name & " " & ver
+	End If
+
+End Sub
+'------
+'
+'------
+Sub CheckTemplateType
+	Dim i, j
+
+	With Workarea.Templates
+		For i = 1 To .Count
+			With .Item(i)
+				If .Type = 1 Then
+					.setscript SetScriptAppType(.GetScript)
+				Else
+					With .Nested
+						For j = 1 To .Count
+							With .Item(j)
+								If .Type = 1 Then .setscript SetScriptAppType(.GetScript)
+							End With
+						Next
+					End With
+				End If
+			End With
+		Next
+	End With
+
+End Sub
+
+'---
+'
+'---
+Function SetScriptAppType(ByVal el_Script)
+	If App.AppType = "DAO" Then
+		el_Script = Replace(el_Script, "OLEDB", "DAO", 1, -1, 1)
+	Else
+		el_Script = Replace(el_Script, "DAO", "OLEDB", 1, -1, 1)
+	End If
+
+	SetScriptAppType = el_Script
+End Function
+'------
+'
+'------
+Sub Ini_forms(itemFileName)
+	Dim pItem, pSettings, pDefSettigs
+
+	pDefSettigs = "1|1|0|0|0|1|1"
+
+	Set pItem = workarea.projectitems(1).FindFile(itemFileName)
+
+	If Not pItem Is Nothing Then 
+		pSettings = pItem.Params(prmFormSettings).Value2
+		If pSettings = "" Then
+			pSettings = pDefSettigs
+		ElseIf Len(pSettings) < Len(pDefSettigs) Then
+			pSettings = pSettings & Right(pDefSettigs, Len(pDefSettigs) - Len(pSettings))
+		Else
+			Exit Sub
+		End If
+	
+		pItem.Params(prmFormSettings).Value = pSettings
+	End If
+
+End Sub
+'------
+'
+'------
+Sub updateforms(guid, frm_filename)
+	Dim SQL, ErrorMsg
+	Dim Char
+
+	Char = iif(app.apptype = "DAO", "*", "%")
+
+	SQL = "update forms set frm_file='" & frm_filename & "' where frm_guid like '" & Char & guid & Char & "'"
+	ErrorMsg = ""
+	ExecQuery SQL, ErrorMsg
+	If ErrorMsg <> "" Then MsgBox ErrorMsg,vbExclamation, "Обновление " & solution_name & " " & ver
+	
+End Sub
+'------
+'
+'------

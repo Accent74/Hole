@@ -1,0 +1,73 @@
+Option Explicit
+
+Const prmProjStateFirst	= "Начальное состояние"
+
+'---
+'
+'---
+Sub ST_SetState(Op, lbState, cbxState)
+	Dim aNextStates
+	Dim i
+	Dim StateNames
+
+	On Error Resume Next
+	If OP.State = "" Then Op.State = ST_SetFirstState(Op.FormID)
+	
+	If Err.Number <> 0 Then
+		MsgBox "Код начального состояния документа '" & ST_SetFirstState(Op.FormID) & "' не найден в списке состояний.", vbCritical, "Внимание !"
+		Err.Clear
+		OP.State = ""
+	End If
+
+	With WorkArea.StateSet
+		aNextStates = .NextStates(Op.State)
+		StateNames = ""
+
+		If UBound(aNextStates) = -1 Then
+			lbState.Visible = False
+			cbxState.Visible = False
+		Else
+			lbState.Visible = True
+			cbxState.Visible = True
+			
+			StateNames = .StateName(Op.State)
+
+			For i = 0 To UBound(aNextStates)
+				StateNames = StateNames & "|" & .StateName(aNextStates(i))
+			Next
+
+			cbxState.ComboContents = StateNames
+			cbxState.Value = 1
+	
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Function ST_SetFirstState(FormID)
+	If FormId = 0 Then
+		ST_SetFirstState = ""
+	Else
+		ST_SetFirstState = com_getparamvalue(WorkArea.ProjectItem(FormID), prmProjStateFirst, "")
+	End If
+End Function
+'---
+'
+'---
+Function ST_SaveOpState(Op, StateValue)
+	Dim aNextStates
+
+	If Op.Done And Not Op.IsNew Then
+		If StateValue > 1 Then
+			aNextStates = WorkArea.StateSet.NextStates(Op.State)
+			Op.SaveState aNextStates(StateValue - 2)
+		End If
+		ST_SaveOpState = StateValue
+	Else
+		ST_SaveOpState = 1
+	End If
+End Function
+'---
+'
+'---

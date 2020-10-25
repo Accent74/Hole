@@ -1,0 +1,20 @@
+Option Explicit
+'все константы описаны в  Cipher_const.avb
+
+Const CIPHER_ENT_FLAG = "EntFlag"
+Const CIPHER_AG_FLAG = "AgFlag"
+Const CIPHER_REST_FLAG = "RestFlag"
+Const CIPHER_INVENT_FLAG = "Inventlag"
+
+'на событии создания/изменения корреспондента
+workarea.map.remove CIPHER_AG_FLAG
+
+'на событии создания/изменения ОУ
+workarea.map.remove CIPHER_ENT_FLAG
+
+'в документах, которые отвечают за остатки, на сохранении
+workarea.map.remove CIPHER_REST_FLAG
+workarea.map.remove CIPHER_INVENT_FLAG
+
+
+

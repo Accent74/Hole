@@ -1,0 +1,43 @@
+Option Explicit
+
+Dim WinHttp, XMLHTTP, sURL
+
+'Set WinHttp = CreateObject("WinHttp.WinHttpRequest.5.1")
+'
+'Call WinHttp.Option(2,"utf-8")
+'Call WinHttp.SetRequestHeader("Accept-Language", "ru")
+'Call WinHttp.SetRequestHeader("Accept-Charset","utf-8")
+'Call WinHttp.setRequestHeader("Content-Language", "ru")
+'Call WinHttp.setRequestHeader("Content-Charset", "utf-8")
+'Call WinHttp.setRequestHeader("Content-type", "application/json; charset=utf-8")
+'Call WinHttp.setRequestHeader("User-Agent", "application/json; charset=utf-8")
+'Call WinHttp.setRequestHeader("id", "cd2c32c7-4ef6-4adf-bb4f-54ad51dd3708")
+'Call WinHttp.setRequestHeader("token", "fu3AYaVRHYBEq0Jdm38hWkvMTikuTVPpc12wikpO7o95M8H1XAeZXGEKEMNka6aUKG8Yl4TSi2DCsrE3pYgHaqXx332o9Tpgvg4523IIHlxHSNm4seRPHVieVSIW84vAK0vsnCFVdK6XyFOwdVAm+ekZVU1gpVjsibGaggKgqnDLs/HVkQfNvfnpiI+B5Kpbcv7tBTqs5K4Rs/lAXY4/46tLtNPeXBN0BnFMSUWtJ1RC+QZ37na1bkFNU3S105g=")
+'Call WinHttp.Open("GET","https://acp.privatbank.ua/api/proxy/rest/today?acc=26002052915751", False)
+
+Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
+
+sURL = "https://localhost:44351" 
+Call XMLHTTP.Open("GET", sURL, False)
+'Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
+'Call XMLHTTP.setRequestHeader("User-Agent", "application/json; charset=utf-8")
+'Call XMLHTTP.setRequestHeader("Authorization", "basic")
+
+'Call XMLHTTP.setRequestHeader("id", "176720408ee4086938489248c7efabd7")
+'Call XMLHTTP.setRequestHeader("token", "9ZHKi73Zl4KBNlFPPUB0aQHGkleT8vHZQeaQNvNvX9njE/mbhiYLykEGHhVpEL4JFMsDFDNK3IgcKXdpAEYsbx2jF3bAi/JyyOgymd260Mw8E6Blreu3wgfIu/6ZY6l0FDOSWvyirB5/oXR550GtB+5VQLk6/c5qzvUoPPXzfVc=")
+
+On Error Resume Next
+
+Call XMLHTTP.send(Nothing)
+'stop
+If err.number = 0 Then
+	If XMLHTTP.responseText <> "" Then 
+		MsgBox XMLHTTP.responseText
+	End If
+Else
+	MsgBox err.description
+End If
+
+Err.Clear
+
+

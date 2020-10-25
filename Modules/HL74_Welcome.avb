@@ -1,0 +1,46 @@
+Option Explicit
+
+'--------------
+'
+'--------------
+Function GetFullPath(FileName)
+	Dim RD
+	
+	Set RD = CreateLibObject("Redirect")
+	GetFullPath = RD.GetFullPath(FileName)
+
+End Function
+
+'--------------
+'
+'--------------
+Sub Welcome
+	Dim HTMLDlg
+
+	Set HTMLDlg = CreateLibObject("DHTMLdialog")
+
+	With HTMLDlg
+		.Width = 600
+		.Height = 430
+		.URL = GetFullPath("HL74_Welcome.htm")
+
+		If .URL = "" Then 
+			MsgBox 	"Не удалось найти диалог приветствия HL74_Welcome.htm" & vbCrLf & _
+						"Возможно, проблема в том, что не настроен путь доступа к каталогу HELP." & vbCrLf & _
+						"Проверьте в Сервис|Настройка|Расположение файлов наличие строки '*.htm = #data\..\help'", _
+						vbExclamation, "Внимание !"
+		Else
+			Set WorkArea.Map.Item("Welcome") = HTMLDlg
+			Set WorkArea.Map.Item("WinAPI") = CreateLibObject("WinAPI")
+			WorkArea.Map("WhatsNew") = "HL74_whatsnew.chm"
+			WorkArea.Map("Help") = "HL74.chm"
+			WorkArea.Map("URL") = "http://www.accent6.com"
+			.SetArgument "WA", App.WorkArea
+			.Caption = "Добро пожаловать !"
+			.createmodeless
+		End If
+	End With
+End Sub
+'--------------
+'
+'--------------

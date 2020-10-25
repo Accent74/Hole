@@ -1,0 +1,376 @@
+Option Explicit
+'---
+' перемещение товара из опта в розницу
+'---
+Function RemoveToRetail(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode, TrNoAddSum)
+	Dim Errors
+	Dim TrFrom
+	Dim TrAddSum
+	Dim TrTo
+	Dim BaseAccID
+	Dim IsError
+
+	If Not TestData(Op, TrNoTo, TrNoAddSum) Then
+		RemoveToRetail = False
+		Exit Function
+	End If
+
+	' создали объект для хранения ошибок
+	Set Errors = CreateObject("Scripting.Dictionary")
+
+	Set TrFrom = Op.TransList(TrNoFrom)
+	Set TrAddSum = Op.TransList(TrNoAddSum)
+	Set TrTo = CreateNewTrans(Op, TrNoTo)
+
+	BaseAccID = WorkArea.GetAccIDold(BaseAccCode)
+
+	ClearTrW2R TrAddSum
+	ClearTrW2R TrTo
+
+	If ChargeMode <> 3 Then
+		' списание FIFO / LIFO
+		MovingW2R Op, TrFrom, TrTo, TrAddSum, ChargeMode, flWrite, Errors
+		' если возникли ошибки, то необходимо их отобразить
+		IsError = (Errors.Count <> 0)
+
+		If Not IsError And TrTo.Sum <> 0 Then
+			Op.CopyEntSeries TrNoTo, Op.TransCount
+			Op.TransList(TrNoTo).CalcQty "=Q" & CStr(Op.TransCount)
+			Op.TransList(TrNoTo).CalcSum "=$" & CStr(Op.TransCount)
+		End If 
+
+		If IsError <> 0 And IsViewError Then 
+			Set WorkArea.Map.Item("ErrorOp") = Op
+			ViewError Errors
+		End If
+	Else
+		IsError = DoHeadCharge(Op, TrNoTo, TrFrom, TrTo, TrAddSum, ChargeMode, flWrite)
+	End If
+
+	Op.DeleteTransList Op.TransCount
+	RemoveToRetail = Not IsError
+
+End Function
+'---
+'
+'---
+Sub MovingW2R(Op, TrFrom, TrTo, TrAddSum, ChargeMode, flWrite, Errors)
+	Dim i, Mt, MC, OnDate, DocID
+	Dim DictSeries, TrPrice
+	Dim AccID, AgID, AccIDRetail, AccFromID, AgFromID
+	
+	'индикатор процесса
+	Set Mt =	Meter
+	Mt.Open "Списание ...", 0, TrFrom.Rows
+
+	MC = WorkArea.MyCompany.ID
+	OnDate = Op.Date
+	DocID = Op.ID
+
+	AgID = TrTo.Item(1).AgToID
+	AccID = TrTo.Item(1).AccDbID
+	AccIDRetail = TrAddSum.Item(1).AccCrID
+	AccFromID = TrFrom.Item(1).AccCrID
+	AgFromID = TrFrom.Item(1).AgFromID
+
+	Set DictSeries = CreateObject("Scripting.Dictionary")
+
+	For i = 1 To TrFrom.Rows
+		With TrFrom.Item(i)
+			If .EntId <> 0 Then
+				If .Qty > 0 And .Entity.Type > 1002 Then
+					TrPrice = .Params("Цена").Value2
+					DoMoveW2R .EntID, .Qty, .FUnitID, AccID, AgID, AccFromID, AgFromID, AccIDRetail, OnDate, DocID, ChargeMode, i, MC, TrPrice, TrTo, TrAddSum, flWrite, DictSeries, Errors
+					.Params("Цена").Value = TrPrice
+				End If
+			End If
+		End With
+
+		Mt.Pos = Mt.Pos + 1 		' нарастили индикатор
+	Next
+
+	Mt.Close
+
+End Sub
+'---
+'
+'---
+Function GetEntRetailPriceW2R(AccID, EntID, AgToID, OnDate, DocID, MC)
+	Dim QD, Rs
+	Dim Qty, Sum
+	Dim Price, PriceKind
+
+	Set QD = WorkArea.DAODataBase.CreateQueryDef("")
+	QD.SQL = "Select Qty, Sum from ST7_oddments_of_the_goods where EntID=[Ent_ID] and Qty <> 0 and Sum <> 0"
+
+	QD.Parameters(0).Value = AgToID
+	QD.Parameters(1).Value = AccID
+	QD.Parameters(2).Value = DocID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = ""
+	QD.Parameters(5).Value = MC
+	QD.Parameters(6).Value = EntID
+
+	Set Rs = QD.OpenRecordSet()
+
+	If Rs.EOF Then
+		Price = 0
+	Else
+		Qty = Rs.Fields(0).Value
+		Sum = Rs.Fields(1).Value
+
+		Price = Sum / Qty
+	End If
+
+	If Price = 0 Then
+		With WorkArea.Agent(AgToID).Params
+			If .Exists("Цена по умолчанию") Then
+				If .Item("Цена по умолчанию").Value2 <> 0 Then
+					Set PriceKind = Workarea.PriceKind(.Item("Цена по умолчанию").Value2)
+					Price = PriceKind.GetEntPrice(EntID, OnDate, WorkArea.DefPriceList)
+				End If
+			End If
+		End With
+	End If
+
+	GetEntRetailPriceW2R = Price
+	
+End Function
+'---
+'
+'---
+Function GetEntSeriesW2R(EntID, AccID, AgID, OnDate, DocID, ChargeMode, MC)
+	Dim SQLString
+	Dim Rs
+	Dim RsCount
+
+	'находим остатки по объекту учета
+	With WorkArea.DAODataBase.CreateQueryDef("")
+
+		If ChargeMode <> 4 Then
+			SQLString =	"PARAMETERS AgID Long, AccID Long, EntID Long, DocID Long, DocDate DateTime, MC Long;  " & _ 
+								"Select journal.SER_ID AS SeriesID, first(ser_date1) as FirstDate, first(ser_number) as First_DOC_ID,  " & _ 
+								"Sum(iif(J_QTY Is Null,0, J_QTY) * (IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -  IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Qty,   " & _ 
+								"Sum(iif(J_SUM Is Null,0, J_SUM) *( IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -   IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Sum " & _ 
+								"FROM JOURNAL inner Join series On series.ser_id = JOURNAL.ser_id  " & _ 
+								"WHERE (J_ENT=[EntID]) And (J_DONE=2) And (DOC_ID <> [DocID]) And ((ACC_DB=[AccID] And J_AG1=[AgID]) Or (ACC_CR=[AccID] And J_AG2=[AgID]))   " & _ 
+								"And j_date<=[DocDate]  " & _ 
+								"GROUP BY JOURNAL.SER_ID  " & _ 
+								"HAVING Sum(iif(J_QTY Is Null,0, J_QTY) * IIf(ACC_DB=[AccID], 1, -1)) <> 0 ORDER BY 2 "
+
+			If ChargeMode = 2 Then SQLString = SQLString + "DESC ;"
+		Else
+			SQLString =	"PARAMETERS AgID Long, AccID Long, EntID Long, DocID Long, DocDate DateTime, MC Long;  " & _ 
+								"Select -EntID AS SeriesID, 0 as FirstDate, 0 as First_DOC_ID,  " & _ 
+								"Sum(iif(J_QTY Is Null,0, J_QTY) * (IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -  IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Qty,   " & _ 
+								"Sum(iif(J_SUM Is Null,0, J_SUM) *( IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -   IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Sum " & _ 
+								"FROM JOURNAL " & _ 
+								"WHERE (J_ENT=[EntID]) And (J_DONE=2) And (DOC_ID <> [DocID]) And ((ACC_DB=[AccID] And J_AG1=[AgID]) Or (ACC_CR=[AccID] And J_AG2=[AgID]))   " & _ 
+								"And j_date<=[DocDate]  " & _ 
+								"HAVING Sum(iif(J_QTY Is Null,0, J_QTY) * IIf(ACC_DB=[AccID], 1, -1)) <> 0"
+		End If
+
+		.SQL = SQLString
+		' устанавливаем параметры запроса
+		.Parameters(0).Value = AgID			' корреспондент
+		.Parameters(1).Value = AccID			' счет
+		.Parameters(2).Value = EntId			' ID объекта учета
+		.Parameters(3).Value = DocID			' ID документа
+		.Parameters(4).Value = OnDate		' дата расчета
+		.Parameters(5).Value = MC
+
+		' выполнили запрос
+		Set Rs = .OpenRecordSet
+
+		If Rs.EOF Then
+			GetEntSeriesW2R = Array()
+		Else
+			Rs.MoveLast
+			RsCount = Rs.RecordCount
+			Rs.MoveFirst
+			GetEntSeriesW2R = Rs.GetRows(RsCount)
+		End If
+
+		.Close		
+	End With
+
+End Function
+'---
+'
+'---
+Sub DoMoveW2R(EntID, Qty, FUnitID, AccID, AgID, AccFromID, AgFromID, AccIDRetail, OnDate, DocID, ChargeMode, TrRowNo, MC, ByRef CurrPrice, ByRef TrLstTo, ByRef TrAddSum, flWrite, DictSeries, Errors)
+	Dim TotalQty, TrPrice
+	Dim TrSum
+	Dim aSeries
+	Dim i, RowNo, key
+	Dim aOneSeries
+	Dim RowSum, RowAddSum
+
+	TrPrice = CurrPrice
+	CurrPrice = GetEntRetailPriceW2R(AccID, EntID, AgID, OnDate, DocID, MC)
+
+	If CurrPrice = 0 Then CurrPrice = TrPrice
+	TotalQty = Qty
+	TrSum = CurrPrice * Qty
+
+	If CurrPrice = 0 Then
+		Errors.Add Errors.Count + 1, Array(acErrorNoPrice, EntID, TotalQty, TrRowNo, AccID, AgID)
+		Exit Sub
+	End If
+
+	aSeries = GetEntSeriesW2R(EntID, AccFromID, AgFromID, OnDate, DocID, ChargeMode, MC)
+	
+	If UBound(aSeries) = -1 Then
+		' нет серий на остатке
+		Errors.Add Errors.Count + 1, Array(acErrorNoSeries, EntID, TotalQty, TrRowNo, AccID, AgID)
+	Else
+		For i = 0 To UBound(aSeries, 2)
+			If TotalQty = 0 Then Exit For
+
+			If Not DictSeries.Exists(aSeries(0, i)) Then DictSeries.Add aSeries(0, i), Array(aSeries(3, i), aSeries(4, i))
+			aOneSeries = DictSeries.Item(aSeries(0, i))
+
+			If aOneSeries(0) > 0 Then
+
+				If TotalQty > aOneSeries(0) Then 
+					RowSum = CurrPrice * aOneSeries(0) - aOneSeries(1)
+
+					AddRowToTransW2R TrLstTo, EntID, FUnitID, AccID, AgID, aOneSeries(0), aSeries(0, i), aOneSeries(1)
+					AddRowToTransW2R TrAddSum, EntID, FUnitID, AccIDRetail, AgID, 0, aSeries(0, i), RowSum
+
+					TotalQty = TotalQty - aOneSeries(0)
+					aOneSeries(0) = 0
+					aOneSeries(1) = 0
+				Else
+					RowSum = aOneSeries(1) / aOneSeries(0) * TotalQty
+
+					AddRowToTransW2R TrLstTo, EntID, FUnitID, AccID, AgID, TotalQty, aSeries(0, i), RowSum
+					AddRowToTransW2R TrAddSum, EntID, FUnitID, AccIDRetail, AgID, 0, aSeries(0, i), CurrPrice * TotalQty - RowSum
+					aOneSeries(0) = aOneSeries(0) - TotalQty
+					aOneSeries(1) = aOneSeries(1) - RowSum
+					TotalQty = 0
+				End If
+
+				DictSeries.Item(aSeries(0, i)) = aOneSeries
+				
+			End If
+		Next
+
+		If TotalQty <> 0 Then
+			Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TotalQty, TrRowNo, AccID, AgID)
+		End If
+
+	End If
+
+End Sub
+'----
+'
+'----
+Sub AddRowToTransW2R(ByRef TrLst, EntID, FUnitID, AccID, AgID, ByRef Qty, SeriesID, RowSum)
+	Dim RowNo
+
+	If TrLst.Item(TrLst.Rows).EntID <> 0 Then
+		RowNo = TrLst.Rows + 1
+	Else
+		RowNo = TrLst.Rows
+	End If
+
+	With TrLst.Item(RowNo)
+		.EntID = EntID
+		.FUnitID = FUnitID
+		.Qty = Qty
+		.Sum = RowSum
+		' единица измерения
+		.AccCrId = AccID
+		.AgFromId = AgID
+
+		If SeriesID >= 0 Then .SeriesID = SeriesID
+	End With
+End Sub
+'--------------------------
+'	
+'--------------------------
+Function CreateNewTrans(Op, TrNoTo)
+	Dim NewTransNo
+	Dim NewTrans
+
+	NewTransNo = Op.TransCount + 1
+	Set NewTrans = Op.TransList(NewTransNo)
+
+	Op.CopyAccounts NewTransNo, True, TrNoTo, True
+	Op.CopyAccounts NewTransNo, False, TrNoTo, False
+	Op.CopyAgents NewTransNo, True, TrNoTo, True
+	Op.CopyAgents NewTransNo, False, TrNoTo, False
+'	Op.CopyEntities NewTransNo, TrNoTo
+
+	Set CreateNewTrans = Op.TransList(NewTransNo)
+
+End Function
+'----
+'
+'----
+Sub ClearTrW2R(TrList)
+	TrList.Rows = 1
+
+	With TrList(1)
+		.EntID = 0
+		.SeriesID = 0
+		.Qty = 0
+		.Sum = 0
+		.Price = 0		
+	End With
+End Sub
+'----
+'
+'----
+Function TestData(Op, TrNo, TrNoAdd)
+	Dim Tr, TrAdd
+
+	Set Tr = Op.Translist(TrNo).Item(1)
+	Set TrAdd = Op.Translist(TrNoAdd).Item(1)
+
+	TestData = (Tr.AgToID <> 0 And Tr.AgFromID <> 0) And (TrNo <> TrNoAdd)
+
+End Function
+'---
+'
+'---
+Function DoHeadCharge(Op, TrNoTo, TrFrom, TrTo, TrAddSum, ChargeMode, flWrite)
+	Dim Dlg
+	Dim i, RetailPrice
+	Dim MC
+
+	Set Dlg = App.CreateDialog("ST7_HeadCharge.adg")
+	Set Dlg.Map.Item("Op") = Op
+	Dlg.Map("TrNoFrom") = TrFrom.TransNo
+	Dlg.Map("TrNoTo") = TrTo.TransNo
+
+	Dlg.DoModal
+
+	If Dlg.Map("Done") Then
+		MC = WorkArea.Mycompany.ID
+		Op.CopyEntSeries TrNoTo, Op.TransCount
+		Op.TransList(TrNoTo).CalcQty "=Q" & CStr(Op.TransCount)
+		Op.TransList(TrNoTo).CalcSum "=$" & CStr(Op.TransCount)
+
+		For i = 1 To TrTo.Rows
+			With TrTo.Item(i)
+				RetailPrice = GetEntRetailPriceW2R(.AccDbID, .EntID, .AgToID, Op.Date, Op.ID, MC)
+				TrAddSum.Item(i).EntID = .EntID
+				TrAddSum.Item(i).Qty = 0
+				TrAddSum.Item(i).Price = 0
+				TrAddSum.Item(i).Sum = RetailPrice * .Qty - .Sum
+				TrAddSum.Item(i).SeriesID = .SeriesID
+				.Params("Цена").Value = RetailPrice
+			End With
+		Next
+		DoHeadCharge = False
+	Else
+		DoHeadCharge = True
+	End If
+
+End Function
+'---
+'
+'---
+

@@ -1,0 +1,261 @@
+﻿<AccentExportData>
+	<AccentFolders>
+		<folder ID="521" GUID="{guid {98DA26C9-E6D7-49CC-A605-0810567CD425}}" Name="Прочие документы" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="602" GUID="{guid {5B6641A5-3ADF-47B3-AAAE-DE3D1099BF64}}" Name="2. Зкрытие счетов" FormID="946" FormGUID="{1D3F6D97-7A6B-457C-90BF-B6A378DD2774}" Tag="" TID="" TGUID="" Type="0"/>
+		</folder>
+	</AccentFolders>
+
+	<AccentAllTaskMenu ident="guid">
+		<HL74 kind="7" type="1" module="HL74_AddOpToBinder.avb" proc="HL74_SetBindersDlg" name="Связать шаблон и подшивки" menulevel="1"/>
+	</AccentAllTaskMenu>
+
+	<AccentWorkarea ident="guid">
+		<scripts>	
+			<HL74 type="DAO" cmd="exec" name="BIND_TML">
+CREATE TABLE BIND_TML
+(
+	PK COUNTER CONSTRAINT PKKey PRIMARY KEY,
+	BIND_ID long NOT NULL,
+	TML_ID long NOT NULL
+) 
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="BIND_TML">
+IF OBJECT_ID(N'BIND_TML','U') IS NULL
+CREATE TABLE [dbo].[BIND_TML](
+	[PK] [int] IDENTITY(1,1) NOT NULL,
+	[BIND_ID] [int] NOT NULL,
+	[TML_ID] [int] NOT NULL
+) ON [PRIMARY]
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="BIND_TML">
+GRANT INSERT ON [dbo].[BIND_TML] TO [ap_public]
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="BIND_TML">
+GRANT SELECT ON [dbo].[BIND_TML] TO [ap_public]
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="BIND_TML">
+GRANT ALTER ON [dbo].[BIND_TML] TO [ap_public]
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="BIND_TML">
+GRANT DELETE ON [dbo].[BIND_TML] TO [ap_public]
+			</HL74>
+			<HL74 type="DAO" cmd="del" name="ST74_AssetsGetRest2"/>
+			<HL74 type="DAO" cmd="add" name="ST74_AssetsGetRest2">
+SELECT ST74_AssetsGetRest.J_ENT, ST74_AssetsGetRest.AgID, sum(ST74_AssetsGetRest.Expr1002), sum(ST74_AssetsGetRest.Expr1003), ST74_AssetsGetRest.ENT_NAME
+FROM ST74_AssetsGetRest
+GROUP BY ST74_AssetsGetRest.J_ENT, ST74_AssetsGetRest.AgID, ST74_AssetsGetRest.ENT_NAME
+ORDER BY ST74_AssetsGetRest.ENT_NAME;			
+			</HL74>
+			<HL74 type="DAO" cmd="del" name="ST74_AssetsGetRestEnt2"/>
+			<HL74 type="DAO" cmd="add" name="ST74_AssetsGetRestEnt2">
+SELECT ST74_AssetsGetRestEnt.J_ENT, ST74_AssetsGetRestEnt.AgID, sum(ST74_AssetsGetRestEnt.Expr1002), sum(ST74_AssetsGetRestEnt.Expr1003), ST74_AssetsGetRestEnt.ENT_NAME
+FROM ST74_AssetsGetRestEnt
+GROUP BY ST74_AssetsGetRestEnt.J_ENT, ST74_AssetsGetRestEnt.AgID, ST74_AssetsGetRestEnt.ENT_NAME
+ORDER BY ST74_AssetsGetRestEnt.ENT_NAME;
+			</HL74>
+			<HL74 type="OLEDB" cmd="add" name="ST74_AssetsGetRestEnt2">
+procedure [dbo].[ST74_AssetsGetRestEnt2]
+		@EntID int, 
+		@AccID10 int, 
+		@AccID13 int, 
+		@OnDate DateTime, 
+		@DocID int, 
+		@MCID int
+
+		as
+
+		set nocount on ;
+
+		create table #EmtAssets (EntID int, AgID int, EntSum money, EntSumAsset money, EntName nvarchar(255), EntQty money)
+		insert into #EmtAssets (EntID, AgID, EntSum, EntSumAsset, EntName, EntQty)
+
+		select	JOURNAL.J_ENT, 
+				JOURNAL.J_AG1 as AgID, 
+				sum(JOURNAL.J_SUM), 
+				sum(JOURNAL.J_SUM *
+					case 
+						when JOURNAL.ACC_DB = @AccID13 then -1 else 0 
+					end), 
+				ENTITIES.ENT_NAME 
+		from journal left join ENTITIES on ENTITIES.ENT_ID = JOURNAL.J_ENT
+
+		where JOURNAL.DOC_ID &lt;&gt; @DocID 
+			and JOURNAL.J_ENT = @EntID 
+			and JOURNAL.MC_ID = @MCID 
+			and JOURNAL.J_DONE = 2 
+			and JOURNAL.J_DATE &lt; @OnDate 
+			and (JOURNAL.ACC_DB = @AccID13 or 
+				JOURNAL.ACC_DB in (
+					select id 
+						from acc_tree 
+						where p0 = @AccID10 
+							or p1 = @AccID10 
+							or p2 = @AccID10 
+							or p3 = @AccID10 
+							or p4 = @AccID10 
+							or p5 = @AccID10 
+							or p6 = @AccID10 
+							or p7 = @AccID10 
+							or id = @AccID10))
+		group by JOURNAL.J_ENT, JOURNAL.J_AG1, ENTITIES.ENT_NAME 
+
+		UNION ALL 
+
+		select JOURNAL.J_ENT, 
+				JOURNAL.J_AG2 AS AgID, 
+				-sum(JOURNAL.J_SUM), 
+				-sum(JOURNAL.J_SUM * 
+					case 
+						when JOURNAL.ACC_CR = @AccID13 then -1 else 0
+					end), 
+				ENTITIES.ENT_NAME 
+
+		from ENTITIES 
+			inner join JOURNAL on ENTITIES.ENT_ID = JOURNAL.J_ENT 
+
+		where	JOURNAL.DOC_ID &lt;&gt; @DocID 
+				and JOURNAL.J_ENT = @EntID 
+				and JOURNAL.MC_ID = @MCID 
+				and JOURNAL.J_DONE = 2 
+				and JOURNAL.J_DATE &lt; @OnDate 
+				and (JOURNAL.ACC_CR = @AccID13 or 
+					JOURNAL.ACC_CR in (
+							select id 
+							from acc_tree 
+							where p0 = @AccID10 
+									or p1 = @AccID10 
+									or p2 = @AccID10 
+									or p3 = @AccID10 
+									or p4 = @AccID10 
+									or p5 = @AccID10 
+									or p6 = @AccID10 
+									or p7 = @AccID10 
+									or id = @AccID10)) 
+
+		group by JOURNAL.J_ENT, JOURNAL.J_AG2, ENTITIES.ENT_NAME
+		ORDER BY ENT_NAME, J_ENT, AgID
+
+		select EntID, 
+				AgID, 
+				sum(EntSum), 
+				Sum(EntSumAsset), 
+				EntName, 
+				Sum(EntQty)
+		from 
+				#EmtAssets 
+		group by EntID, AgID, EntName
+		having 
+				Sum(EntQty) &gt; 0
+			</HL74>
+			<HL74 type="OLEDB" cmd="exec" name="">
+GRANT EXECUTE ON [dbo].[ST74_AssetsGetRestEnt2] TO [ap_public]
+			</HL74>
+			<HL74 type="OLEDB" cmd="add" name="ST74_AssetsGetRest2">
+procedure [dbo].[ST74_AssetsGetRest2]
+		@AccID10 int, 
+		@AccID13 int, 
+		@OnDate DateTime, 
+		@DocID int, 
+		@MCID int
+
+		as
+
+		set nocount on ;
+
+		create table #EmtAssets (EntID int, AgID int, EntSum money, EntSumAsset money, EntName nvarchar(255), EntQty money)
+
+		insert into #EmtAssets (EntID, AgID, EntSum, EntSumAsset, EntName, EntQty)
+		select	JOURNAL.J_ENT, 
+				JOURNAL.J_AG1 as AgID, 
+				sum(JOURNAL.J_SUM), 
+				sum(JOURNAL.J_SUM *
+					case 
+						when JOURNAL.ACC_DB = @AccID13 then -1 else 0 
+					end), 
+				ENTITIES.ENT_NAME, 
+				sum(j_qty) 
+		from journal left join ENTITIES on ENTITIES.ENT_ID = JOURNAL.J_ENT
+
+		where JOURNAL.DOC_ID &lt;&gt; @DocID 
+			and JOURNAL.MC_ID = @MCID 
+			and JOURNAL.J_DONE = 2 
+			and JOURNAL.J_DATE &lt; @OnDate 
+			and (JOURNAL.ACC_DB = @AccID13 or 
+				JOURNAL.ACC_DB in (
+					select id 
+						from acc_tree 
+						where p0 = @AccID10 
+							or p1 = @AccID10 
+							or p2 = @AccID10 
+							or p3 = @AccID10 
+							or p4 = @AccID10 
+							or p5 = @AccID10 
+							or p6 = @AccID10 
+							or p7 = @AccID10 
+							or id = @AccID10))
+		group by JOURNAL.J_ENT, JOURNAL.J_AG1, ENTITIES.ENT_NAME 
+
+		UNION ALL 
+
+		select JOURNAL.J_ENT, 
+				JOURNAL.J_AG2 AS AgID, 
+				-sum(JOURNAL.J_SUM), 
+				-sum(JOURNAL.J_SUM * 
+					case 
+						when JOURNAL.ACC_CR = @AccID13 then -1 else 0
+					end), 
+				ENTITIES.ENT_NAME,
+				-sum(j_qty)
+
+		from ENTITIES 
+			inner join JOURNAL on ENTITIES.ENT_ID = JOURNAL.J_ENT 
+
+		where	JOURNAL.DOC_ID &lt;&gt; @DocID 
+				and JOURNAL.MC_ID = @MCID 
+				and JOURNAL.J_DONE = 2 
+				and JOURNAL.J_DATE &lt; @OnDate 
+				and (JOURNAL.ACC_CR = @AccID13 or 
+					JOURNAL.ACC_CR in (
+							select id 
+							from acc_tree 
+							where p0 = @AccID10 
+									or p1 = @AccID10 
+									or p2 = @AccID10 
+									or p3 = @AccID10 
+									or p4 = @AccID10 
+									or p5 = @AccID10 
+									or p6 = @AccID10 
+									or p7 = @AccID10 
+									or id = @AccID10)) 
+
+		group by JOURNAL.J_ENT, JOURNAL.J_AG2, ENTITIES.ENT_NAME
+		ORDER BY ENT_NAME, J_ENT, AgID
+
+		select EntID, 
+				AgID, 
+				sum(EntSum), 
+				Sum(EntSumAsset), 
+				EntName, 
+				Sum(EntQty)
+		from 
+				#EmtAssets 
+		group by EntID, AgID, EntName
+		having 
+				Sum(EntQty) &gt; 0
+				</HL74>
+				<HL74 type="OLEDB" cmd="exec" name="">
+GRANT EXECUTE ON [dbo].[ST74_AssetsGetRest2] TO [ap_public]
+				</HL74>
+			</scripts>
+	</AccentWorkarea>
+	<AccentReports>
+		<HL74 guid="{guid {18E6A627-9FC8-4E21-ADF8-3C1460F1EA88}}" cmd="add" inherit="true" kind="2" kind_guid="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" type="12" filename="HL74_ОСВ.ash" name="Оборотно-сальдовая ведомость (с наименованиями счетов)" />
+	</AccentReports>
+	<AccentForms>
+		<form ANID="115" FileName="HL74_CloseAccount.afm" ID="946" Name="Прочие документы. Закрытие счетов" ShortName="ПЗС" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {1D3F6D97-7A6B-457C-90BF-B6A378DD2774}}"/>
+	</AccentForms>
+	<AccentAutoNum>
+		<AutoNum ID="115" PR="" SF="" NAME="Прочие документы. Закрытие счетов"/>
+	</AccentAutoNum>
+
+</AccentExportData>

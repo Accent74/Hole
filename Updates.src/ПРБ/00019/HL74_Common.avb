@@ -1,0 +1,1211 @@
+Option Explicit
+
+Sub Com_ClearTrans(TrList)
+	Dim i
+
+	TrList.Rows = 1
+
+	With TrList.Item(1)
+		.EntID = 0
+		.Qty = 0
+		.Sum = 0
+
+		With .Params
+			For i = 1 To .Count
+				.Item(i).SetNull
+			Next
+		End With
+
+	End With
+End Sub
+'----
+'
+'----
+Sub Com_RoundSum(Tr)
+	Dim Qty
+
+	Qty = Tr.Qty
+	Tr.Sum = Round2(Tr.Sum, 2)
+	Tr.Qty = Qty
+
+End Sub
+'----
+'
+'----
+Function com_TruncSum(sum, TruncSum)
+	Dim rest, tsum, rSum
+
+	If TruncSum = 0 Then
+		rSum = sum
+	ElseIf TruncSum < 0 Then
+		rSum = Fix(sum)
+	Else
+		tsum = Int(sum / TruncSum) * TruncSum
+		rest = Round2(sum - tsum, 2)
+
+		If rest < TruncSum And rest <> 0 Then
+			rSum = Sum - Rest + TruncSum
+		Else
+			rSum = Sum
+		End If
+	End If
+
+	com_TruncSum = round2(rSum, 2)
+End Function
+'----
+'
+'----
+Function com_Cur_RecalcSum(Tr, OnDate)
+	Dim TrCurs, Rate, Qty
+
+	Set TrCurs = Tr.TransCurs(1)
+
+	If TrCurs.CurID = 1 Then
+		Rate = 1
+	Else
+		With TrCurs.Cur
+			Rate = .GetRate(, OnDate) / .Denom
+		End With
+
+		If Rate = 0 Then Rate = 1
+	End If
+
+	Qty = Tr.Qty
+	Tr.Price = TrCurs.Price / Rate
+	Tr.Sum = Round2(TrCurs.Sum / Rate, 2)
+	Tr.Qty = Qty
+
+End Function
+'----
+'
+'----
+Sub Com_FindEntSeriesCode(Tr, Code)
+	Dim Rs, aData, SQL, IsEAN13
+
+	SQL = "select ent_id, ser_id from series where ser_code='" & Code & "'"
+
+	If GetRs2(SQL, aData) Then
+		Tr.EntID = aData(0, 0)
+		Tr.SeriesID = aData(1, 0)
+	Else
+		Tr.EntID = 0
+		Tr.SeriesID = 0
+	End If
+
+End Sub
+
+'----
+'
+'----
+Function Com_FindEntCode(Tr, Code, IsNew)
+	Dim Rs, aData, SQL, IsEAN13
+
+	If Not Com_CheckEAN13(Code) Then
+		SQL = "select ent_id, ser_id from series where ser_code='" & Code & "'"
+	Else
+		SQL = "select ent_id, 0 from entities where ent_bar='" & Code & "'"
+		Tr.SeriesID = 0
+	End If
+
+	If GetRs2(SQL, aData) Then
+		Tr.EntID = aData(0, 0)
+		Tr.SeriesID = aData(1, 0)
+		Com_FindEntCode = True
+	Else
+		Tr.EntID = 0
+		Tr.SeriesID = 0
+		Com_FindEntCode = False
+	End If
+
+End Function
+'----
+'
+'----
+Function Com_CheckEAN13(Code)
+	Com_CheckEAN13 = False
+
+	If Len(Code) = 13 Then
+		If Left(Code, 1) <> "2" Then
+			Com_CheckEAN13 = (Right(Code, 1) = GetCRC_EAN13(Left(Code, 12)))
+		End If
+	End If
+
+End Function
+'----
+'
+'----
+Function GetCRC_EAN13(BarCode)
+	Dim i, Sum1, Sum2, num, Sum
+
+	Sum1 = 0
+	Sum2 = 0
+
+	For i = 1 To Len(BarCode)
+		num = CLng(Mid(BarCode, i, 1))
+
+		If Int(i / 2 ) * 2 <> i Then
+			Sum1 = Sum1 + Num
+		Else
+			Sum2 = Sum2 + Num
+		End If
+	Next
+
+	Sum = Sum1 + 3 * Sum2
+
+	GetCRC_EAN13 = CStr(-Int(-Sum / 10) * 10 - Sum)
+	
+End Function
+'----
+'
+'----
+Sub com_CalcEntRestSeries(AccID, AgID, EntID, SerID, DocID, OnDate, ByRef Qty, ByRef Sum)
+	Dim aPrm, aData, SQL
+
+	aPrm = Array(AgID, AccID, EntID, SerID, DocID, OnDate, Workarea.MyCompany.ID)
+
+	If App.AppType = "DAO" Then
+		SQL = "PARAMETERS AgID Long, AccID Long, EntID long, SerID long, DocID Long, OnDate DateTime, MC Long;" & _
+					"Select 	Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, " & _
+					"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum] " & _
+					"FROM series INNER Join JOURNAL On series.ser_id = JOURNAL.ser_id " & _
+					"WHERE ((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID]) Or (JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) And JOURNAL.[MC_Id]=[MC] "  & _
+					"And j_ent = [EntID] And j_date <= [OnDate] And j_done = 2 And JOURNAL.ser_id = [serid] and journal.doc_id <> [DocID]"
+	Else
+		SQL = "HL74_RestEntSeriesRetail"
+	End If
+
+	If Query(SQL, aPrm, aData) Then
+		Qty = checknull(aData(0, 0), 0)
+		Sum = checknull(aData(1, 0), 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Sub com_CalcEntRest(AccID, AgID, EntID, DocID, OnDate, ByRef Qty, ByRef Sum)
+	Dim aPrm, aData, SQL
+
+	aPrm = Array(AgID, AccID, EntID, DocID, OnDate, Workarea.MyCompany.ID)
+
+	If App.AppType = "DAO" Then
+		SQL = "PARAMETERS AgID Long, AccID Long, EntID long, DocID Long, OnDate DateTime, MC Long;" & _
+					"Select Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, " & _
+					"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum] " & _
+					"FROM JOURNAL " & _
+					"WHERE ((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID]) Or (JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) And JOURNAL.[MC_Id]=[MC] "  & _	
+					"And j_ent = [EntID] And j_date <= [OnDate] And j_done = 2 and journal.doc_id <> [DocID]"
+	Else
+		SQL = "st7_RestEntRetail"
+	End If
+
+	If Query(SQL, aPrm, aData) Then
+		Qty = checknull(aData(0, 0), 0)
+		Sum = checknull(aData(1, 0), 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Function Com_GetParamValue(Elem, prmName, DefValue)
+	
+	Com_GetParamValue = DefValue
+
+	If Not Elem Is Nothing Then
+		With Elem.Params
+			If .Exists(prmName) Then
+				With .Item(prmName)
+					If Not IsNull(.Value) Then
+						Select Case VarType(.Value2)
+							Case 3, 5, 6, 7
+								If .Value2 <> 0 Then Com_GetParamValue = .Value2
+							Case 8
+								If .Value2 <> "" Then Com_GetParamValue = .Value2
+						End Select
+					End If
+				End With
+			End If
+		End With
+	End If
+End Function
+'----
+'
+'----
+Function Com_GetParamValueRef(Elem, prmName, DefValue)
+	
+	Com_GetParamValueRef = DefValue
+
+	If Not Elem Is Nothing Then
+		With Elem.Params
+			If .Exists(prmName) Then
+				With .Item(prmName)
+					If Not IsNull(.Value) Then
+						Select Case VarType(.Value3)
+							Case 3, 5, 6, 7
+								If .Value3 <> 0 Then Com_GetParamValueRef = .Value3
+							Case 8
+								If .Value3 <> "" Then Com_GetParamValueRef = .Value3
+						End Select
+					End If
+				End With
+			End If
+		End With
+	End If
+End Function
+
+'----
+'
+'----
+Function com_GetCurRate(CurrCode, OnDate)
+	Dim CurID, CurRate, Cur
+
+	CurID = workarea.Curs.Find(CurrCode)
+
+	If CurID <> 0 Then
+		Set Cur = workarea.Cur(CurID)
+		CurRate = Cur.GetRate(, Ondate) / Cur.denom
+	Else
+		CurRate = 0
+	End If
+	
+	If CurRate = 0 Then 
+		com_GetCurRate = 1
+	Else
+		com_GetCurRate = CurRate
+	End If
+
+End Function
+'---
+'
+'---
+Function com_displayrate(Tr, CurNo)
+
+	com_displayrate = 0	
+
+	With Tr.TransCurs(CurNo)
+		If Not .Cur Is Nothing Then
+			If .CurID <> 1 Then
+				com_displayrate = .Rate / .Cur.Denom
+			End If
+		End If
+	End With
+End Function
+'----
+'
+'----
+Function com_GetMscNoByMscID(MscID)
+	Dim Msc
+
+	com_GetMscNoByMscID = 0
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			com_GetMscNoByMscID = Msc.MscNo
+		End If
+	End If
+
+End Function
+
+'----
+'
+'----
+Function Com_GetFactValue(Elem, fctName, OnDate, DefValue)
+	
+	Com_GetFactValue = DefValue
+
+	If Not Elem Is Nothing Then
+		With Elem.Facts(OnDate)
+			If .Exists(fctName) Then
+				With .Item(fctName)
+					If Not IsNull(.Value) Then
+						Select Case VarType(.Value2)
+							Case 3, 5, 6, 7
+								If .Value2 <> 0 Then Com_GetFactValue = .Value2
+							Case 8
+								If .Value2 <> "" Then Com_GetFactValue = .Value2
+							Case 11
+								Com_GetFactValue = .Value2
+						End Select
+					End If
+				End With
+			End If
+		End With
+	End If
+End Function
+'----
+'
+'----
+Function Com_GetMscValue(MscID, DefValue)
+	If MscID = 0 Then
+		Com_GetMscValue = DefValue
+	Else	
+		Com_GetMscValue = Workarea.Misc(MscID).Name
+	End If
+End Function
+'----
+'
+'----
+Function Com_GetFactMscParentName(Elem, FactName, onDate,  DefValue)
+	Dim MscID, Msc
+
+	Com_GetFactMscParentName = DefValue
+
+	If Elem Is Nothing Then Exit Function
+
+	With Elem.Facts(onDate)
+		If .Exists(FactName) Then
+			MscID = .Item(FactName).Value2
+
+			If MscID <> 0 Then
+				Set Msc = Workarea.misc(MscID)
+
+				If Msc Is Nothing Then 
+					.Item(FactName).SetNull
+				Else
+					If Not Msc.Parent Is Nothing Then
+						Com_GetFactMscParentName = Msc.Parent.Name
+					End If
+				End If
+			End If
+		End If
+	End With
+End Function
+'----
+'
+'----
+Function com_GetSysParams(prmName)
+	Dim aData, SQL, i
+
+	SQL = "select prm_str, prm_long, prm_date from sys_params where prm_name='" & UCase(prmName) & "'"
+	com_GetSysParams = Null
+
+	If GetRs2(SQL, aData) Then
+		For i = 0 To UBound(aData)
+			If Not IsNull(aData(i, 0)) Then
+				com_GetSysParams = aData(i, 0)
+				Exit Function
+			End If
+		Next
+	End If
+
+End Function
+'---
+'
+'---
+Sub Com_SetDefCurRate(TrNo, CurNo, Op)
+	Dim Tr, Cur, Rate, aData
+
+	Set Tr = Op.Trans(TrNo).TransCurs(CurNo)
+
+	With Op.TransList(TrNo)
+		Rate = Tr.Rate
+		If Rate = 0 Then Rate = Workarea.GetCurRate(Tr.CurID,, Op.Date)
+		If Rate = 0 Then Rate = 1
+
+		aData = Array(Rate, CurNo)
+		.EnumTrans GetRef("TrSetRateRow"), aData
+		'.SetCur CurNo, Tr.CurID
+		'.SetRate CurNo, Rate
+	End With
+End Sub
+'---
+'
+'---
+Function TrSetRateRow(Tr, ByRef aData)
+	Dim CrcSum
+
+	TrSetRateRow = True
+	CrcSum = Tr.TransCurs(aData(1)).Sum
+	Tr.TransCurs(aData(1)).Rate = aData(0)
+	Tr.TransCurs(aData(1)).Sum = CrcSum
+	'Tr.Sum = CrcSum * aData(0)
+
+End Function
+'---
+'
+'---
+Sub Com_SetDefCurRate2(TrNo, CurNo, Op, CurID)
+	Dim Tr, Cur, Rate
+
+	Set Tr = Op.Trans(TrNo).TransCurs(CurNo)
+	
+	With Op.TransList(TrNo)
+		.SetCur CurNo, CurID
+		Rate = Workarea.GetCurRate(CurID,, Op.Date)
+		If Rate = 0 Then Rate = 1
+		.SetRate CurNo, Rate
+	End With
+End Sub
+
+'---
+'
+'---
+Sub com_CurrencyInit(Op, TrNo)
+	Dim TrCurs
+
+	With Op.TransList(TrNo)
+		.SetLockRate False
+		Set TrCurs = .Item(1).TransCurs(1)
+		If TrCurs.CurID = 0 Then .SetCur 1, 1
+
+		If Op.IsNew Then 
+			.SetRate 1, 1
+		ElseIf TrCurs.Rate = 0 Then 
+			.SetRate TrCurs.CurID, 1
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Function Com_GetParentParamValue(Elem, prmName, DefValue)
+	Dim ElemParent
+
+	Com_GetParentParamValue = DefValue
+
+	If Not Elem Is Nothing Then
+		Set ElemParent = Elem.Parent
+
+		If Not ElemParent Is Nothing Then		
+			With ElemParent.Params
+				If .Exists(prmName) Then
+					Com_GetParentParamValue = .Item(prmName).Value2
+				End If
+			End With
+		End If
+	End If
+
+
+End Function
+'---
+'
+'---
+Function Com_GetUnitName(UnitID)
+	If UnitID = 0 Then
+		Com_GetUnitName = ""
+	Else
+		Com_GetUnitName = Workarea.Unit(UnitID).ShortName
+	End If
+End Function
+'---
+'
+'---
+Function com_strzero(num, n)
+	Dim numstr
+
+	numstr = CStr(num)
+
+	If Len(numstr) < n Then
+		com_strzero = String(n - Len(numstr), "0") & numstr
+	ElseIf Len(numstr) > n Then
+		com_strzero = Left(numstr, n)
+	Else
+		com_strzero = numstr
+	End If
+End Function
+'---
+'
+'---
+Function com_getElementName(ElemID, ElemKind, DefValue)
+	Dim Elem 
+
+	com_getElementName = DefValue
+
+	If ElemID <> 0 Then 
+		Select Case ElemKind
+			Case acFolder
+				Set Elem = Workarea.Folder(ElemID)
+			Case acAccount
+				Set Elem = Workarea.Account(ElemID)
+			Case acAgent
+				Set Elem = Workarea.Agent(ElemID)
+			Case acEntity
+				Set Elem = Workarea.Entity(ElemID)
+			Case acTemplate
+				Set Elem = Workarea.Template(ElemID)
+			Case acMisc
+				Set Elem = Workarea.Misc(ElemID)
+			Case acBinder
+				Set Elem = Workarea.Binder(ElemID)
+			Case acForm
+				Set Elem = Workarea.ProjectItem(ElemID)
+			Case acCurrency
+				Set Elem = Workarea.Currency(ElemID)
+			Case Else
+				Set Elem = Nothing
+		End Select
+
+		If Not Elem Is Nothing Then
+			com_getElementName = Elem.Name
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function com_CharAtRight(SringVal, CharPos, CharDef)
+	If Len(SringVal) < CharPos Then
+		com_CharAtRight = CharDef
+	Else
+		com_CharAtRight = Left(Right(SringVal, CharPos), 1)
+	End If
+End Function
+'---
+'
+'---
+Function com_GetRestEntSeries(AccID, AgID, EntID, DocID, OnDate, ByRef aData) 
+	Dim aQueryPrm
+
+	If App.AppType = "DAO" Then
+		aQueryPrm = Array(AgID, AccID, EntID, DocID, OnDate, Workarea.MyCompany.ID)
+		com_GetRestEntSeries = DAO_QueryByName("HL74_RestEntSeries", aQueryPrm, aData)
+	Else
+		aQueryPrm = Array(Array(AgID, 3, 10), Array(AccID, 3, 10), Array(EntID, 3, 10), Array(DocID, 3, 10), Array(OnDate, 7, 20), Array(Workarea.MyCompany.ID, 3, 10))
+		com_GetRestEntSeries = ADO_Query("HL74_RestEntSeries", aQueryPrm, aData)
+	End If
+
+End Function
+'---
+'
+'---
+Function Com_GetUnitShortName(Ent)
+	Dim UnitID
+
+	Com_GetUnitShortName = ""
+
+	If Not Ent Is Nothing Then
+		If Ent.UnSelf Then
+			UnitID = Ent.UnitID
+		ElseIf Not Ent.Parent Is Nothing Then
+			UnitID = Ent.Parent.UnitID			
+		Else
+			UnitID = 0
+		End If
+
+		If UnitID <> 0 Then Com_GetUnitShortName = workarea.Unit(UnitID).ShortName
+
+	End If
+End Function
+'---
+'
+'---
+Function Com_GetUnitShortNameR(Ent)
+	Dim UnitID
+
+	Com_GetUnitShortNameR = ""
+
+	If Not Ent Is Nothing Then
+		If Ent.UnSelf Then
+			Com_GetUnitShortNameR = workarea.Unit(Ent.UnitID).ShortName
+		ElseIf Not Ent.Parent Is Nothing Then
+			Com_GetUnitShortNameR = Com_GetUnitShortNameR(Ent.Parent)
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function com_getentprice(Ent, AccID, AgID, OnDate, DocID, defPrice)
+	Dim PerCent, Qty, Sum
+
+	com_getentprice = 0
+
+	If Not Ent Is Nothing Then
+		If Not DefPrice Is Nothing Then
+			com_getentprice = DefPrice.GetEntPrice(Ent.ID, OnDate)
+		Else
+			PerCent = Com_GetParentParamValue(Ent, prmEntFoldPercent, 0)
+
+			If PerCent <> 0 Then
+				com_CalcEntRest AccID, AgID, EntID, DocID, OnDate, Qty, Sum
+		
+				If Qty <> 0 And Sum <> 0 Then
+					com_getentprice = round2((Sum / Qty) * (1 + PerCent), 2)
+				End If
+			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function com_getentprice2(Ent, AccID, AgID, OnDate, DocID, defPrice, DefPriceListID)
+	Dim PerCent, Qty, Sum
+
+	com_getentprice2 = 0
+
+	If Not Ent Is Nothing Then
+		If Not DefPrice Is Nothing Then
+			com_getentprice2 = DefPrice.GetEntPrice(Ent.ID, OnDate, DefPriceListID)
+		Else
+			PerCent = Com_GetParentParamValue(Ent, prmEntFoldPercent, 0)
+
+			If PerCent <> 0 Then
+				com_CalcEntRest AccID, AgID, EntID, DocID, OnDate, Qty, Sum
+		
+				If Qty <> 0 And Sum <> 0 Then
+					com_getentprice2 = round2((Sum / Qty) * (1 + PerCent), 2)
+				End If
+			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Sub com_copyarray(aSrc, aDst)
+	Dim i
+
+	For i = 0 To UBound(aSrc)
+		aDst(i) = aSrc(i)
+	Next
+
+End Sub
+'---
+'
+'---
+Function Com_GetMscNoByDBPrm(prmNameDB)
+	Dim MscID
+	Dim Msc
+
+	Com_GetMscNoByDBPrm = 0
+
+	With workarea.Params
+		If .Exists(prmNameDB) Then
+			MscID = workarea.Params(prmNameDB).Value2
+
+			If MscID <> 0 Then
+				Set Msc = WorkArea.Misc(MscID)
+				Com_GetMscNoByDBPrm = Msc.MscNo
+			End If
+
+		End If
+	End With
+End Function
+'---
+'
+'---
+Function com_GetEnumName(EnID)
+	Dim En, Rs
+
+	com_GetEnumName = ""
+
+	If EnID <> 0 Then
+		Set Rs = GetRs("select enm_name from enums where enm_id=" & EnID)
+
+		If Not rs.eof Then
+			com_GetEnumName = Rs.Fields(0).Value
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function com_GetEnumTag(EnID)
+	Dim En, Rs
+
+	com_GetEnumTag = ""
+
+	If EnID <> 0 Then
+		Set Rs = GetRs("select enm_tag from enums where enm_id=" & EnID)
+
+		If Not rs.eof Then
+			com_GetEnumTag = Rs.Fields(0).Value
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function com_FillOpEntsRest(TrList, AgID, AccID, OnDate, DocID)
+	Dim aData, i
+
+	com_ClearTrans TrList
+
+	If com_CalcEntsRest(aData, AgID, AccID, OnDate, DocID, Workarea.MyCompany.ID) Then
+		com_FillOpEntsRest = True
+
+		For i = 0 To UBound(aData, 2)
+			With TrList.Item(i + 1)
+				.EntID = aData(1, i)	
+				.SeriesID = checknull(aData(0, i), 0)
+				.Qty = aData(2, i)
+				.Sum = aData(3, i)
+			End With
+		Next
+	Else
+		com_FillOpEntsRest = False
+	End If
+
+End Function
+'---
+'
+'---
+Function com_CalcEntsRestSubAcc(aData, AgID, AccID, OnDate, DocID, McID)
+	Dim QueryName, QueryPrm
+
+	If App.AppType = "DAO" Then
+		QueryName = "SELECT 0, ST7_oddments_of_the_goods_basic.EntID, Sum(ST7_oddments_of_the_goods_basic.Qty) AS [Sum-Qty], " & _
+							"Sum(ST7_oddments_of_the_goods_basic.Sum) AS [Sum-Sum] " & _
+							"FROM ST7_oddments_of_the_goods_basic Left Join ENTITIES On ST7_oddments_of_the_goods_basic.EntID = ENTITIES.ENT_ID " & _
+							"GROUP BY ST7_oddments_of_the_goods_basic.EntID, ENTITIES.ENT_ID, ENTITIES.ENT_NAME " & _
+							"HAVING (((ST7_oddments_of_the_goods_basic.[EntID])<>0) And ((Sum(ST7_oddments_of_the_goods_basic.[Qty]))<>0)) " & _
+							"ORDER BY ENTITIES.ENT_ID, ENTITIES.ENT_NAME;"
+
+		QueryPrm = Array(AgID, AccID, DocID, OnDate, McID)
+		com_CalcEntsRestSubAcc = DAO_Query(QueryName, QueryPrm, aData)
+
+	Else
+		QueryName = "ST74_CalcEntRestSubAcc"
+		QueryPrm = Array(Array(AgID, 3, 10), Array(AccID, 3, 10), Array(DocID, 3, 10), Array(OnDate, 7, 20), Array(McID, 3, 10))
+		com_CalcEntsRestSubAcc = ADO_Query(QueryName, QueryPrm, aData)
+	End If
+
+End Function
+'---
+'
+'---
+Function com_CalcEntsRest(aData, AgID, AccID, OnDate, DocID, McID)
+	Dim QueryName, QueryPrm
+
+	If App.AppType = "DAO" Then
+		QueryName = "SELECT 0, ST7_oddments_of_the_goods_basic.EntID, Sum(ST7_oddments_of_the_goods_basic.Qty) AS [Sum-Qty], " & _
+							"Sum(ST7_oddments_of_the_goods_basic.Sum) AS [Sum-Sum] " & _
+							"FROM ST7_oddments_of_the_goods_basic Left Join ENTITIES On ST7_oddments_of_the_goods_basic.EntID = ENTITIES.ENT_ID " & _
+							"GROUP BY ST7_oddments_of_the_goods_basic.EntID, ENTITIES.ENT_ID, ENTITIES.ENT_NAME " & _
+							"HAVING (((ST7_oddments_of_the_goods_basic.[EntID])<>0) And ((Sum(ST7_oddments_of_the_goods_basic.[Qty]))<>0)) " & _
+							"ORDER BY ENTITIES.ENT_ID, ENTITIES.ENT_NAME;"
+
+		QueryPrm = Array(AgID, AccID, DocID, OnDate, McID)
+		com_CalcEntsRest = DAO_Query(QueryName, QueryPrm, aData)
+
+	Else
+		QueryName = "ST74_CalcEntRest"
+		QueryPrm = Array(Array(AgID, 3, 10), Array(AccID, 3, 10), Array(DocID, 3, 10), Array(OnDate, 7, 20), Array(McID, 3, 10))
+		com_CalcEntsRest = ADO_Query(QueryName, QueryPrm, aData)
+	End If
+End Function
+'---
+'
+'---
+Sub com_SetMscRefData(MscID, ByRef MscNo, ByRef MscRefID)
+	Dim Msc
+
+	MscNo = 0
+	MscRefID = 0
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+		If Not Msc Is Nothing Then
+			MscNo = Msc.MscNo
+			MscRefID = Msc.RefFolderID
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Function com_max(Num1, Num2)
+	If Num1 >= Num2 Then
+		com_max = Num1
+	Else
+		com_max = Num2
+	End If
+End Function
+'---
+'
+'---
+Function com_CalcRestEntMsc(MscID, EntID, AccID, onDate, DocID, MCid)
+	Dim SQL, aPrm, aData
+
+	SQL = "HL74_RestEntByMsc"
+	aPrm = Array(EntID, AccID, MscID, OnDate, DocID, MCID)
+
+	If Query(SQL, aPrm, aData) Then
+		com_CalcRestEntMsc = checknull(aData(1, 0), 0)
+	Else
+		com_CalcRestEntMsc = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function com_GetDistanceStart(MscID, AccID, OnDate, DocID, MCID)
+	Dim SQL, aPrm, aData
+
+	SQL = "HL74_RestByMsc"
+	aPrm = Array(AccID, MscID, OnDate, DocID, MCID)
+
+	If Query(SQL, aPrm, aData) Then
+		com_GetDistanceStart = checknull(aData(1, 0), 0)
+	Else
+		com_GetDistanceStart = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function com_AssetCalc(AccID, AgID, EntID, OnDate)
+	Dim aPrm, aData
+
+	aPrm = Array(AccID, AgID, EntID, OnDate, Op.ID, MyCo.ID)
+
+	If Query("HL74_AssetAccAgEntSum", aPrm, aData) Then
+		com_AssetCalc = Checknull(aData(0, 0), 0)
+	Else
+		com_AssetCalc = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function com_getenumvalue(EnID, EnName, DefValue)
+	Dim EnValue
+
+	com_getenumvalue = DefValue
+	
+	If EnID <> 0 And Not IsNull(EnID) Then
+		On Error Resume Next
+	
+		EnValue = Workarea.Enum(EnName).ItemNameID(EnID)
+
+		If Err.Number = 0 Then
+			com_getenumvalue = EnValue
+		End If
+	End If
+	
+End Function
+'---
+'
+'---
+Function com_enumitemnamebytag(EnName, EnTag)
+	Dim En, EnID, i, Ens
+
+	com_enumitemnamebytag = ""
+
+	If EnName <> "" And EnTag <> "" Then
+		Set Ens = Workarea.Enum(EnName)
+
+		If Not Ens Is Nothing Then
+			For i = 1 To Ens.count
+				If Ens.ItemTag(i) = EnTag Then
+					com_enumitemnamebytag = Ens.ItemName(i)
+					Exit Function
+				End If
+			Next
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function com_getlogicparamvalue(El, prmName, defValue)
+	Dim ElPrmValue
+
+	com_getlogicparamvalue = defValue
+
+	If El Is Nothing Then Exit Function
+
+	If El.Params.Exists(prmName) Then
+		With El.Params.Item(prmName)
+			If .RefKind = 18 Then
+				com_getlogicparamvalue = (UCase(com_getenumvalue(.Value2, workarea.enum(.RefID).name, iif(defValue,"ДА","НЕТ"))) = "ДА")
+			Else
+				com_getlogicparamvalue = CBool(checknull(.Value2, defValue))
+			End If
+		End With
+	End If
+
+End Function
+
+'---
+'
+'---
+Function com_GetLogicFactValue(El, fctName, onDate, defValue)
+	Dim ElPrmValue
+
+	com_GetLogicFactValue = defValue
+
+	If El Is Nothing Then Exit Function
+
+	If El.Facts.Exists(fctName) Then
+		With El.Facts(OnDate).Item(fctName)
+			If .RefKind = 18 Then
+				com_GetLogicFactValue = (UCase(com_getenumvalue(.Value2, workarea.enum(.RefID).name, iif(defValue,"ДА","НЕТ"))) = "ДА")
+			Else
+				com_GetLogicFactValue = CBool(checknull(.Value2, defValue))
+			End If
+		End With
+	End If
+
+End Function
+'---
+'
+'---
+Function com_GetDictValue(Dict, Field, DefValue)
+	com_GetDictValue = DefValue
+
+	If Dict.Exists(Field) Then
+		If Dict(Field) <> "" Then
+			com_GetDictValue = Dict(Field)
+		End If
+	End If
+End Function
+'---
+'
+'---
+Sub com_SetParamValue(Elem, prmName, prmValue)
+	With Elem.Params
+		If .Exists(prmName) Then
+			.Item(prmName).Value = prmValue
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Sub com_SetFactValue(Elem, fctName, OnDate, fctValue)
+	With Elem.Facts(OnDate)
+		If .Exists(fctName) Then
+			.Item(fctName).Value = fctValue
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Sub com_SetLogicParamValue(Elem, prmName, prmValue)
+	With Elem.Params
+		If .Exists(prmName) Then
+			With .Item(prmName)
+				If .RefKind = 18 Then
+					Select Case VarType(prmValue)
+						Case vbString 
+							.Value = com_getEnumIDByName(.RefID, prmValue)
+						Case vbBoolean
+							.Value = com_getEnumIDByName(.RefID, iif(prmValue, "ДА", "НЕТ"))
+						Case vbInteger
+							.Value = prmValue
+						Case Else
+							.Value = Empty
+					End Select
+				Else
+					.Value = prmValue
+				End If
+			End With
+		End If
+	End With
+End Sub
+'---
+'улица;дом;квартира;индекс;город;страна;телефон;контакт;EMail
+'---
+Function com_addressnormalize(addr)
+	Dim aAddr, NormalAddr, nBound
+
+	aAddr = Split(addr, ";")
+	nBound = UBound(aAddr)
+
+	If nBound > -1 Then
+		NormalAddr = aAddr(0)
+		If nBound > 0 Then NormalAddr = NormalAddr & iif(aAddr(1) <> "", " д. ", "") & aAddr(1)
+		If nBound > 1 Then NormalAddr = NormalAddr & iif(aAddr(2) <> "", " кв. ", "") & aAddr(2)
+		If nBound > 2 Then NormalAddr = NormalAddr & iif(aAddr(3) <> "", " ", "") & aAddr(3)
+		If nBound > 3 Then NormalAddr = NormalAddr & iif(aAddr(4) <> "", " ", "") & aAddr(4)
+		If nBound > 4 Then NormalAddr = NormalAddr & iif(aAddr(5) <> "", " ", "") & aAddr(5)
+	Else
+		NormalAddr = ""
+	End If
+
+	com_addressnormalize = NormalAddr
+End Function
+
+'---
+'
+'---
+Function com_CopyDict(dDst, dSrc)
+	Dim keys, i
+
+	keys = dSrc.Keys
+
+	For i = 0 To UBound(keys)
+		dDst(keys(i)) = dSrc(keys(i))
+	Next
+
+End Function
+'---
+'
+'---
+Function com_GetUnitTag(Unit)
+	If Unit Is Nothing Then
+		com_GetUnitTag = ""
+	Else
+		com_GetUnitTag = Unit.Tag
+	End If
+End Function
+'---
+'
+'---
+Function com_GetUnitFullName(Unit)
+	If Unit Is Nothing Then
+		com_GetUnitFullName = ""
+	Else
+		com_GetUnitFullName = Unit.Name
+	End If
+End Function
+'---
+'
+'---
+Function com_GetParamMscRefFolderID(El, prmName, DefValue)
+	Dim Msc, MscID
+
+	com_GetParamMscRefFolderID = DefValue
+
+	If El.Params.Exists(prmName) Then
+		MscID = El.Params(prmName).Value2
+		If MscID <> 0 Then
+			Set Msc = Workarea.Misc(MscID)
+			If Not Msc Is Nothing Then
+				com_GetParamMscRefFolderID = Msc.RefFolderID
+			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function com_getAgAlterName2(Ag, OnDate)
+	Dim AgName, IsIndivid
+
+	If Ag Is Nothing Then 
+		com_getAgAlterName2 = ""
+	Else
+		IsIndivid = com_GetLogicFactValue(Ag, fctAgIsIndivid, OnDate, False)
+		AgName = Form_GetAgAlterName(Ag, Ag.Name)
+
+		If AgName <> "" And Not IsIndivid Then AgName = AgName & " в лице директора " & Com_GetParamValueRef(Ag, prmAgBossName, "")
+		If AgName <> "" And Not IsIndivid Then AgName = AgName & ", действующего на основании " & Com_GetParamValueRef(Ag, prmAgBased, "")
+
+		com_getAgAlterName2 = AgName
+	End If
+End Function 
+'---
+'
+'---
+Function com_GetEnumComboStringTag2(EnumName)
+	Dim Enm, i, ComboStr, aData, SQL
+
+	Set Enm = Workarea.Enum(EnumName)
+	ComboStr = ""
+
+	If Not Enm Is Nothing Then
+		SQL = "select enm_tag, enm_id from enums where enn_id=" & Enm.ID & " order by enm_tag"
+
+		If GetRs2(SQL, aData) Then
+			For i = 0 To UBound(aData, 2)
+				If ComboStr <> "" Then ComboStr = ComboStr & "|"
+				ComboStr = ComboStr & aData(0, i) & ":" & aData(1, i)
+			Next
+		End If
+	End If
+
+	com_GetEnumComboStringTag2 = ComboStr
+
+End Function
+'---
+'
+'---
+Function com_getparamid(Kind, NodeType, prmName)
+	Dim SQL, aData
+
+	Select Case Kind
+		Case acFolder
+			SQL = "FLD"
+
+		Case acAccount
+			SQL = "ACC"
+
+		Case acAgent
+			SQL = "AG"
+
+		Case acEntity
+			SQL = "ENT"
+
+		Case acMisc
+			SQL = "MSC"
+
+		Case acBinder
+			SQL = "BIND"
+
+		Case acTemplate
+			SQL = "TML"
+	End Select
+
+	SQL = "select prm_id from " & SQL & "_PARAM_NAMES where prm_name like '" & prmName & "' and NODE_TYPE=" & NodeType
+
+	If GetRs2(SQL, aData) Then
+		com_getparamid = aData(0, 0)
+	Else
+		com_getparamid = 0
+	End If
+
+End Function
+'---
+'
+'---
+Sub com_SheetSetStdTitle(sh)
+	With Sh.PageSetup
+		.LeftHeader = "&[Date] &[Time]"
+		.CenterHeader = "&[Company]"
+		.RightHeader = "&[User]"
+		.LeftFooter = "&[Tab]"
+		.RightFooter = "&[Page]/&[Pages]"
+		
+	End With
+End Sub
+'---
+'
+'---
+Function com_getEnumIDByName(EnRootID, enName)
+	Dim SQL, aData
+
+	SQL = "select enm_id from enums where enn_id=" & EnRootID & " and enm_name like '" & enName & "'"
+
+	If GetRs2(SQL, aData) Then	
+		com_getEnumIDByName = aData(0, 0)
+	Else
+		com_getEnumIDByName = 0
+	End If
+End Function
+'---
+'
+'---
+Function com_IsParent(Elem, ParentID)
+	If Not Elem.Parent Is Nothing Then
+		If Elem.Parent.ID = ParentID Then
+			com_IsParent = True
+		Else
+			com_IsParent = com_IsParent(Elem.Parent, ParentID)
+		End If
+	Else
+		com_IsParent = False
+	End If
+End Function
+'---
+'
+'---

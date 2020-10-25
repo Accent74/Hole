@@ -1,0 +1,103 @@
+Option Explicit
+
+'----
+'
+'----
+Sub Curs_LoadCursOp(RootID, Op)
+	Dim i, Rs, SQL, aData, CursDate
+
+	CursDate = CDate(Formatdate2(Op.Date, "yyyy/mm/dd ") & Formatdate2(Op.Date2, "hh:ss"))
+
+	SQL = "select ent_id, ent_name from entities where ent_cat <> '" & workarea.cur(1).Code & "' and ent_id in (select id from ent_tree where " & RootID & " In (p0, p1, p2, p3, p4, p5, p6, p7)) order by ent_art"
+	'RATES.RT_NUM, CURRENCIES.CRC_DENOM, CRC_RATES.RT_DATE, CURRENCIES.CRC_FLAGS
+	
+	If GetRs2(SQL, aData) Then
+		For i = 0 To UBound(aData, 2)
+			With Op.Trans(1, i + 1)
+				.EntID = aData(0, i)
+				.Params(prmTrRateSale).Value = 0
+				.Params(prmTrRateBuy).Value = 0
+			End With
+		Next
+	End If
+
+End Sub
+'---
+'
+'---
+Function GetCurrency(Acc)
+	Dim CurID
+
+	GetCurrency = ""
+
+	If Not Acc Is Nothing Then
+		CurID = com_getparamvalue(Acc, prmAccCurrency, 0)
+		If CurID <> 0 Then
+			GetCurrency = Workarea.Cur(CurID).Code
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function GetCurrencyRate(CurCode, OnDate, RateID)
+	Dim SQL, QD, Rs
+
+	SQL = "PARAMETERS RateID Long, OnDate DateTime, Code Text, FormID Long;"
+	SQL = SQL & "Select TOP 1 JRN_PARAMS.PRM_DOUBLE, CURRENCIES.CRC_DENOM, DOCUMENTS.DOC_DATE, CURRENCIES.CRC_FLAGS " & _
+						"FROM (ENTITIES INNER Join (DOCUMENTS INNER Join (JOURNAL INNER Join JRN_PARAMS On JOURNAL.J_ID = JRN_PARAMS.J_ID) On DOCUMENTS.DOC_ID = JOURNAL.DOC_ID) On ENTITIES.ENT_ID = JOURNAL.J_ENT) Left Join CURRENCIES On ENTITIES.ENT_CAT = CURRENCIES.CRC_CODE " & _
+						"WHERE JRN_PARAMS.PRM_ID=[RateID] " & _
+							"And DOCUMENTS.DOC_DATE <= OnDate And DOCUMENTS.DOC_DONE = 2 And DOCUMENTS.FRM_ID=[FormID] And ENTITIES.ENT_CAT=[Code] " & _
+						"ORDER BY DOCUMENTS.DOC_DATE DESC;"
+
+'And Month(DOCUMENTS.DOC_DATE)= Month([OnDate]) And Year(DOCUMENTS.DOC_DATE)=Year([OnDate]) And Day(DOCUMENTS.DOC_DATE)=Day([OnDate]) 
+
+	Set QD = Workarea.DAODataBase.CreateQueryDef("", SQL)
+	QD.Parameters(0).Value = RateID
+	QD.Parameters(1).Value = OnDate
+	QD.Parameters(2).Value = CurCode
+	QD.Parameters(3).Value = FORM_RATE
+
+	Set Rs = QD.OpenRecordSet
+
+	If Not rs.eof Then 
+		GetCurrencyRate = Rs.Fields(0).Value
+	Else
+		GetCurrencyRate = 1
+	End If
+	
+End Function
+'---
+'
+'---
+Function GetAccList(AccRootID)
+	Dim i, Acc, cbString
+
+	Set Acc = Workarea.Account(AccRootID).Nested
+	cbString = ""
+
+	For i = 1 To Acc.Count
+		cbString = cbString & iif(cbString <> "", "|", "")
+
+		With Acc.Item(i)
+			cbString = cbString & .Tag & ":" & .ID
+		End With
+	Next
+
+	GetAccList = cbString
+
+End Function
+'---
+'
+'---
+Sub CalcQty(Tr)
+	If Tr.Price <> 0 Then
+		Tr.Qty = Tr.Sum / Tr.Price
+	Else
+		Tr.Qty = 0
+	End If
+End Sub
+'---
+'
+'---
+

@@ -1,0 +1,114 @@
+'#include "HL74_Forms.avb"
+'#include "HL74_FileDlg.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Импорт документов из Excel"
+
+Sub DocsImportFromExcelFiles
+	Dim aFiles, Dlg, xmlTemplate, TrList
+	Dim Op, i, prm, Mtr, TmlID, nCount, nBound
+
+	nCount = 0
+	Set Dlg = App.CreateDialog("HL74_SelectImportTemplate.adg")
+
+	If Dlg.DoModal = vbOK Then 
+		xmlTemplate = Dlg.Map("FilePath")
+		TmlID = GetTmlIDByGUID(checknull(Dlg.Map("TmlGUID"), ""))
+		If TmlID = 0 Then TmlID = GetTmlIDBySite()
+	Else
+		Exit Sub
+	End If
+
+	If OpenFileReadMulti(aFiles, "", "Файлы MS Excel 2000-2007|*.xls|Файлы MS Excel|*.xlsx", "*.xls", "Выберите файлы для импорта") Then
+		Set Mtr = Meter
+		Mtr.Open "Импорт документов ...", 0, UBound(aFiles)
+		nBound = UBound(aFiles)
+
+		For i = iif(nBound = 0, 0, 1) To UBound(aFiles)
+			Mtr.Pos = i
+			Set Op = Workarea.CreateOperation
+			Op.TemplateID = TmlID
+			Op.TemplateInvoker2.FireAll
+
+			com_ClearTrans Op.TransList(1)
+			Op.TransList(1).Inherit 2 + 4 + 8 + 16 + 32 + 128 + 256
+
+			If Op.Trans(1).TransCurs(1).CurID = 0 Then 
+				com_CurrencyInit Op, 1
+			End If
+
+			If isfileexists(aFiles(i)) Then
+
+				prm = Array(OP, xmlTemplate, aFiles(i), False)		
+				App.RunModule "HL74_ImportToDoc.avb", "HL74_ImportToDoc", prm
+	
+				If IsArray(prm) Then
+					Set TrList = Op.TransList(1)
+					TrList.Pack
+	
+					If TrList.Rows > 1 Or TrList.Item(1).EntID <> 0 Or TrList.Sum <> 0 Then
+	
+						' для совместимости с Form_Save
+						Set ExMap = CreateLibObject("Map")
+	
+						If Form_Save(Op, Nothing) Then
+							nCount = nCount + 1
+						End If
+					Else
+						MsgBox "Документ импортирован пустым. Сохраняться не будет", vbExclamation, MSG_BOX_CAPTION
+					End If
+				End If
+			End If
+		Next
+
+		MsgBox "Импортировано документов: " & nCount, vbInformation, MSG_BOX_CAPTION
+		Mtr.Close
+
+	End If
+
+End Sub
+
+Function GetTmlIDByGUID(TmlGUID)
+	Dim SQL, aData
+
+	If App.AppType <> "DAO" Then
+		TmlGUID = Replace(TmlGUID, "{", "")
+		TmlGUID = Replace(TmlGUID, "}", "")
+		TmlGUID = Trim(TmlGUID)
+	End If
+
+	If TmlGUID <> "" Then
+		SQL = "select tml_id from templates where tml_guid like '" & TmlGUID & "'"
+
+		If GetRs2(SQL, aData) Then
+			GetTmlIDByGUID = aData(0, 0)
+		Else
+			GetTmlIDByGUID = 0
+		End If
+	Else
+		GetTmlIDByGUID = 0
+	End If
+End Function
+
+Function GetTmlIDBySite()
+	Dim Elem
+
+	GetTmlIDBySite = 0
+
+	With workarea.site
+		If .kind = acFolder Then
+			If .ID <> 0 Then
+				Set Elem = Workarea.Folder(.ID)
+				GetTmlIDBySite = Elem.TemplateID
+			End If
+		ElseIf .kind = acTemplate Then
+			If .Type = 1 Then
+				GetTmlIDBySite = .ID
+			End If
+		End If
+	End With
+End Function

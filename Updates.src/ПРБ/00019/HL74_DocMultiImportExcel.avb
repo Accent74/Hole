@@ -1,0 +1,69 @@
+'#include "HL74_Forms.avb"
+'#include "HL74_FileDlg.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+
+Sub DocsImportFromExcelFiles
+	Dim aFiles, Dlg, xmlTemplate
+	Dim Op, i, prm, Mtr, TmlID
+
+	Set Dlg = App.CreateDialog("HL74_SelectImportTemplate.adg")
+
+	If Dlg.DoModal = vbOK Then 
+		xmlTemplate = Dlg.Map("FilePath")
+		TmlID = GetTmlIDByGUID(checknull(Dlg.Map("TmlGUID"), ""))
+	Else
+		Exit Sub
+	End If
+
+	If OpenFileReadMulti(aFiles, "", "*.xls", "Файлы MS Excel 2000-2007", "Выберите файлы для импорта") Then
+		Set Mtr = Meter
+		Mtr.Open "Импорт документов ...", 0, UBound(aFiles)
+
+		For i = 0 To UBound(aFiles)
+			Mtr.Pos = i
+			Set Op = Workarea.CreateOperation
+			Op.TemplateID = TmlID
+			Op.TemplateInvoker2.FireAll
+
+			com_ClearTrans Op.TransList(1)
+			prm = Array(OP, xmlTemplate, aFiles(i))		
+			App.RunModule "HL74_ImportToDoc.avb", "HL74_ImportToDoc", prm
+			Op.TransList(1).Pack
+
+			If Op.Trans(1).TransCurs(1).CurID = 0 Then 
+				com_CurrencyInit Op, 1
+			End If
+		Next
+
+		Mtr.Close
+
+	End If
+
+End Sub
+
+Function GetTmlIDByGUID(TmlGUID)
+	Dim SQL, aData
+
+	If App.AppType <> "DAO" Then
+		TmlGUID = Token(TmlGUID, 3, "{")
+		TmlGUID = Token(TmlGUID, 1, "}")
+		TmlGUID = Trim(TmlGUID)
+	End If
+
+	If TmlGUID <> "" Then
+		SQL = "select tml_id from templates where tml_guid='" & TmlGUID & "'"
+
+		If GetRs2(SQL, aData) Then
+			GetTmlIDByGUID = aData(0, 0)
+		Else
+			GetTmlIDByGUID = 0
+		End If
+	Else
+		GetTmlIDByGUID = 0
+	End If
+End Function

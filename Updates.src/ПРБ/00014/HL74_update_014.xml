@@ -1,0 +1,156 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+<AccentFolders>
+		<folder ID="532" GUID="{guid {D8C9F333-2A48-4F63-A315-AC2242C086D8}}" Name="Производство" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="533" GUID="{guid {DF6CE0E2-2296-476A-AA06-C3C6566D1813}}" Name="1. Производство. Акт производство готовой продукции" FormID="0" FormGUID="" Tag="" TID="1815" TGUID="{guid {FB120B4C-4C6D-4095-8F6E-42B729253305}}" Type="0"/>
+		</folder>
+	</AccentFolders>
+	<AccentTemplates>
+		<template GUID="{guid {CE059B59-4AEC-4AD5-B0A2-17703E1A8F35}}" ID="1763" Memo="" Name="Производство" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+			<template GUID="{guid {F96BE2BB-0858-4251-A3DF-E4533E6788CB}}" ID="1828" Memo="" Name="Производство. Производство готовой продукции" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+				<template GUID="{guid {FB120B4C-4C6D-4095-8F6E-42B729253305}}" ID="1815" Memo="" Name="Производство. Акт производства готовой продукции" Tag="" Type="1" FormID="375" FormGUID="{guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}" Script="'#include &quot;HL74_Charge2DAO.avb&quot;
+'#include &quot;HL74_MakeSeries2DAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 2, 2, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1)
+	Call MakeSeries2(Op, 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 375
+  op.SetFolder 533
+  op.Name = &quot;Материалы. Акт производства готовой продукции&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 192
+  op.TransList(1).SetAccCr 189
+  op.TransList(2).SetAccDb 189
+  op.TransList(2).SetAccCr 168
+  op.TransList(3).SetAccDb 189
+  op.TransList(3).SetAccCr 404
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H8
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H11
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 1, False
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 3, True, 1, False
+  '--Суммы--
+  op.TransList(1).CalcSum &quot;=T2+T3&quot;
+  '}} END_RECALC
+End Sub
+">'#include "HL74_Charge2DAO.avb"
+'#include "HL74_MakeSeries2DAO.avb"
+'#include "HL74_Errors.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 2, 2, 1, FALSE, TRUE, FALSE, FALSE, "", 1)
+	Call MakeSeries2(Op, 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}
+  op.SetFolder {guid {DF6CE0E2-2296-476A-AA06-C3C6566D1813}}
+  op.Name = "Материалы. Акт производства готовой продукции"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {6F558117-38C2-4F73-9DB0-554F8390D576}}
+  op.TransList(1).SetAccCr {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(2).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(2).SetAccCr {guid {4D330E66-9F63-48D3-9557-5F1353A1287A}}
+  op.TransList(3).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(3).SetAccCr {guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H8
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H11
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 1, False
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 3, True, 1, False
+  '--Суммы--
+  op.TransList(1).CalcSum "=T2+T3"
+  '}} END_RECALC
+End Sub
+					<parameters>
+						<parameter Name="Изменен" Type="7" RefKind="0" Value2="10/27/2016 4:41:07 PM"/>
+					</parameters>
+				</template>
+			</template>
+		</template>
+	</AccentTemplates>	<AccentEntities/>
+	<AccentMiscs>
+		<misc ID="197" GUID="{guid {9805D295-5051-4E8F-8B7F-F83AAF4ECF43}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="29" Name="Маршруты" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1" /> 
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+
+	<AccentAccounts>
+		<account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo="">
+			<account ID="404" GUID="{guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}" Code="91" Name="Общепроизводственные расходы" PlanID="70" SaldoType="0" Tag="SYS404" Type="0" Memo=""/>
+			<account ID="192" GUID="{guid {6F558117-38C2-4F73-9DB0-554F8390D576}}" Code="26" Name="Готовая продукция" PlanID="70" SaldoType="0" Tag="SYS192" Type="0" Memo=""/>
+			<account ID="189" GUID="{guid {748EF13B-563F-4672-963B-5E2472ED578C}}" Code="23" Name="Производство" PlanID="70" SaldoType="0" Tag="SYS189" Type="0" Memo=""/>
+			<account ID="167" GUID="{guid {2D3B1D29-D5E4-4ED3-9689-AAEF9EF0607E}}" Code="20" Name="Производственные запасы" PlanID="70" SaldoType="0" Tag="SYS167" Type="0" Memo="">
+				<account ID="168" GUID="{guid {4D330E66-9F63-48D3-9557-5F1353A1287A}}" Code="201" Name="Сырье и материалы" PlanID="70" SaldoType="0" Tag="SYS168" Type="0" Memo=""/>
+			</account>
+		</account>
+	</AccentAccounts>
+
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms>
+		<form ANID="63" FileName="HL74_SupplierReturn (WT, nocheck).afm" ID="945" Name="Товары. Накладная на возврат поставщику (ручно ввод)" ShortName="ТВР" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {B7132550-BC50-414F-93AA-6B8F4DA88944}}"/>
+		<form ANID="50" FileName="HL74_Invoice (WT, disc).afm" ID="944" Name="Прочие документы. Счет на оплату исходящий со скидкой" ShortName="ПСС" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {0FEAF829-0F7B-4546-9C64-6E7DB71958DD}}"/>
+		<form ANID="72" FileName="HL74_ActProcessing.afm" ID="375" Name="Производство. Акт переработки" ShortName="ПАП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}"/>
+	</AccentForms>
+	<AccentAutoNum>
+		<AutoNum ID="63" PR="" SF="" NAME="Товары. Накладная на возврат поставщику"/>
+		<AutoNum ID="50" PR="" SF="" NAME="Прочие документы. Счет"/>
+		<AutoNum ID="72" PR="" SF="" NAME="Производство. Акт переработки"/>
+	</AccentAutoNum>
+	<AccentWorkarea/>
+</AccentExportData>

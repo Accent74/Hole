@@ -1,0 +1,83 @@
+'----------------------
+'	класс предназначен для упрощения работы с выбором корреспондентов на форме,когда их много
+'	рассчитан на работу с классом AgBind
+'----------------------
+'	mapAg				map для объектов AgBind
+'	frmControls		массив контролов формы типа frmSelector
+
+
+'Property Get 	Item(ItemValue)						- возвращает AgBind по имени
+'Property Set 	Form(FormValue)						- устанавливает форму. нужен для загрузки селекторов. 
+'																			имя селектора должно быть таким же, как и AgBind c префиксом sl
+'Public Sub 	Load(DataEx)							- загружает xml хэш ключ AgBind значение AgID
+'Public Sub 	Add(AgID, AgMapName, frmSel)	- добавляет в хэш AgBind
+'Property Get 	Map											- возвращает хэш
+
+Option Explicit
+
+Class AgMap
+	Private mapAg, frmControls
+
+	Private Sub Class_initialize
+		Set mapAg = CreateLibObject("Map")	
+		Set frmControls = CreateLibObject("Map")
+	End Sub
+
+	Public Property Get Item(ItemValue)
+		Set Item = mapAg.Item(ItemValue)
+	End Property
+
+	Public Property Set Form(FormValue)
+		Dim frmCrtrl, i
+
+		frmCrtrl = FormValue.ControlArray
+	
+		For i = 0 To UBound(frmCrtrl)
+			If frmCrtrl.TypeName = "frmSelector" Then
+				frmControls.Add frmCrtrl.Name, frmCrtrl
+			End If
+		Next
+
+	End Property
+
+	Public Sub Load(DataEx)
+		Dim i, mapAgID, keys
+
+		If DataEx <> "" Then
+
+			Set mapAgID = CreateLibObject("Map")
+			mapAgID.xml = DataEx
+
+			keys = UBound(mapAgID)
+
+			For i = 0 To UBound(keys)
+				If frmControls.exists("sl" & mapAgID(keys(i))) Then
+					Add mapAgID(keys(i)), frmControls.Item("sl" & mapAgID(keys(i)))
+				End If
+			Next
+
+		End If
+	End Sub
+
+	Public Sub Add(AgID, AgMapName, frmSel)
+		Dim Ag
+
+		If Not mapAg.Exists(AgMapName) Then
+			Set Ag = New AgBind
+			Set Ag.Selector = frmSel
+
+			If AgID <> 0 Then Ag.ID = AgID
+
+			Set mapAg.Item(AgMapName) = Ag
+		End If
+	End Sub
+
+	Public Property Get Map
+		Set Map = mapAg
+	End Property
+
+	Private Sub Class_terminate
+	End Sub
+	
+End Class
+

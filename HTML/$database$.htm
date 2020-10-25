@@ -1,0 +1,527 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Untitled Page</title>
+    <link rel="stylesheet" type="text/css" href="default.css"/>
+
+<style type="text/css">
+table.calendar {border: none; width: 200px}
+tr.calendar {cursor: default; font: 11px; font-family: arial; text-align: center; height: 11px}
+th.calendar {font: 11px; font-family: arial; text-align: center; height: 20px; border: 1px solid gray; height: 16px; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#EAEAEA', endColorStr='#BBBBBB', gradientType='0')}
+td.calendar {border: 1px dotted silver; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#DFDFDF', gradientType='0')}
+td.calendar_today {border: 1px dotted silver; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#FFCC00', gradientType='0')}
+table.calendar_active {filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#3399FF', gradientType='0')}
+
+table.calendar_button_0_1 {font: 11px; font-family: arial; text-align: center; border: 1px solid gray; height: 16px; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#3399FF', gradientType='0')}
+table.calendar_button_0_2 {font: 11px; font-family: arial; text-align: center; filter: progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#3399FF', gradientType='0'); border-top: 1px solid gray; border-bottom: 1px solid gray}
+table.calendar_button_1_2 {font: 11px; font-family: arial; text-align: center; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#FFCC00', gradientType='0'); border-top: 1px solid gray; border-bottom: 1px solid gray}
+table.calendar_button_1_1 {font: 11px; font-family: arial; text-align: center; border: 1px solid gray; height: 16px; filter:progid:DXImageTransform.Microsoft.Gradient(startColorStr='#FFFFFF', endColorStr='#FFCC00', gradientType='0')}
+</style>
+
+<script language="javascript">
+//var args = window.dialogArguments;
+var WeekTitles=new Array('Вс','Пн','Вт','Ср','Чт','Пт','Сб')
+function showallweektitles(){
+	var i, answer="  <tr>\n"
+	for(i=0;i<WeekTitles.length;i++) answer+="    <th CLASS=\"calendar\">"+WeekTitles[i]+"</th>\n"
+	answer+="  </tr>\n"
+	return answer
+}
+function calendar_show(m, d, y){
+	var sdate= new Date(m+'/1/'+y);
+	var mdate= new Date(m+'/'+d+'/'+y);
+	var todaydate= new Date();
+	var days=dayonmonth(m,y)
+	var iday=0, day, answer=''
+	answer+='<table border=0 CLASS="calendar">'
+	answer+='  <tr CLASS="calendar">'
+	answer+='  	<th CLASS="calendar" colspan=7>'
+	answer+='		<table width="100%" border=0 cellpadding=0 cellspacing=0 height="100%">'
+	answer+='  			<tr CLASS="calendar">'
+	answer+='    			<td align="left"><b>Календарь</b></td>'
+	answer+='    			<td align="right">'+d+'/'+m+'/'+y+'</td>'
+	answer+='  			</tr>'
+	answer+='		</table>'
+	answer+='	</th>'
+	answer+='  </tr>'
+	answer+='  <tr CLASS="calendar">'
+	answer+='  	<th colspan=7>'
+	answer+='<table border=0 cellpadding=0 cellspacing=0 width="100%" height="100%">'
+	answer+='  <tr CLASS="calendar">'
+	answer+='    <td width="25%"><table onClick="calendar_move(\'-\',\'y\','+m+','+d+','+y+')" CLASS="calendar_button_0_1" onMouseOver="this.className=\'calendar_button_1_1\'" onMouseOut="this.className=\'calendar_button_0_1\'" border=0 cellpadding=0 cellspacing=0 width="100%" height="100%"><tr CLASS="calendar"><td><<</td></tr></table></td>'
+	answer+='    <td width="25%"><table onClick="calendar_move(\'-\',\'m\','+m+','+d+','+y+')" CLASS="calendar_button_0_2" onMouseOver="this.className=\'calendar_button_1_2\'" onMouseOut="this.className=\'calendar_button_0_2\'" border=0 cellpadding=0 cellspacing=0 width="100%" height="100%"><tr CLASS="calendar"><td><</td></tr></table></td>'
+	answer+='    <td width="25%"><table onClick="calendar_move(\'+\',\'m\','+m+','+d+','+y+')" CLASS="calendar_button_0_2" onMouseOver="this.className=\'calendar_button_1_2\'" onMouseOut="this.className=\'calendar_button_0_2\'" border=0 cellpadding=0 cellspacing=0 width="100%" height="100%"><tr CLASS="calendar"><td>></td></tr></table></td>'
+	answer+='    <td width="25%"><table onClick="calendar_move(\'+\',\'y\','+m+','+d+','+y+')" CLASS="calendar_button_0_1" onMouseOver="this.className=\'calendar_button_1_1\'" onMouseOut="this.className=\'calendar_button_0_1\'" border=0 cellpadding=0 cellspacing=0 width="100%" height="100%"><tr CLASS="calendar"><td>>></td></tr></table></td>'
+	answer+='  </tr>'
+	answer+='</table>'
+	answer+='	</th>'
+	answer+='  </tr>'
+	answer+='  <tr>'
+	answer+=showallweektitles()
+	for(day=0;day<sdate.getDay();day++){
+		iday++
+		answer+="    <td></td>"
+	}
+	for(day=1;day<=days;day++){
+		iday++
+		if((todaydate.getMonth()+1)==m && todaydate.getDate()==day && todaydate.getFullYear()==y)
+			answer+="    <td onClick=\"window.returnValue='"+m+"/"+day+"/"+y+"';\" CLASS=\"calendar_today\"><table onMouseOver=\"this.className='calendar_active'\" onMouseOut=\"this.className=''\" border=0 cellpadding=0 cellspacing=0 width=\"100%\" height=\"100%\"><tr CLASS=\"calendar\"><td>"+day+"</td></tr></table></td>"
+		else
+			answer+="    <td onClick=\"window.returnValue='"+m+"/"+day+"/"+y+"';\" CLASS=\"calendar\"><table onMouseOver=\"this.className='calendar_active'\" onMouseOut=\"this.className=''\" border=0 cellpadding=0 cellspacing=0 width=\"100%\" height=\"100%\"><tr CLASS=\"calendar\"><td>"+day+"</td></tr></table></td>"
+		if(iday==7){
+			answer+="</tr><tr>"
+			iday=0
+		}
+	}
+	answer+="  </tr>"
+	answer+='</table>'
+	//self.calendar.innerHTML=answer
+	document.all.calendar.innerHTML=answer
+}
+function dayonmonth(m, y){ // Функция, для определения количества дней в месяце
+	var answer
+	if(m!=2){ // Если не "Февраль"
+		var date1=new Date(m+'/31/'+y)
+		var mm=(m<12)?(m+1):1;
+		var yy=(m<12)?y:(y+1);
+		var date2=new Date(mm+'/1/'+yy)
+		answer=(date1.getDay()==date2.getDay())?'30':'31';
+	}else{
+		var date1=new Date(m+'/29/'+y)
+		var mm=(m<12)?(m+1):1;
+		var yy=(m<12)?y:(y+1);
+		var date2=new Date(mm+'/1/'+yy)
+		answer=(date1.getDay()==date2.getDay())?'28':'29';
+	}
+	return answer
+}
+function calendar_move(to, index, m, d, y){
+	switch(to){
+		case('-'):
+			switch(index){
+				case('m'):
+					if(m>1){
+						m--
+					}else{
+						m=1
+						y--
+					}
+					break
+				case('d'):
+					var mm=(m>1)?--m:1
+					var yy=(m>1)?y:--y
+					var days=dayonmonth(mm, yy)
+					if(d>1){
+						d--
+					}else{
+						d=days
+						m=mm
+						y=yy
+					}
+					break
+				case('y'):
+					y--
+					break
+			}
+			break
+		case('+'):
+			switch(index){
+				case('m'):
+					if(m<12){
+						m++
+					}else{
+						m=1
+						y++
+					}
+					break
+				case('d'):
+					var mm=(m<12)?++m:1
+					var yy=(m<12)?y:++y
+					var days=dayonmonth(m, y)
+					if(d<days){
+						d++
+					}else{
+						d=1
+						m=mm
+						y=yy
+					}
+					break
+				case('y'):
+					y++
+					break
+				}
+			break
+	}
+	calendar_show(m, d, y)
+}
+</script>
+    
+    <script language="vbScript">
+    
+    Dim WA, RQ, ulText, ulNewVersion, Descr, BuilDate, PictURL, ulBuhNews, ulPractice
+    
+    Set WA = window.external
+
+    Call getRSS("http://www.accent.ua/index.php/component/k2/itemlist?format=feed&moduleID=159", Descr, BuilDate, PictURL, ulText)
+    Call getRSS("http://www.accentsupport.com/rss.aspx", Descr, BuilDate, PictURL, ulNewVersion)
+    Call getRSS("http://news.dtkt.ua/rss.xml", Descr, BuilDate, PictURL, ulBuhNews)
+    Call getRSS("http://news.liga.net/economics/rss.xml", Descr, BuilDate, PictURL, ulPractice)
+      
+    
+    function set_red_button()
+        button.src = "art\accent_cd_red.png"
+    end function
+    
+    function set_green_button()
+        button.src = "art\accent_cd.png"
+    end function
+    
+    function set_standard_mode()
+        WA.Showinterface
+    end function
+    
+    function get_db_list()
+        Dim WSH, dbFileName
+        Dim i, dbListText
+
+        on error resume next
+        Set WSH = CreateObject("WScript.Shell")
+        
+        If Err.number <> 0 then
+            Err.Clear
+        else
+                
+            dbListText = "<ul>"
+
+            For i = 1 To 10
+                dbFileName = WSH.RegRead("HKEY_CURRENT_USER\Software\Impact\Акцент 7.0\Бухгалтерия (DAO)\Recent File List\File" & i)
+                if dbFileName <> "" then
+    	            dbListText = dbListText & "<li><a href='' onclick='vbscript:OpenDB(" & chr(34) & dbFileName & chr(34) & ")'>"
+	                dbListText = dbListText & dbFileName & "</a></li>"
+	            end if 
+	        Next
+	     end if
+
+        dbListText = dbListText  & "</ul>"
+        db_list.innerHTML = dbListText
+    end function
+    
+    '---
+    '
+    '---
+    function FindChannel(XML)
+        Dim i, FindXml
+
+        set FindChannel = nothing
+        
+        with XML.ChildNodes
+            For i = 0 to .Length - 1
+                with .Item(i)
+                    if .nodename = "channel" then
+                        set FindChannel = XML.ChildNodes.Item(i)
+                        exit function
+                    else
+                        if .ChildNodes.Length <> 0 then
+                            set FindXml = FindChannel(XML.ChildNodes.Item(i))
+                            if not isempty(FindXml) then
+                                Set FindChannel = FindXML
+                                exit function
+                            end if
+                        end if
+                    end if
+                end with
+            next
+        end with
+    end function
+    '---
+    '
+    '---
+    Function getRSS(sURL, ByRef Descr, ByRef BuilDate, ByRef PictURL, ByRef ulRSSText)
+	  Dim XMLHTTP, i, link, Channel
+
+'  	  Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
+  	  Set XMLHTTP = wa.map.item("XMLHTTP")
+
+	  Descr = ""
+	  BuilDate = ""
+	  PictURL = ""
+    			
+      If Not XMLHTTP Is Nothing Then 
+		    Call XMLHTTP.open("GET", sURL, False)
+		    On Error Resume Next
+
+	  	    Call XMLHTTP.send(Nothing)
+
+		    If err.number = 0 Then
+			    If XMLHTTP.responseText <> "" Then 
+				    ulRSSText = "<ul>"
+        			
+'        			set Channel = XMLHTTP.ResponseXML.documentElement.selectNodes("/rss/channel/")		'FindChannel(XMLHTTP.ResponseXML)
+        			set Channel = FindChannel(XMLHTTP.ResponseXML)
+        			
+				    With  Channel.childnodes
+					    For i = 0 To .length - 1
+					        If i > 20 then exit for
+						    With .item(i)
+							    Select Case .nodename
+								    Case	"item"
+									    link = "<a target= '_blank' href='" & .ChildNodes.Item(1).Text & "'>"
+									    ulRSSText = ulRSSText & link & "<li>" & .ChildNodes.Item(0).Text & "</li></a>"
+								    Case "description"
+									    Descr = .Text
+								    Case "lastBuildDate"
+									    BuilDate = .Text
+								    Case "image"
+									    PictURL = .ChildNodes.Item(0).Text 
+		    	           End Select
+	    	           End With
+					    Next
+				    End With
+
+	           ulRSSText = ulRSSText & "</ul>"
+        				
+			    End If
+		    End If
+
+		    Err.Clear
+	    End If
+
+    End Function
+    '---
+    '
+    '---
+    function OpenDB(dbName)
+        WA.OpenDataBase2 dbName, "uid=admin;pwd="
+    end function
+    
+    function get_acc_news()
+        accnews.innerHTML = ulText
+        new_version_list.innerHTML = ulNewVersion
+        BuhNews.innerHTML = ulBuhNews
+        Practice.innerHTML = ulPractice
+    end function
+    
+    </script>
+</head>
+<body onload="vbscript:get_acc_news()">
+    <table border="0" id="main" class="table" style="padding-left: 0px; padding-right: 0px;" cellpadding="0" cellspacing="0">
+        <tr style="height:50px; background-color: #83ab6f; border-color:#83ab6f;">
+            <td style="width:14px; height: 11px;">
+            </td>
+            <td style="width:256px; height: 11px;">
+                   <img alt="" src="art\logo01.gif" />
+            </td>
+            <td style="width:10px; height: 11px;">
+            </td>
+            <td style="width: 384px; text-align: center; height: 11px;">
+                <h1>
+                    Электронная газета</h1>
+            </td>
+            <td style="width:10px; height: 11px">
+            </td>
+            <td style="width: 268px; height: 11px;">
+            </td>
+            <td style="width:14px; height: 11px;">
+            </td>
+        </tr>
+        <tr style="height: 5px">
+            <td style="width: 14px; height: 5px">
+            </td>
+            <td style="width: 256px; height: 5px">
+            </td>
+            <td style="height: 5px">
+            </td>
+            <td style="width: 384px; height: 5px">
+            </td>
+            <td style="height: 5px; width: 10px;">
+            </td>
+            <td style="width: 268px; height: 5px">
+            </td>
+            <td style="height: 5px; width: 14px;">
+            </td>
+        </tr>
+        <tr style="height:5px">
+            <td style="height: 5px; width: 14px;">
+            </td>
+            <td style="height: 5px; width: 256px; ">
+                <h2>
+                Новости Акцент</h2>
+            </td>
+            <td style="height: 5px">
+            </td>
+            <td style="height: 5px; width: 384px;">
+                <h2>
+                    Новости бухучета</h2>
+                </td>
+            <td style="height: 5px; width: 10px;">
+            </td>
+            <td style="height: 5px; width: 268px; vertical-align: top;" rowspan ="2">
+                                <div id="calendar" style="text-align: right; vertical-align: top;"></div>
+                <script language="vbscript">call calendar_show(month(date),day(date),year(date))
+                </script>
+            </td>
+            <td style="height: 5px; width: 14px;">
+            </td>
+        </tr>
+        <tr style="height:20px">
+            <td style="height: 150px; width: 14px;">
+            </td>
+            <td id="AccNews" style="height: 150px; width: 256px; vertical-align: top; list-style-type: circle; text-align: left;">
+            </td>
+            <td style="height: 150px">
+            </td>
+            <td style="height: 150px; width: 384px;" id="BuhNews">
+            </td>
+            <td style="height: 150px; width: 10px;">
+            </td>
+            <td style="height: 150px; width: 14px;">
+
+            </td>
+            <td style="height: 150px">
+            </td>
+        </tr>
+        <tr>
+            <td style="height: 5px; width: 14px;">
+            </td>
+            <td style="width: 256px; height: 5px">
+            </td>
+            <td style="height: 5px">
+            </td>
+            <td style="width: 384px; height: 5px">
+            </td>
+            <td style="height: 5px; width: 10px;">
+            </td>
+            <td style="width: 268px; height: 5px">
+            </td>
+            <td style="height: 5px; width: 14px;">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 14px; height: 26px;">
+            </td>
+            <td style="width: 256px; height: 26px;">
+                <h2>
+                    Последние версии</h2>
+            </td>
+            <td style="height: 26px">
+            </td>
+            <td style="width: 384px; height: 26px;">
+                <h2>
+                    Документы для работы</h2>
+            </td>
+            <td style="height: 26px; width: 10px;">
+            </td>
+            <td style="width: 268px; height: 26px;">
+                <h2>
+                    Базы данных</h2>
+            </td>
+            <td style="height: 26px; width: 14px;">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 14px; height: 176px;">
+            </td>
+            <td id="new_version_list" style="width: 256px; height: 176px; vertical-align: top; text-align: left;">
+            </td>
+            <td style="height: 176px">
+            </td>
+            <td style="width: 384px; height: 176px; vertical-align: top; text-align: left;" id="Practice">
+            </td>
+            <td style="height: 176px; width: 10px;">
+            </td>
+            <td id="db_list" style="width: 268px; height: 176px; vertical-align: top; text-align: left;">
+                <script language ="vbscript">
+                    get_db_list()
+                </script></td>
+            <td style="height: 176px; width: 14px;">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 14px">
+            </td>
+            <td style="width: 256px">
+            </td>
+            <td>
+            </td>
+            <td style="width: 384px">
+            </td>
+            <td style="width: 10px">
+            </td>
+            <td style="width: 268px">
+            </td>
+            <td style="width: 14px">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 14px; height: 56px;">
+            </td>
+            <td style="width: 256px; height: 56px;">
+
+                <table>
+                    <tr>
+                        <td>
+                            <script type="text/javascript">URL='http://img.gismeteo.Ua/flash/fw88x31.swf?index=33345';w='88';h='31';value='33345';lang='ru'</script><script type="text/javascript" src='http://informer.gismeteo.Ua/flash/fcode.js'></script>
+                        </td>
+                        <td>
+                            <script type="text/javascript">URL='http://img.gismeteo.Ua/flash/fw88x31.swf?index=34519';w='88';h='31';value='34519';lang='ru'</script><script type="text/javascript"src='http://informer.gismeteo.Ua/flash/fcode.js'></script>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <script type="text/javascript" >URL='http://img.gismeteo.Ua/flash/fw88x31.swf?index=33658';w='88';h='31';value='33658';lang='ru'</script><script type="text/javascript" src='http://informer.gismeteo.Ua/flash/fcode.js'></script>
+                        </td>
+                        <td>
+                            <script type="text/javascript">URL='http://img.gismeteo.Ua/flash/fw88x31.swf?index=34601';w='88';h='31';value='34601';lang='ru'</script><script type="text/javascript" src='http://informer.gismeteo.Ua/flash/fcode.js'></script>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+            <td style="height: 56px">
+            </td>
+            <td style="width: 384px; height: 100%; text-align: center;">
+                <table>
+                    <tr>
+                        <td>
+                            <a href="http://www.ukrbanks.info/" target="_blank" alt="Банки Украины - новости банков, курсы валют, рейтинг банков Украины!"><img src="http://www.ukrbanks.info/informer/nbu/ua-cash-USD.gif" width="88" height="31" border="0" alt="Курсы наличного обмена на сегодня"></a>
+                        </td>
+                        <td>
+                            <a href="http://www.ukrbanks.info/" target="_blank" alt="Банки Украины - новости банков, курсы валют, рейтинг банков Украины!"><img src="http://www.ukrbanks.info/informer/nbu/ua-cash-EUR.gif" width="88" height="31" border="0" alt="Курсы наличного обмена на сегодня"></a>
+                        </td>
+                        <td>
+                            <a href="http://www.ukrbanks.info/" target="_blank" alt="Банки Украины - новости банков, курсы валют, рейтинг банков Украины!"><img src="http://www.ukrbanks.info/informer/nbu/ua-cash-RUB.gif" width="88" height="31" border="0" alt="Курсы наличного обмена на сегодня"></a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="height: 56px; width: 10px;">
+            </td>
+            <td style="width: 268px; height: 56px; text-align: right;">
+                <a href="">
+                <img style="border :0" alt="" id = "button" src="art\accent_cd.png" 
+                onmouseover = "vbscript:set_red_button()" 
+                onmouseout = "vbscript:set_green_button()"
+                onclick= "vbscript:set_standard_mode()"/></a></td>
+            <td style="height: 56px; width: 14px;">
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 14px; height: 13px;">
+            </td>
+            <td style="width: 256px; height: 13px;">
+            </td>
+            <td style="height: 13px">
+            </td>
+            <td style="width: 384px; height: 13px;">
+            </td>
+            <td style="width: 10px; height: 13px;">
+            </td>
+            <td style="width: 268px; height: 13px;">
+            </td>
+            <td style="width: 14px; height: 13px;">
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

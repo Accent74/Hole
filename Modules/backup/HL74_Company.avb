@@ -1,0 +1,124 @@
+Option Explicit
+
+'	Public Property Let ID(AgID)
+'	Public Property Get City
+'	Public Property Get PostIndex
+'	Public Property Get Street
+'	Public Property Get Address
+'	Public Property Get Phone
+'	Public Property Get Code
+'	Public Property Get TaxStatus(OnDate)
+'	Public Property Get NameForDoc
+'	Public Property Get BossShortName
+'	Public Property Get BuhShortName
+
+Class Company
+
+	Private Co
+
+	Private Sub Class_initialize
+		Set Co = Workarea.MyCompany
+	End Sub
+
+	Public Property Let ID(AgID)
+		Dim CoNew
+		If AgID <> 0 Then
+			Set CoNew = Workarea.Agent(AgID)
+
+			If Not CoNew Is Nothing Then
+				Set Co = CoNew
+			End If
+		End If
+	End Property
+
+	Public Property Get City
+		City = Token(Co.Address, 2, ";")
+	End Property
+
+	Public Property Get PostIndex
+		PostIndex = Token(Co.Address, 1, ";")
+	End Property
+
+	Public Property Get Street
+		Street = Token(Co.Address, 3, ";")
+	End Property
+
+	Public Property Get Address
+		Address = Co.Address
+	End Property
+
+	Public Property Get Phone
+		Phone = Co.Phone
+	End Property
+
+	Public Property Get Code
+		If Co.Type = 3 Then
+			Code = Co.VatNo
+		Else
+			Code = Co.Code
+		End If
+	End Property
+
+	Public Property Get TaxStatus(OnDate)
+		If IsEmpty(OnDate) Then
+			OnDate = Date
+		End If
+
+		With Co.Facts(OnDate)
+			If .Exists(factAgCompanyTaxStatus) Then
+				TaxStatus = .Item(factAgCompanyTaxStatus).ValueString
+			Else
+				TaxStatus = ""
+			End If
+		End With
+	End Property
+
+	Public Property Get NameForDoc
+		With Co.Params
+			If .Exists(prmAgAlterName) Then
+				NameForDoc = .Item(prmAgAlterName).Value2
+			Else
+				NameForDoc = Co.Name
+			End If
+		End With
+	End Property
+
+	Public Property Get BossShortName
+		BossShortName = Form_GetBossName(prmAgBossName)
+	End Property
+
+	Public Property Get BuhShortName
+		BuhShortName = Form_GetBossName(prmAgBuhame)
+	End Property
+
+	Private Function Form_GetBossName(prmName)
+		Dim BossName, Name1, Name2, Name3
+
+		BossName = ""
+
+		If Co.Params.Exists(prmName) Then
+			BossName = GetAgShortName(Co.Params(prmName).Value3)
+		End If
+
+		Form_GetBossName = BossName 
+	End Function
+
+	Private Function GetAgShortName(Name)
+		Dim Name1, Name2, Name3
+
+
+		If Name <> "" Then
+			Name1 = Token(Name, 1, " ")
+			Name2 = Token(Name, 2, " ")
+			Name3 = Token(Name, 3, " ")
+
+			If Name2 <> "" Then Name1 = Name1 & " " & UCase(Left(Name2, 1)) & "."
+			If Name3 <> "" Then Name1 = Name1 & " " & UCase(Left(Name3, 1)) & "."
+
+		End If
+
+		GetAgShortName = Name1
+	End Function
+
+
+End Class

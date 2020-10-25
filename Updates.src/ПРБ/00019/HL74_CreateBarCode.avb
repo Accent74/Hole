@@ -1,0 +1,26 @@
+'#include "HL74_Const.avb"
+'#include "HL74_EAN13.avb"
+'#include "HL74_common.avb"
+
+Option Explicit
+
+Sub SetEntBarCode
+	Dim KindID, Ent, Prefix
+
+	Prefix = com_getparamvalue(workarea, prmDBSetBarCode, "")
+	If Prefix = "" Then Exit Sub
+
+	KindID = workarea.map("KindID")
+
+	Set Ent = Workarea.Entity(KindID)
+
+	If Ent.Bar = "" Then
+		Ent.Bar = EAN13_MakeCode(Prefix, Ent.ID)
+		Ent.Save
+	End If
+
+End Sub
+
+Function SetBarCodeAnabled()
+	SetBarCodeAnabled = (com_getparamvalue(workarea, prmDBSetBarCode, "") <> "")
+End Function

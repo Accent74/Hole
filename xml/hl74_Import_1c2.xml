@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<dictionaryimport version="0.1" name="Импорт из 1С 7.7 dbf">
+	<entities dbf="sc135.dbf" connectionstring="Provider=vfpoledb;Data Source=@Path;Collating Sequence=machine" codepage="ANSI">
+		<art field="sp136"/>
+		<bar field="sp162"/>
+		<param name="Наименование для документов" field=""/>
+		<param name="Вес" field=""/>
+	</entities>
+	<agents dbf="sc224.dbf" connectionstring="Provider=vfpoledb;Data Source=@Path;Collating Sequence=machine" codepage="ANSI">
+		<code field="sp1150"/>
+		<regno field="sp235"/>
+		<phone field="sp246"/>
+		<address field="sp247"/>
+		<contact field=""/>
+		<memo field="sp159"/>
+		<fact name="Адреса доставки" field="sp243"/>
+		<fact name="Полное наименование" field="sp242"/>
+		<param name="Полное наименование" field="sp242"/>
+	</agents>
+</dictionaryimport>

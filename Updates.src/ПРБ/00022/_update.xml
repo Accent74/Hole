@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config cver="1" version="00022" application="accent7" required_build="496">
+	<path pathname="#home\..\dbf" mask="*.dbf" />
+	<path pathname="#home\..\pictures" mask="*.jpg" />
+</config>

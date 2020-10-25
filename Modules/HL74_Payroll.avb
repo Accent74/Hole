@@ -1,0 +1,141 @@
+Option Explicit
+'---
+'
+'---
+Function prl_CheckAgDupRow(Tr, ByRef TrCheck)
+	prl_CheckAgDupRow = True
+
+	If TrCheck.AgFromID <> 0 And TrCheck.AgFromID = Tr.AgFromID And TrCheck.RowNo2 <> Tr.RowNo2 Then
+		MsgBox "Повторение сотрудника", vbExclamation, Op.Name
+		TrCheck.AgFromID = 0
+		TrCheck.EntID = 0
+'		CheckAgDupRow = False
+'	Else
+'		CheckAgDupRow = True
+	End If
+End Function
+'---
+'
+'---
+Sub prl_sgrdAgOnBound(Op, sgrdAg, Lock)
+	Dim Tr, RowNo
+
+	Set Tr = Op.Trans(1, sgrdAg.Row)
+	Op.TransList(1).EnumTrans GetRef("prl_CheckAgDupRow"),  Tr
+
+	If Tr.AgFromID = 0 And Tr.RowNo2 <> Op.TransList(1).Rows Then 
+		Tr.EntID = 0
+		Op.TransList(1).Pack
+	Else
+		If Tr.AgToID = 0 Then Tr.AgToID = Op.Trans(1).AgToID
+		prl_UpdateOneRow Tr, Op
+	End If
+End Sub
+'---
+'
+'---
+Sub prl_LoadAgentsFromRoot(Op, Lock)
+	Dim i, AgRoot, Tr, EntID, RowNo
+
+	Set Tr = Op.Trans(1) 
+	EntID = Tr.EntID
+
+	Com_ClearTrans Op.TransList(1)
+	Tr.EntID = EntID
+	RowNo = 0
+
+	Set AgRoot = Tr.AgTo
+
+	If Not AgRoot Is Nothing Then	
+		With AgRoot.Nested
+			For i = 1 To .Count
+				With .Item(i)
+					If .Type = 3 Then
+						' сотрудники
+						RowNo = RowNo + 1
+						Set Tr = Op.Trans(1, RowNo)
+						Tr.AgToID = AgRoot.ID
+						Tr.AgFromID = .ID
+
+						prl_UpdateOneRow Tr, Op
+
+					End If
+				End With
+			Next
+		End With
+	End If
+End Sub
+'---
+'
+'---
+Function prl_UpdateOneRow(Tr, ByRef Op)
+	prl_UpdateOneRow = True
+	If Tr.AccDBID = 0 And Not Tr.Entity Is Nothing Then Tr.AccDBID = Tr.Entity.AccID
+	Tr.Params(prmTrPrice).Value2 = Com_GetFactValue(Tr.AgFrom, fctAgSalary, LastDayInMonth(Op.Date1), 0)
+	Tr.MiscID(PositionListmscNo) = Com_GetFactValue(Tr.AgFrom, fctAgPosition, LastDayInMonth(Op.Date1), 0)
+	Tr.Qty = 0
+End Function
+'---
+'
+'---
+Sub prl_slCalendarOnBound(Op, Lock)
+	With Op.Trans(1)
+		If .MiscID(CalendarMscNo) <> 0 Then
+			Op.Date1 = .MiscBind(CalendarMscNo).Date1
+		Else
+			Op.Date1 = 0
+		End If
+	End With
+
+	Op.TransList(1).EnumTrans GetRef("prl_UpdateOneRow"), Op
+End Sub
+'---
+'
+'---
+Function prl_SetCalendarNow(CalendarMscNo)
+	Dim SQL, aData, dStart, dEnd
+
+	dStart = firstdayinmonth(Date())
+	dEnd = lastdayinmonth(Date()) + 1
+		
+	SQL = "select msc_id from misc where msc_dt1 >= " & sqldate(dStart) & " And msc_dt2 < " & sqldate(dEnd) & " and msc_no =" & CalendarMscNo
+
+	If GetRs2(SQL, aData) Then
+		prl_SetCalendarNow = aDAta(0, 0)
+	Else
+		prl_SetCalendarNow = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function prl_CheckEnts(TrList)
+	Dim prm
+
+	prm = True
+	TrList.EnumTrans GetRef("prl_CheckEntsRow"), prm
+	prl_CheckEnts = prm
+
+End Function
+'---
+'
+'---
+Function prl_CheckEntsRow(Tr, ByRef prm)
+	If Tr.AgFromID <> 0 And Tr.EntID = 0 Then prm = False
+	prl_CheckEntsRow = prm
+End Function
+'---
+'
+'---
+Function prl_DelEmptyAg(Tr, ByRef prm)
+	prl_DelEmptyAg = True
+
+	If (prm And Tr.AgFromID = 0) Or (Not prm And Tr.AgToID = 0) Then
+		Tr.EntID = 0
+	End If
+
+End Function
+'---
+'
+'---

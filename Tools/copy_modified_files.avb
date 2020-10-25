@@ -1,0 +1,83 @@
+'#include "HL74_XML.avb"
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Обработка файлов проекта"
+Const FOLDER_DIST = "temp"
+Const XML_FILES_FILE_NAME = "Files.xml"
+Const CONFIG_CODE = "HL74_"
+Const CONFIG_NAME = "ПРБ"
+Const CONFIG_VERSION = "013"
+
+Dim FSO, aFolders, aExt, RootFolder, RD, Fld
+Dim i, j, Fls, Fl, CurrentRoot, aData
+Dim MODIFIED_DATE
+Dim oXml, xmlRoot, xmlElemFld, xmlElemFl, pItem, aProjItems
+
+MODIFIED_DATE = CDate("07/07/2016")
+
+aFolders = Array("forms", "modules", "dialogs", "sheets", "xml")
+aExt = Array("afm", "avb", "adg", "ash", "xml")
+aProjItems = Array(1, 4, 2, 3, 0)
+
+Set oXml = New xml
+
+If oXml.Create() Then
+	
+	Set xmlRoot = oXml.Xml.CreateElement("files")
+	xmlRoot.SetAttribute "configversion", CONFIG_VERSION
+	xmlRoot.SetAttribute "configname", CONFIG_NAME
+	xmlRoot.SetAttribute "configdate", formatdate2(Date, "dd/mm/yyyy")
+
+	Set RD = createlibobject("Redirect")
+	RootFolder = RD.DBPath
+	RootFolder = RootFolder & iif(Right(RootFolder, 1) <> "\", "\", "") & "..\"
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+	
+	For i = 0 To UBound(aFolders)
+		CurrentRoot = RootFolder & aFolders(i)
+		Set Fld = FSO.GetFolder(CurrentRoot)
+		Set Fls = Fld.Files
+	
+		Set xmlElemFld = oXml.Xml.CreateElement("folder")
+		xmlElemFld.SetAttribute "name", aFolders(i)
+		xmlElemFld.SetAttribute "ext", aExt(i)
+
+		For Each Fl In Fls
+			If Mid(Fl.Path, InStrRev(Fl.Path, ".") + 1) = aExt(i) Then
+				If Fl.DateLastModified > MODIFIED_DATE Then
+					FSO.CopyFile Fl.Path, RootFolder & FOLDER_DIST & "\" & Fl.Name, True
+					Set xmlElemFl = oXml.Xml.CreateElement("file")
+					xmlElemFl.SetAttribute "name", Fl.Name
+					xmlElemFl.SetAttribute "date", Fl.DateLastModified
+					xmlElemFl.SetAttribute "size", Fl.size
+
+					If aProjItems(i) <> 0 Then
+						Set pItem = Workarea.ProjectItems(aProjItems(i)).FindFile(Fl.Name, 1)
+						If Not pItem Is Nothing Then
+							If GetRs2("select frm_guid from forms where frm_id=" & pItem.ID, aData) Then
+								xmlElemFl.SetAttribute "guid", aData(0, 0)
+							End If
+						End If
+					End If
+
+
+					xmlElemFld.AppendChild xmlElemFl
+				End If
+			End If
+		Next
+
+		xmlRoot.AppendChild xmlElemFld
+		
+	Next
+
+	oXml.xml.InsertBefore xmlRoot, Null
+	oXml.FileName = RootFolder & FOLDER_DIST & "\" & CONFIG_CODE & XML_FILES_FILE_NAME
+
+	If Not oXml.SaveAll() Then
+		MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+	End If
+Else
+	MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+End If

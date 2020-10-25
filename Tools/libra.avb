@@ -1,0 +1,52 @@
+Option Explicit
+
+Dim ReadOnly
+
+MsgBox GetWeight(1)
+
+Function GetWeight(PortNo)
+	Dim Comm, TimeStart, TimeEnd, Buffer, i, n
+
+	ReadOnly = True
+
+	GetWeight = 0
+
+'	On Error Resume Next
+	Set Comm = CreateObject("MSCOMMLib.MSComm") ' Используется MSCOMM32.OCX
+
+	If Err.Number <> 0 Then 
+		MsgBox "Ошибка создания ActiveX" & vbNewLine & "# " & Err.Number & " " & Err.Description,  vbCritical
+	Else
+		Comm.Settings = "4800,n,8,1"
+		Comm.CommPort = 1	'PortNo
+		Comm.PortOpen = True
+
+		Comm.Output = Chr(0)& Chr(0)  & Chr(03) 
+
+		TimeStart = Now()
+
+		Do
+			DoEvent
+			TimeEnd = Now()
+		Loop Until (Comm.InBufferCount = 16) 'Or (TimeEnd - TimeStart >= 0.0002)
+
+'		If Comm.InBufferCount = 16 Then
+			Buffer = Comm.Input
+			n = 0
+
+			For i = 6 To 1 Step -1
+				If charat(buffer, i) <> "" Then
+					n = n * 10 + Asc(charat(buffer, i))
+				End If
+			Next
+
+'		End If
+
+		Comm.PortOpen = False 
+	End If
+
+	ReadOnly = False
+
+	GetWeight = n
+
+End Function 

@@ -1,0 +1,13 @@
+Option Explicit
+
+Dim i
+
+With workarea.site.operations
+	For i = 1 To .count
+		With .Item(i)
+			.TemplateInvoker2.FireOnApply
+			.TemplateInvoker2.FireOnRecalc
+			.Save
+		End With
+	Next
+End With

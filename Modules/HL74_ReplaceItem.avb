@@ -1,0 +1,287 @@
+Option Explicit
+
+'---
+'
+'---
+Sub ReplaceOneItem(aPrm)
+	Dim Kind, KindID, KindIDLookFor
+	Dim DictTml, TmlModified, i, keys
+	Dim TmlID
+
+	Kind = aPrm(0)
+	KindID = aPrm(1)
+	KindIDLookFor = aPrm(2)
+
+	Set DictTml = LoadTmlScript()
+	Set TmlModified = CreatelibObject("Map")
+
+	ReplaceItem Kind, KindID, KindIDLookFor, DictTml, TmlModified
+
+	If TmlModified.Count > 0 Then
+		keys = TmlModified.keys
+
+		For i = 0 To UBound(keys)
+			TmlID = CLng(keys(i))
+			Workarea.Template(TmlID).SetScript DictTml(TmlID)
+		Next
+
+	End If
+
+End Sub
+'---
+'
+'---
+Sub ReplaceItem(Kind, KindID, KindIDLookFor, DictTml, ByRef TmlModified)
+	Select Case kind
+		Case acAccount
+			ReplaceAccount KindID, KindIDLookFor, DictTml, TmlModified
+		Case acAgent
+			ReplaceAgent KindID, KindIDLookFor, DictTml, TmlModified
+		Case acEntity
+			ReplaceEntity KindID, KindIDLookFor, DictTml, TmlModified
+		Case acMisc
+			ReplaceMisc KindID, KindIDLookFor, DictTml, TmlModified
+		Case acTemplate
+			ReplaceTemplate KindID, KindIDLookFor, DictTml, TmlModified
+		Case acBinder
+			ReplaceBinder KindID, KindIDLookFor, DictTml, TmlModified
+		Case acForm
+			ReplaceForm KindID, KindIDLookFor, DictTml, TmlModified
+
+	End Select
+
+	If App.AppType = "DAO" Then
+		updateparams Kind, KindID, KindIDLookFor
+		updatefacts Kind, KindID, KindIDLookFor
+	End If
+End Sub
+'---
+'
+'---
+Sub ReplaceForm(KindID, KindIDLookFor, DictTml, TmlModified)
+
+	If App.AppType = "DAO" Then
+		workarea.DAODAtaBase.execute "update documets set frm_id=" & KindID & " where frm_id=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update folders set frm_id=" & KindID & " where frm_id=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update frm_links set frm_id_left=" & KindID & " where frm_id_left=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update frm_links set frm_id_right=" & KindID & " where frm_id_right=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update templates set frm_id=" & KindID & " where frm_id=" & KindIDLookFor
+	Else
+	End If
+
+	UpdateTemplates DictTml, ".FormID = " & KindID, , ".FormID = " & KindIDLookFor, TmlModified
+
+End Sub
+'---
+'
+'---
+Sub ReplaceBinder(KindID, KindIDLookFor, DictTml, TmlModified)
+
+	If App.AppType = "DAO" Then
+		workarea.DAODAtaBase.execute "update bind_docs set bind_id=" & KindID & " where bind_id=" & KindIDLookFor
+	Else
+	End If
+
+End Sub
+'---
+'
+'---
+Sub ReplaceTemplate(KindID, KindIDLookFor, DictTml, TmlModified)
+
+	If App.AppType = "DAO" Then
+		workarea.DAODAtaBase.execute "update documents set tml_id=" & KindID & " where tml_id=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update tml_links set tml_id_left=" & KindID & " where tml_id_left=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update tml_links set tml_id_right=" & KindID & " where tml_id_right=" & KindIDLookFor
+		workarea.DAODAtaBase.execute "update folders set tml_id=" & KindID & " where tml_id=" & KindIDLookFor
+	Else
+	End If
+
+End Sub
+'---
+'
+'---
+Sub ReplaceMisc(KindID, KindIDLookFor, DictTml, TmlModified)
+	Dim MscNo, MscStr
+
+	If App.AppType = "DAO" Then
+		workarea.DAODAtaBase.execute "update jrn_misc set msc_id=" & KindID & " where msc_id=" & KindIDLookFor
+	Else
+	End If
+
+	MscNo = Workarea.Misc(KindID).MscNo
+	MscStr = ".SetMisc " & MscNo & ", "
+	UpdateTemplates DictTml, MscStr & KindIDLookFor, MscStr & KindID, TmlModified
+
+End Sub
+'---
+'
+'---
+Sub ReplaceEntity(KindID, KindIDLookFor, DictTml, TmlModified)
+	Dim DB
+
+	If App.AppType = "DAO" Then
+		Set DB = workarea.DAODAtaBase
+
+		db.execute "update journal set j_ent=" & KindID & " where j_ent=" & KindIDLookFor
+		db.execute "update misc set msc_refid=" & KindID & " where msc_ref=2 and msc_refid=" & KindIDLookFor
+		db.execute "update prc_contents set ent_id=" & KindID & " where ent_id=" & KindIDLookFor
+		db.execute "update recipes set ent_id=" & KindID & " where ent_id=" & KindIDLookFor
+		db.execute "update series set ent_id=" & KindID & " where ent_id=" & KindIDLookFor
+
+	Else
+	End If
+
+	UpdateTemplates DictTml, ".SetEnt " & KindIDLookFor, ".SetEnt " & KindID, TmlModified
+
+End Sub
+'---
+'
+'---
+Sub ReplaceAgent(KindID, KindIDLookFor, DictTml, TmlModified)
+	Dim DB
+
+	If App.AppType = "DAO" Then
+		Set DB = workarea.DAODAtaBase
+
+		db.execute "update journal set j_ag1=" & KindID & " where j_ag1=" & KindIDLookFor
+		db.execute "update journal set j_ag2=" & KindID & " where j_ag2=" & KindIDLookFor
+		db.execute "update misc set msc_refid=" & KindID & " where msc_ref=1 and msc_refid=" & KindIDLookFor
+
+	Else
+	End If
+
+	UpdateTemplates DictTml, ".SetAgFrom " & KindIDLookFor, ".SetAgFrom " & KindID, TmlModified
+	UpdateTemplates DictTml, ".SetAgTo " & KindIDLookFor, ".SetAgTo " & KindID, TmlModified
+
+End Sub
+'---
+'
+'---
+Sub ReplaceAccount(KindID, KindIDLookFor, DictTml, ByRef TmlModified)
+	Dim DB
+
+	If App.AppType = "DAO" Then
+		Set DB = workarea.DAODAtaBase
+
+		db.execute "update journal set acc_db=" & KindID & " where acc_db=" & KindIDLookFor
+		db.execute "update journal set acc_cr=" & KindID & " where acc_cr=" & KindIDLookFor
+		db.execute "update entities set acc_id=" & KindID & " where acc_id=" & KindIDLookFor
+		db.execute "update ag_banks set acc_id=" & KindID & " where acc_id=" & KindIDLookFor
+
+	Else
+	End If
+
+	UpdateTemplates DictTml, ".SetAccDb " & KindIDLookFor, ".SetAccDb " & KindID, TmlModified
+	UpdateTemplates DictTml, ".SetAccCr " & KindIDLookFor, ".SetAccCr " & KindID, TmlModified
+
+End Sub
+'---
+'
+'---
+Sub updateparams(Kind, KindID, KindIDLookFor)
+	Dim aKind, i, sql
+	Dim db
+
+	Set db = workarea.daodatabase
+
+	aKind = Array("acc", "ag", "bind", "db", "doc", "ent", "fld", "frm", "jrn", "misc", "rcp", "rpe", "ser", "tml")
+
+	For i = 0 To UBound(aKind)
+		sql = "update " & aKind(i) & _
+					"_params Set prm_long=" & KindID & _
+					" where prm_id In (Select prm_id from " & aKind(i) _
+					& "_param_names where prm_ref=" & Kind & _
+					") And prm_long=" & KindIDLookFor
+		db.execute sql 
+	Next
+End Sub
+'---
+'
+'---
+Sub updatefacts(Kind, KindID, KindIDLookFor)
+	Dim aKind, i, sql
+	Dim db
+
+	Set db = workarea.daodatabase
+	aKind = Array("ag", "db", "doc", "ent", "misc")
+
+	For i = 0 To UBound(aKind)
+		sql = "update " & aKind(i) & _
+					"_facts Set fa_long=" & KindID & _
+					" where fa_id In (Select fa_id from " & aKind(i) & _
+					"_fact_names where fa_ref=" & Kind & _
+					") And fa_long=" & KindIDLookFor
+		db.execute sql 
+	Next
+End Sub
+'---
+'
+'---
+Sub UpdateTemplates(DictTml, StrLookFor, StrReplace, ByRef TmlModified)
+	Dim i, TmlScript, keys
+
+	keys = DictTml.keys
+
+	For i = 0 To UBound(keys)
+		TmlScript = DictTml(keys(i))
+
+		If InStr(TmlScript, StrLookFor) <> 0 Then
+			TmlScript = Replace(TmlScript, StrLookFor, StrReplace)
+			DictTml(keys(i))	= TmlScript
+			TmlModified(keys(i)) = True
+		End If
+	Next
+
+End Sub
+'---
+'
+'---
+Function LoadTmlScript()
+	Dim Dict, i, j
+
+	Set Dict = CreateObject("Scripting.Dictionary")
+
+	With workarea.templates
+		For i = 1 To .Count
+			With .Item(i)
+				If .Type = 0 Then
+					With .Nested
+						For j = 1 To .Count
+							With .Item(j)
+								If .Type <> 0 Then
+									If Not Dict.Exists(.ID) Then 
+										Dict.Add .ID, .GetScript
+									End If
+								End If
+							End With
+						Next
+					End With
+				Else
+					If Not Dict.Exists(.ID) Then 
+						Dict.Add .ID, .GetScript
+					End If
+				End If
+			End With
+		Next
+	End With
+
+	Set LoadTmlScript = Dict
+	
+End Function
+'---
+'
+'---
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,636 @@
+'=================================================================='
+' Модуль списания                                                  '
+' (Методы списания: Fifo, Lifo, ручное списание, по средней цене)  '
+'=================================================================='
+' Copyright (c) 2003 ООО "Импакт".                                 '
+' Created 07 Dec 2003                                              '
+'=================================================================='
+Option Explicit
+
+Const acServices = 1002
+
+'---------------------------------------------------
+' Функция "списания" товара
+'		FormOp - обрабатываемая операция
+'		TrFromNum - номер проводки-источника
+'		TrToNum   - номер проводки-приемника
+'		ChargeMode - (признак у метода списания)
+'		       = 1 метод списания 	FIFO 
+'		       = 2							LIFO
+'		       = 3							ручное списание
+'		       = 4							по средней цене
+'    flWrite - (свыше остатка)	
+'		       = False 	- ошибка, если товара не хватает
+'		       = True 		- проставлять товар только в количественном выражении с пустыми партиями, если его не хватает
+'    IsViewError  - (признак отображения диалога ошибок)	
+'		       = True - показывать диалог
+'		       = False - не показывать диалог
+'		flBalAccount - списывать по балансовым счетам
+'		flAgFrom - индивидуальные корреспонденты
+'---------------------------------------------------
+Function ChargeOff3(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccCode, BaseAccSortMode)
+	Dim NewTrNoTo
+	Dim FlagErrors
+	Dim BaseAccID, TrTo
+
+	BaseAccID = Workarea.GetAccIDOld(BaseAccCode)
+
+	If TrNoTo = TrNoFrom Then
+		With Op
+			' добавлям проводку в конец списка
+			NewTrNoTo = .TransCount + 1
+			.TransCount = NewTrNoTo
+
+			With Op.TransList(NewTrNoTo)
+				' копируем информацию из проводки - основания
+				.SetAccDb Op.Trans(TrNoTo).AccDbID
+				.SetAccCr Op.Trans(TrNoTo).AccCrID
+				.SetAgFrom Op.Trans(TrNoTo).AgFromID
+				.SetAgTo Op.Trans(TrNoTo).AgToID
+			End With
+		End With
+
+		If ChargeOff(Op, NewTrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccID, BaseAccSortMode) Then
+			' списание успешное, нужно скопировать объекты учета
+			Op.CopyEntSeries TrNoTo, NewTrNoTo
+
+			' Возвращаем корреспондентов в проводку назначения
+			If flAgFrom Then Op.CopyAgents TrNoTo, True, NewTrNoTo, True
+			' Возвращаем балансовые счета в проводку назначения
+			If flBalAccount Then Op.CopyAccounts TrNoTo, True, NewTrNoTo, True
+
+			Op.TransList(TrNoTo).CalcQty "=Q" & CStr(NewTrNoTo)
+			Op.TransList(TrNoTo).CalcSum "=$" & CStr(NewTrNoTo)
+
+			Set TrTo = Op.TransList(TrNoTo)
+
+'			Op.Translist(NewTrNoTo).EnumTrans GetRef("CopyQty"), TrTo
+
+			FlagErrors = True
+		Else
+			FlagErrors = False
+		End If
+
+		Op.DeleteTransList NewTrNoTo
+
+	Else
+		FlagErrors = ChargeOff(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccID, BaseAccSortMode)
+	End If
+
+	If Not FlagErrors And Not flWrite Then
+		ChargeOff3 = False
+	Else
+		ChargeOff3 = True
+	End If
+
+End Function
+'----
+'
+'----
+Function CopyQty(TrFrom, ByRef TrTo)
+	Dim i, TrFromParams
+
+	CopyQty = True
+
+	With TrTo.Item(TrFrom.RowNo2)
+		.FUnitID = TrFrom.FUnitID
+		.Qty = TrFrom.Qty
+
+		Set TrFromParams = TrFrom.Params
+
+		With .Params
+			For i = 1 To .Count
+				.Item(i).Value = TrFromParams.Item(i).Value2
+			Next
+		End With
+
+	End With
+End Function 
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function ChargeOff(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BaseAccID, BaseAccSortMode)
+	Dim Mt				' градусник процесса списания
+	Dim i
+	Dim AgID, AccID, DocID, OnDate
+	Dim Errors
+	Dim DicSeries
+	Dim IsError
+	Dim TrLstFrom, TrLstTo
+	Dim MC
+	Dim Qty, Sum, MidPrice
+
+	' создали объект для хранения ошибок
+	Set Errors = CreateObject("Scripting.Dictionary")
+	
+	' создали объект для хранения списанного кол-ва по определенной партии
+	Set DicSeries = CreateObject("Scripting.Dictionary")
+
+	Set TrLstFrom = Op.TransList(TrNoFrom)
+	Set TrLstTo = Op.TransList(TrNoTo)
+
+	'индикатор процесса
+	Set Mt =	Meter
+	Mt.Open "Списание ...", 0, TrLstFrom.Rows
+
+	MC = WorkArea.MyCompany.ID
+	OnDate = Op.Date
+	DocID = Op.ID
+	AccID = TrLstTo.Item(1).AccCrID
+	AgID = TrLstTo.Item(1).AgFromID
+
+	With TrLstTo
+		.Rows = 1
+		.Item(1).EntId = 0
+	End With
+	
+	If ChargeMode = 3 Then
+		' ручное списание
+		IsError = Not DoHeadCharge(Op, TrNoTo, TrNoFrom)
+	Else
+		For i = 1 To TrLstFrom.Rows
+			With TrLstFrom.Item(i)
+				If .EntId <> 0 Then
+					If .Qty > 0 And .Entity.Type > acServices Then
+
+						If flBalAccount Then AccID = .Entity.AccID
+						If flAgFrom Then AgID = .AgFromID
+
+						If ChargeMode = 4 Then
+							DoMidPriceCharge .EntID, .Qty, .FUnitID, AccID, AgID, OnDate, DocID, TrLstTo, flWrite, Errors, i, MC, DicSeries, .Params
+						Else
+							If BaseAccID <> 0 Then
+								DoChargeBaseAcc .EntID, .Qty, .FUnitID, BaseAccID, AgID, OnDate, DocID, TrLstTo, ChargeMode, BaseAccSortMode, flWrite, DicSeries, Errors, i, MC, .Params
+							ElseIf .SeriesID <> 0 Then
+								CheckSeries TrLstTo, .EntID, .FUnitID, .Qty, .SeriesID, AccID, AgID, OnDate, DocID, flWrite, DicSeries, Errors, i, MC, .Params
+							Else
+								DoCharge .EntID, .SeriesID, .Qty, .FUnitID, AccID, AgID, OnDate, DocID, TrLstTo, ChargeMode, flWrite, DicSeries, Errors, i, MC, .Params
+							End If
+
+							If Errors.Count = 0 Then
+								' проверили, хватает ли товара в принципе. Есть смысл проверять только, если списание по сериям не видит списанное без серий
+								GetEntityRest .EntID, AccID, AgID, OnDate, DocID, MC, Qty, Sum, MidPrice
+
+								If Qty = 0 Then
+									Errors.Add Errors.Count + 1, Array(acErrorNoQuant, .EntID, .Qty, i, AccID, AgID)
+								End If
+
+							End If
+
+						End If
+					End If
+				End If
+			End With
+
+			Mt.Pos = Mt.Pos + 1 		' нарастили индикатор
+		Next
+
+		' если возникли ошибки, то необходимо их отобразить
+		IsError = (Errors.Count <> 0)
+
+		If IsError <> 0 And IsViewError Then 
+			Set WorkArea.Map.Item("ErrorOp") = Op
+			ViewError Errors
+		End If
+	End If
+
+	ChargeOff = Not IsError
+	Mt.Close
+	
+End Function
+'---
+'
+'---
+Sub CheckSeries(TrListTo, EntID, FUnitID, TrQty, SeriesID, AccID, AgID, OnDate, DocID, flWrite, DicSeries, Errors, RowNo, MC, TrParams)
+	Dim SQLString, Rs, Qty, CurrentSeriesQty, Sum
+
+	'находим остатки по объекту учета
+	With WorkArea.DAODataBase.CreateQueryDef("")
+
+		SQLString =	"PARAMETERS AgID Long, AccID Long, EntID Long, SeriesID Long, DocID Long, DocDate DateTime, MC Long;  " & _ 
+							"Select Sum(iif(J_QTY Is Null,0, J_QTY) * (IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -  IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Qty,   " & _ 
+							"Sum(iif(J_SUM Is Null,0, J_SUM) *( IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -   IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Sum " & _ 
+							"FROM JOURNAL " & _ 
+							"WHERE (SER_ID=[SeriesID]) and (J_ENT=[EntID]) And (J_DONE=2) And (DOC_ID <> [DocID]) And ((ACC_DB=[AccID] And J_AG1=[AgID]) Or (ACC_CR=[AccID] And J_AG2=[AgID]))   " & _ 
+							"And j_date<=[DocDate]"
+
+		.SQL = SQLString
+
+		' устанавливаем параметры запроса
+		.Parameters(0).Value = AgID			' корреспондент
+		.Parameters(1).Value = AccID			' счет
+		.Parameters(2).Value = EntId			' ID объекта учета
+		.Parameters(3).Value = SeriesId			' ID серии
+		.Parameters(4).Value = DocID			' ID документа
+		.Parameters(5).Value = OnDate		' дата расчета
+		.Parameters(6).Value = MC
+
+		' выполнили запрос
+		Set Rs = .OpenRecordSet
+
+		If Not Rs.eof Then
+			Qty = checknull(Rs.Fields(0).Value, 0)
+			Sum = checknull(Rs.Fields(1).Value, 0)
+
+			If Qty <> 0 And Sum <> 0 Then
+				' учитываем уже списанное количество
+				If DicSeries.Exists(SeriesID) Then 
+					CurrentSeriesQty = DicSeries.Item(SeriesID)(0)
+					Sum = DicSeries.Item(SeriesID)(1)
+				Else
+					CurrentSeriesQty = Qty
+					DicSeries.Add SeriesID, Array(Qty, Sum)
+				End If
+
+				If CurrentSeriesQty >= TrQty Or flWrite Then
+					If TrQty = Qty Then
+						AddRowToTrans TrListTo, EntID, FUnitID, AccID, AgID, TrQty, DicSeries, SeriesID, Sum, TrParams
+					Else
+						AddRowToTrans TrListTo, EntID, FUnitID, AccID, AgID, TrQty, DicSeries, SeriesID, round2(Sum / Qty * TrQty, 2), TrParams
+					End If
+				End If
+
+				If CurrentSeriesQty < TrQty Then
+					Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, (TrQty - CurrentSeriesQty), RowNo, AccID, AgID)
+					DicSeries.Item(SeriesID)(0) = 0
+				Else
+					DicSeries.Item(SeriesID)(0) = CurrentSeriesQty - TrQty
+				End If
+			Else
+				Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TrQty, RowNo, AccID, AgID)
+				DicSeries.Add SeriesID, Array(0, 0)
+			End If
+		Else
+			Errors.Add Errors.Count + 1, Array(acErrorNoSeries, EntID, TrQty, RowNo, AccID, AgID)
+			DicSeries.Add SeriesID, Array(0, 0)
+		End If
+
+		.Close
+	End With
+
+
+End Sub
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Function DoHeadCharge(Op, TrNoTo, TrNoFrom)
+	Dim Dlg
+
+	Set Dlg = App.CreateDialog("HL74_ManualSelectionSeries.adg")
+
+	With Dlg.Map
+		Set .Item("Op") = Op
+		.Item("TrNoFrom") = TrNoFrom
+		.Item("TrNoTo") = TrNoTo
+	End With
+
+	Dlg.DoModal
+	DoHeadCharge = Dlg.Map("Done")
+
+End Function
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub DoMidPriceCharge(EntID, TransQty, FUnitID, AccID, AgID, OnDate, DocID, TrLstTo, flWrite, Errors, RowNo, MC, DicSeries, TrParams)
+	Dim Qty, Sum, MidPrice, Key, aValue
+
+	Key = CStr(EntID) & "|" & CStr(AgID) & "|" & CStr(AccID)
+
+	If DicSeries.Exists(Key) Then
+		aValue = DicSeries(Key)
+	Else
+		GetEntityRest EntID, AccID, AgID, OnDate, DocID, MC, Qty, Sum, MidPrice
+		aValue = Array(Qty, Sum, MidPrice)
+		DicSeries.Add Key, aValue
+	End If
+	
+	Qty = aValue(0)
+	Sum = aValue(1)
+	MidPrice = aValue(2)
+
+	If Qty > 0 Then
+	
+		If Qty > TransQty Then
+			If MidPrice > 0 Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, TransQty, Nothing, 0, MidPrice * TransQty, TrParams
+			Else
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, TransQty, Nothing, 0, 0, TrParams
+				Errors.Add Errors.Count + 1, Array(acErrorMinusSum	, EntID, Qty, RowNo, AccID, AgID)
+			End If
+		ElseIf Qty = TransQty Then
+			AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, Qty, Nothing, 0, Sum
+		Else
+			If flWrite Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, TransQty, Nothing, 0, MidPrice * TransQty, TrParams
+			Else ' списываем сколько есть: Qty
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, Qty, Nothing, 0, Sum, TrParams
+				Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TransQty - Qty, RowNo, AccID, AgID)
+			End If
+		End If
+
+		Qty = Qty - TransQty
+		Sum = Sum - MidPrice * TransQty
+
+		aValue = Array(Qty, Sum, MidPrice)
+		DicSeries.Item(Key) = aValue
+
+	Else
+		Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TransQty - Qty, RowNo, AccID, AgID)
+	End If
+
+
+End Sub
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub DoCharge(EntID, SeriesID, Qty, FUnitID, AccID, AgID, OnDate, DocID, ByRef TrLstTo, ChargeMode, flWrite, ByRef DicSeries, ByRef Errors, RowNo, MC, TrParams)
+	Dim Rs
+	Dim CurrentSeriesID
+	Dim CurrentSeriesQty
+	Dim CurrentSeriesPrice
+	Dim CurrentSeriesSum
+
+	Set RS = GetEntSeries(EntID, AccID, AgID, OnDate, DocID, ChargeMode, MC)
+
+	' если список партий не пустой и есть кол-во для списания
+	While (Qty > 0) And (Not RS.EOF)
+ 		'если количество по партии > 0	
+		CurrentSeriesID = RS.Fields("SeriesID").Value
+		CurrentSeriesQty = RS.Fields("Qty").Value
+		CurrentSeriesSum = RS.Fields("Sum").Value
+
+		If CurrentSeriesSum = 0 Or CurrentSeriesQty = 0 Then
+			CurrentSeriesPrice = 0
+		Else
+			CurrentSeriesPrice = CurrentSeriesSum / CurrentSeriesQty
+		End If
+
+		' учитываем уже списанное количество
+		If DicSeries.Exists(CurrentSeriesID) Then 
+			CurrentSeriesQty = DicSeries.Item(CurrentSeriesID)(0)
+			CurrentSeriesSum = DicSeries.Item(CurrentSeriesID)(1)
+		Else
+			DicSeries.Add CurrentSeriesID, Array(CurrentSeriesQty, CurrentSeriesSum)
+		End If
+
+		If CurrentSeriesQty > 0 Then
+			If CurrentSeriesQty > Qty Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, Qty, DicSeries, CurrentSeriesID, CurrentSeriesPrice * Qty, TrParams
+				Qty = 0
+			ElseIf CurrentSeriesQty = Qty Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, Qty, DicSeries, CurrentSeriesID, CurrentSeriesSum, TrParams
+				Qty = 0
+			Else
+				AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, CurrentSeriesQty, DicSeries, CurrentSeriesID, CurrentSeriesSum, TrParams
+				Qty = Qty - CurrentSeriesQty
+			End If
+		End If
+
+	 RS.MoveNext 					 ' к следующей партии в запросе
+	Wend
+
+	If Qty > 0 Then
+		' осталось недосписанное количество
+		If flWrite Then 
+			AddRowToTrans TrLstTo, EntID, FUnitID, AccID, AgID, Qty, DicSeries, 0, 0, TrParams
+		Else
+			'если на остатке недостаточное количество по партии, то запоминаем ошибку
+			Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntId , Qty, RowNo, AccID, AgID)
+		End If
+	End If
+
+End Sub
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub AddRowToTrans(ByRef TrLstTo, EntID, FUnitID, AccID, AgID, Qty, ByRef DicSeries, SeriesID, RowSum, TrParams)
+	Dim RowNo, aData, i, TrPrm
+
+	If TrLstTo.Item(TrLstTo.Rows).EntID <> 0 Then
+		RowNo = TrLstTo.Rows + 1
+	Else
+		RowNo = TrLstTo.Rows
+	End If
+
+	With TrLstTo.Item(RowNo)
+		.EntID = EntID
+		.FUnitID = FUnitID
+		.Qty = Qty
+		.Sum = RowSum
+		' единица измерения
+		.AccCrId = AccID
+		.AgFromId = AgID
+		.SeriesID = SeriesID
+
+		For i = 1 To TrParams.Count
+			Set TrPrm = TrParams.Item(i)
+
+			If Not IsNull(TrPrm.Value) Then
+				.Params(i).Value = TrPrm.Value
+			End If
+		Next
+
+'		If .Params.Exists("Код") Then
+'			If .SeriesBind.Code = "" Then
+'				.Params("Код").Value = .EntBind.Bar
+'			Else
+'				.Params("Код").Value = .SeriesBind.Code
+'			End If
+'		End If
+
+	End With
+
+	If SeriesID <> 0 Then 
+		aData = DicSeries.Item(SeriesID)
+		aData(0) = aData(0) - Qty
+		aData(1) = aData(1) - RowSum
+		DicSeries.Item(SeriesID) = aData
+	End If
+End Sub
+
+'------------------------------------------------
+' Находим остатки в разезе серий DAO
+'------------------------------------------------
+Function GetEntSeries(EntID, AccID, AgID, OnDate, DocID, ChargeMode, MC)
+	Dim SQLString
+
+	'находим остатки по объекту учета
+	With WorkArea.DAODataBase.CreateQueryDef("")
+
+		SQLString =	"PARAMETERS AgID Long, AccID Long, EntID Long, DocID Long, DocDate DateTime, MC Long;  " & _ 
+							"Select journal.SER_ID AS SeriesID, first(ser_date1) as FirstDate, first(ser_number) as First_DOC_ID,  " & _ 
+							"Sum(iif(J_QTY Is Null,0, J_QTY) * (IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -  IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Qty,   " & _ 
+							"Sum(iif(J_SUM Is Null,0, J_SUM) *( IIf(ACC_DB=[AccID] And J_AG1=[AgID], 1, 0) -   IIf(ACC_CR=[AccID] And J_AG2=[AgID], 1, 0))) AS Sum " & _ 
+							"FROM JOURNAL inner Join series On series.ser_id = JOURNAL.ser_id  " & _ 
+							"WHERE (J_ENT=[EntID]) And (J_DONE=2) And (DOC_ID <> [DocID]) And ((ACC_DB=[AccID] And J_AG1=[AgID]) Or (ACC_CR=[AccID] And J_AG2=[AgID]))   " & _ 
+							"And j_date<=[DocDate]  " & _ 
+							"GROUP BY JOURNAL.SER_ID  " & _ 
+							"HAVING Sum(iif(J_QTY Is Null,0, J_QTY) * IIf(ACC_DB=[AccID], 1, -1)) <> 0 ORDER BY 2 "
+
+		If ChargeMode = 2 Then SQLString = SQLString + "DESC ;"
+
+		.SQL = SQLString
+		' устанавливаем параметры запроса
+		.Parameters(0).Value = AgID			' корреспондент
+		.Parameters(1).Value = AccID			' счет
+		.Parameters(2).Value = EntId			' ID объекта учета
+		.Parameters(3).Value = DocID			' ID документа
+		.Parameters(4).Value = OnDate		' дата расчета
+		.Parameters(5).Value = MC
+
+		' выполнили запрос
+		Set GetEntSeries = .OpenRecordSet
+		.Close		
+	End With
+
+End Function
+
+'------------------------------------------------
+'	Получаем остаток товара 
+'------------------------------------------------
+Sub GetEntityRest(EntID, AccID, AgID, OnDate, DocID, MyCoID, ByRef QtyRest, ByRef SumRest, ByRef Price)
+	Dim RecSet, Qty, Sum
+
+	With WorkArea.DAODataBase.CreateQueryDef("")
+		.SQL = "PARAMETERS EntID Long, AccID Long, AgID Long, OnDate DateTime, DocID Long, MyCoID Long; " &_
+					"Select  " &_
+					"	Sum(IIF((ACC_DB = [AccID] And J_AG1 = [AgID] And J_DATE < [OnDate]), J_QTY, 0) - IIF((ACC_CR = [AccID] And J_AG2 = [AgID] And J_DATE < [OnDate]), J_QTY, 0)), " &_
+					"	Sum(IIF((ACC_DB = [AccID] And J_AG1 = [AgID] And J_DATE < [OnDate]), J_SUM, 0) - IIF((ACC_CR = [AccID] And J_AG2 = [AgID] And J_DATE < [OnDate]), J_SUM, 0)),  " &_
+					"	Sum(IIF((ACC_DB = [AccID] And J_AG1 = [AgID] And DateDiff('d', J_DATE, [OnDATE]) = 0), J_QTY, 0)), " &_
+					"	Sum(IIF((ACC_DB = [AccID] And J_AG1 = [AgID] And DateDiff('d', J_DATE, [OnDATE]) = 0), J_SUM, 0)), " &_
+					"	Sum(IIF((ACC_CR = [AccID] And J_AG2 = [AgID] And DateDiff('d', J_DATE, [OnDATE]) = 0), J_QTY, 0)), " &_
+					"	Sum(IIF((ACC_CR = [AccID] And J_AG2 = [AgID] And DateDiff('d', J_DATE, [OnDATE]) = 0), J_SUM, 0)) " &_
+					"From JOURNAL  " &_
+					"Where J_ENT = [EntID] And J_DONE = 2 And DOC_ID <> [DocID] And J_DATE <= [OnDate] And MC_ID = [MyCoID] And  " &_
+					"	((ACC_DB = [AccID] And J_AG1 = [AgID]) Or (ACC_CR = [AccID] And J_AG2 = [AgID])) " &_
+					"Having Sum(IIF((ACC_DB = [AccID] And J_AG1 = [AgID]), J_SUM, 0) - IIF((ACC_CR = [AccID] And J_AG2 = [AgID]), J_SUM, 0)) > 0 ;"
+
+		.Parameters(0).Value = EntID
+		.Parameters(1).Value = AccID
+		.Parameters(2).Value = AgID
+		.Parameters(3).Value = OnDate
+		.Parameters(4).Value = DocID
+		.Parameters(5).Value = MyCoID
+
+		Set RecSet = .OpenRecordSet
+		.Close
+	End With
+
+	If RecSet.EOF Then
+		QtyRest = 0
+		SumRest = 0
+		Price = 0
+	Else
+		QtyRest = checknull(RecSet.Fields(0).Value, 0)
+		SumRest = checknull(RecSet.Fields(1).Value, 0)
+
+		Qty = QtyRest + checknull(RecSet.Fields(2).Value, 0)
+		Sum = SumRest + checknull(RecSet.Fields(3).Value, 0)
+
+		QtyRest = QtyRest - checknull(RecSet.Fields(4).Value, 0) + Qty
+		SumRest = SumRest - checknull(RecSet.Fields(5).Value, 0) + Sum
+
+		If Qty <> 0 And Sum <> 0 Then
+			Price = Sum / Qty
+		Else
+			Price = 0
+		End If
+	End If
+End Sub
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Function GetEntSeriesSubAcc(EntID, AccID, AgID, OnDate, DocID, ChargeMode, BaseAccSortMode, MC)
+	Dim QD
+
+	Set QD = Workarea.DAODataBase.CreateQueryDef("")
+	QD.SQL = 	"Parameters Ent_ID Long, BaseAccID long, AgID Long, DocDate DateTime, DocID Long, MCID Long;" & _
+					"Select First(ENTITIES.ENT_NAME) AS EntName, ST7_etity_series_rest_by_subacc.J_ENT AS EntID, ST7_etity_series_rest_by_subacc.SER_ID AS SeriesID, ST7_etity_series_rest_by_subacc.AccID AS AccountID, ACCOUNTS.ACC_CODE AS AccCode, First(SERIES.SER_DATE1) AS [First-SER_DATE1], Sum(ST7_etity_series_rest_by_subacc.J_QTY) AS QTY, Sum(ST7_etity_series_rest_by_subacc.J_SUM) AS [Sum] " & _	
+					"FROM ((ACC_TREE Left Join (ST7_etity_series_rest_by_subacc Left Join ENTITIES On ST7_etity_series_rest_by_subacc.J_ENT = ENTITIES.ENT_ID) On ACC_TREE.ID = ST7_etity_series_rest_by_subacc.AccID) Left Join ACCOUNTS On ST7_etity_series_rest_by_subacc.AccID = ACCOUNTS.ACC_ID) Left Join SERIES On ST7_etity_series_rest_by_subacc.SER_ID = SERIES.SER_ID " &_
+					"WHERE (((ST7_etity_series_rest_by_subacc.J_ENT)=[Ent_ID]) And (([P0]=[BaseAccID] Or [p1]=[BaseAccID] Or [P2]=[BaseAccID] Or [p2]=[BaseAccID] Or [p4]=[BaseAccID] Or [p5]=[BaseAccID] Or [p6]=[BaseAccID] Or [p7]=[BaseAccID])=True)) " & _
+					"GROUP BY ST7_etity_series_rest_by_subacc.J_ENT, ST7_etity_series_rest_by_subacc.SER_ID, ST7_etity_series_rest_by_subacc.AccID, ACCOUNTS.ACC_CODE " & _
+					"HAVING (((Sum(ST7_etity_series_rest_by_subacc.J_QTY))<>0)) " & _
+					"ORDER BY ACCOUNTS.ACC_CODE"
+
+	If BaseAccSortMode = 2 Then QD.SQL = QD.SQL & " DESC"
+
+	QD.SQL = QD.SQL & ", First(SERIES.SER_DATE1)"
+
+	If ChargeMode = 2 Then QD.SQL = QD.SQL & " DESC"
+
+	QD.Parameters(0).Value = EntID
+	QD.Parameters(1).Value = AccID
+	QD.Parameters(2).Value = AgID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = DocID
+	QD.Parameters(5).Value = MC
+
+	Set GetEntSeriesSubAcc = QD.OPenRecordSet
+End Function
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub DoChargeBaseAcc(EntID, Qty, FUnitID, AccID, AgID, OnDate, DocID, TrLstTo, ChargeMode, BaseAccSortMode, flWrite, DicSeries, Errors, RowNo, MC, TrParams)
+	Dim Rs
+	Dim CurrentSeriesID
+	Dim CurrentSeriesQty
+	Dim CurrentSeriesPrice
+	Dim CurrentSeriesSum
+	Dim CurrentAcc
+	Dim PrecisionErr
+
+	Set RS = GetEntSeriesSubAcc(EntID, AccID, AgID, OnDate, DocID, ChargeMode, BaseAccSortMode, MC)
+
+	' если список партий не пустой и есть кол-во для списания
+	While (Qty > 0) And (Not RS.EOF)
+ 		'если количество по партии > 0	
+		CurrentSeriesID = RS.Fields("SeriesID").Value
+		CurrentSeriesQty = CCur( RS.Fields("Qty").Value )
+		CurrentSeriesSum = RS.Fields("Sum").Value 
+		CurrentAcc = RS.Fields("AccountID").Value
+
+		If CurrentSeriesSum = 0 Or CurrentSeriesQty = 0 Then
+			CurrentSeriesPrice = 0
+		Else
+			CurrentSeriesPrice = CCur( CurrentSeriesSum / CurrentSeriesQty )
+		End If
+
+		' учитываем уже списанное количество
+		If DicSeries.Exists(CurrentSeriesID) Then 
+			CurrentSeriesQty = DicSeries.Item(CurrentSeriesID)(0)
+			CurrentSeriesSum = DicSeries.Item(CurrentSeriesID)(1)
+		Else
+			DicSeries.Add CurrentSeriesID, Array(CurrentSeriesQty, CurrentSeriesSum)
+		End If
+
+		If CurrentSeriesQty > 0 Then
+			If CurrentSeriesQty > Qty Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, CurrentAcc, AgID, Qty, DicSeries, CurrentSeriesID, CurrentSeriesPrice * Qty, TrParams
+				Qty = 0
+			ElseIf CurrentSeriesQty = Qty Then
+				AddRowToTrans TrLstTo, EntID, FUnitID, CurrentAcc, AgID, Qty, DicSeries, CurrentSeriesID, CurrentSeriesSum, TrParams
+				Qty = 0
+			Else
+				AddRowToTrans TrLstTo, EntID, FUnitID, CurrentAcc, AgID, CurrentSeriesQty, DicSeries, CurrentSeriesID, CurrentSeriesSum, TrParams
+				Qty = Qty - CurrentSeriesQty
+			End If
+		End If
+
+	 RS.MoveNext 					 ' к следующей партии в запросе
+	Wend
+
+	If Qty > 0 Then
+		' осталось недосписанное количество
+		If flWrite Then 
+			AddRowToTrans TrLstTo, EntID, FUnitID, CurrentAcc, AgID, Qty, DicSeries, 0, 0, TrParams
+		Else
+			'если на остатке недостаточное количество по партии, то запоминаем ошибку
+			Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntId , Qty, RowNo, AccID, AgID)
+		End If
+	End If
+
+End Sub
+

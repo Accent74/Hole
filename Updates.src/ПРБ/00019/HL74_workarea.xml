@@ -1,0 +1,55 @@
+<Workarea ident="guid" ver="018">
+	<OnProperties>
+		<HL74 kind="4" type="1006" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1007" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1008" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1009" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1010" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1011" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1012" module="HL74_AssetsProps.adg" proc="" />
+		<HL74 kind="4" type="1013" module="HL74_AssetsProps.adg" proc="" />
+
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnProperties"/>
+		<HL74 kind="5" type="1" module="HL74_TradeEqProps.avb" proc="HL74_CashPrintProps"/>
+		<HL74 kind="3" type="4" module="HL74_AgProps.avb" proc="HL74_AgProps"/>
+		<HL74 kind="3" type="1" module="HL74_AgProps.avb" proc="HL74_AgProps"/>
+		<HL74 kind="3" type="5" module="HL74_MCProps.adg" proc=""/>
+
+	</OnProperties>
+	<OnLoad>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnLoad"/>
+	</OnLoad>
+	<AfterCreate>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_AfterCreate"/>
+		<HL74 module="HL74_SysLog.avb" proc="Log_CreateItem"/>
+		<HL74 kind="4" type="1004" module="HL74_CreateBarCode.avb" proc="SetEntBarCode" check="SetBarCodeAnabled()"/>
+		</AfterCreate>
+	<OnPopup>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnPopup"/>
+	</OnPopup>
+	<OnReportStart>
+		<!-- <HL74 module = "HL74_Workarea.avb" proc = "HL74_OnReportStart" /> -->
+		<HL74 module="HL74_RWAddColumns.avb" proc="HL74_RWAddColumns"/>
+		<HL74 module="HL74_RDLAddColumns.avb" proc="HL74_RDLAddColumns"/>
+	</OnReportStart>
+	<CanToTrash>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_CanToTrash"/>
+	</CanToTrash>
+	<OnTemplateScriptChanged>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnTemplateScriptChanged"/>
+		<HL74 module="HL74_SysLog.avb" proc="Log_UpdateItem"/>
+
+	</OnTemplateScriptChanged>
+	<CanDelete>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_CanDelete"/>
+	</CanDelete>
+	<BeforeClose>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_BeforeClose"/>
+	</BeforeClose>
+	<OnChanged>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnChanged"/>
+		<HL74 module="HL74_SysLog.avb" proc="Log_UpdateItem"/>
+	</OnChanged>
+	<OnShowWebTab>
+	</OnShowWebTab>
+</Workarea>

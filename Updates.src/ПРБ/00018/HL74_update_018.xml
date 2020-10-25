@@ -1,0 +1,36 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs/>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums>
+	<enum Name="Вид дохода для подоходного налога" ID="16" Tag="">
+		<enum Name="Зарплата" Tag="01:11010100" />
+		<enum Name="Вознаграждение" Tag= "02:11010200" />
+		<enum Name="Аренда" Tag="08:11010200" />
+		<enum Name="Социальные выплаты" Tag="10:11010100" />
+		<enum Name="Алименты" Tag="11:11010100" />
+		<enum Name="Доход самозанятых" Tag="13:11010100" />
+		<enum Name="Аренда земли" Tag="16:11010200" />
+		<enum Name="Больничные листы" Tag="19:11010100" />
+		<enum Name="Профсозные выплаты" Tag="15:11010100" />
+		<enum Name="Профсюзные подарки" Tag="14:11010100" />
+		<enum Name="Сдача вторсырья" Tag="18:11010200" />
+		<enum Name="Социальная помощь" Tag="20:11010100" />
+		<enum Name="Стоимость угля" Tag="17:11010100" />
+	</enum>
+	<enum Name="Вид дохода для ЕСВ" ID="17" Tag="">
+		<enum Name="Зарплата" Tag="1" />
+		<enum Name="Вознаграждение" Tag="2" />
+		<enum Name="Пособие" Tag="3" />
+	</enum>
+</AccentEnums>
+</AccentExportData>

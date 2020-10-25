@@ -1,0 +1,2399 @@
+'---
+' модуль стандартных переменных и функций для форм
+'---
+'Function Form_AddOneEnt(Trans, ByRef Ents)
+'Function Form_CalcWeight(TrList)
+'Function Form_CalcWeight2(TrList)
+'Function Form_CalcWeightRow(Tr, ByRef TotalWeight)
+'Function Form_CalcWeightRow2(Tr, ByRef prm)
+'Function Form_CheckControls(FormPage, NormalBorderColor, AlertBorderColor)
+'Function Form_GetAgAccount(Ag)
+'Function Form_GetAgAccountBind(AgBind)
+'Function Form_GetAgAddress(Ag)
+'Function Form_GetAgAddress2(Ag, KindAddr)
+'Function Form_GetAgAlterName(Ag, OnDate)
+'Function Form_GetAgDetails(Ag)
+'Function Form_GetAgreeName(Tr, AgreeMscNo)
+'Function Form_GetAgTaxStatus(Ag)
+'Function form_getcolumnwidtharray(FormID, MaxCol)
+'Function Form_GetCurrentOperation(Obj, ByRef flModified)
+'Function Form_GetEntCode(Tr)
+'Function Form_GetEntDocName(EntBind)
+'Function Form_GetEntName(Ent)
+'Function Form_GetEnumValue(EnumName, Index, ByTag)
+'Function Form_GetFormOption(FormID)
+'Function form_getfullbankname(BankCode)
+'Function Form_GetMscNoByDBPrm(prmNameDB)
+'Function Form_GetMscRootByDBPrm(prmDBName)
+'Function Form_GetParentDocName(PDocID)
+'Function Form_GetUnitTag(Unit)
+'Function Form_LoadPriceKinds(PriceID)
+'Function Form_MakeCaption(CaptionTml, Op, Form, TName, PName)
+'Function Form_On_PopUp(Op, Form, TmlArray, Command, RefSaveOperation, RefAfterCopy, MakeLink)
+'Function Form_PopUpMenu(Form, aMenuCommands, aGroups)
+'Function Form_ReplaceOneEnt(Trans, ByRef Ents)
+'Function Form_Save(Op, Form)
+'Function Form_Save2(Op, ExMap)
+'Function form_saveoption(FormID, aColWidth)
+'Function Form_SelectTemplate(Op, Form)
+'Function Form_SetAgRow(Tr, ByRef prm)
+'Function Form_SetDefCityName(Ag)
+'Function Form_SetDefCityNamePost(Ag)
+'Function Form_SetPriceRow(Tr, ByRef DefPrice)
+'Function Form_TurnAg(TrList)
+'Function Forms_GetPageConextMenu(Form)
+'Function GetEntityBalAcc(Ent)
+'Function SetParentDocIDRow(Tr, ByRef DocID)
+'Function UpdateChildRow(Tr, ByRef ChildTrans)
+'Function updateMap(exDataParent, exDataChild)
+'Sub Form_ActivateHelp(Mode, Command, Control, HelpFileName, FormID)
+'Sub Form_AddEntFromRest(Op, TrList, AccID, AgID, DefPrice)
+'Sub Form_AddTax(TrList)
+'Sub Form_AutoNum(Op)
+'Sub Form_BrowseEnums(Form, EnumName, StartCommand)
+'Sub Form_CheckDate(Op)
+'Sub Form_CheckLibra(Op, sgrdEntsCol, ByRef LibraModule, ByRef ComPort)
+'Sub Form_ClearCurr(Tr, Lock)
+'Sub Form_ColumnWidthInit(Form, sgrd, grdHeader, grdBottom, ColWidth, MaxCol)
+'Sub Form_CopyDocByTML(Op, TmlID, RefAfterCopy, MakeLink, RefSAveOperation)
+'Sub Form_ExportToHTML(Op, ShFileName, Mode)
+'Sub Form_ExportToHTML2(Op, ByVal ShFileName, Mode, PageIndex)
+'Sub Form_Import2Doc(Op, xmlTemplate)
+'Sub Form_LoadAgents(Op, aAgs, aSel, ExMap)
+'Sub Form_LoadDefaultTml(CurrentOp)
+'Sub Form_LoadElems(Op, ElemKind, aElems, aSel, ExMap)
+'Sub Form_LoadFirmPicture(frmPicture, FileName)
+'Sub Form_LoadPictureStamp(pctStamp, Ag)
+'Sub Form_LoadMiscs
+'Sub Form_LoadPriceList(Ag1, Ag2)
+'Sub Form_LoadRes(Form)
+'Sub Form_MakeCopyDoc(Op, RefSaveOperation, RefAfterCopy)
+'Sub Form_MakeNewDoc(Op, RefSaveOperation)
+'Sub Form_MakePriceKinds(Op, TruncSum)
+'Sub Form_PageSetUp(FormID, Form)
+'Sub Form_PrepareNewButton(ByRef TmlArray, Op, ToolBarButton)
+'Sub Form_PrintSheet(Form, Op, Mode)
+'Sub Form_SaveExtData(Op, aAg, ExMap)
+'Sub Form_SaveExtData2(Op, ElemKind, aElem, ExMap, IsSave)
+'Sub Form_SavePrice(TrList)
+'Sub Form_SaveTaxReport(TrList)
+'Sub Form_SendDocToEMail(Op, Form, EMailSubj, EMailText)
+'Sub Form_SetCaption(Op, Form)
+'Sub Form_SetColumnText(SetupPage, i, Title)
+'Sub Form_SetColumnVisible(Form, ByVal Command, sgrd, grdHeader, grdBottom, ColWidth)
+'Sub Form_SetCtrlColor(Ctrl, Mode)
+'Sub Form_SetCurByAcc(TrList, IsCash, IsDb)
+'Sub Form_SetOneSum(TrList)
+'Sub Form_SetPrintColumnCode(Form, ByVal Command, sgrdPrint, grdHeader)
+'Sub Form_SetPrintColumnCode2(Form, ByVal Command, sgrdPrint, grdHeader, Col, Row)
+'Sub Form_SetupColTitleMargin(ItemParam, SetupPage)
+'Sub Form_SetupColTitles(ItemParams, SetupPage)
+'Sub Form_SetupPtintMargins(ItemParams, SetupPage)
+'Sub Form_sgrd_setrealrows(TrList, sgrd)
+'Sub Form_ShowReplations(Op)
+'Sub Form_StabilizeGrid(sGrd, Tr)
+'Sub Form_StabilizeGrid2(sGrd)
+'Sub Form_StabilizeGrid3(sGrd, Tr)
+'Sub Form_ToolbarButtonInit(Form, Op)
+'Sub Form_UpdateChildDocs(Op)
+'Sub Forms_sgrdSetRights(sgrd, cols, GroupName)
+'Sub SetGRangeMerge(sgrdRange, SetMerge, SetType)
+'Sub Form_DImport(Op, ExMap)
+'----- процедуры на 25/11/2019
+
+'Sub Form_SetCaption(Op, Form)
+'Sub Form_PrintSheet(Form, Op, Mode)
+'Sub Form_ToolbarButtonInit(Form, Op)
+'Sub Form_ExportToHTML2(Op, ByVal ShFileName, Mode, PageIndex)
+'----- изменены 12/12/2019
+
+Option Explicit
+
+Const btnSaveDoc 				= 1		' сохранить
+Const btnService 				= 2		' сервис
+Const btnPrintDoc 				= 3		' печать/прсмотр
+Const btnCalc 						= 4		' Расчет
+Const btnNewDoc 					= 5		' новый
+Const btnPrintCheckTo 		= 6		' печать чек возврата
+Const btnCloseDoc 				= 7		' закрыть
+Const btnShowTrans 				= 8		' показать проводки/выбрать шаблон
+Const btnPrintCheckFrom		= 9		' печать чек продажи
+Const btnRestsDlg				= 10		' Подобрать
+Const btnToExcel 				= 11		' экспорт формы в Excel/Word/HTML
+Const btnToEMail 				= 12		' отправить по E-mail
+Const btnSetPrice 				= 14		' диалог установки цен
+Const btnExportDoc				= 15		' Экспорт в XML
+Const btnLoad 						= 16		' Заполнить
+Const btnPrintPrices 			= 17		' печать ценников
+Const btnPrintLabels 			= 18		' печать этикеток
+Const btnShowRelation 		= 19		' связи
+Const btnImportDoc				= 20		' Импорт из XML
+Const btnCreateDocs				= 21		' Создать документы
+Const btnCompleteWordDoc	= 22		' Заполнить вордовский документ
+Const btnTCDImport				= 23		' ТСД импорт
+'----- константы кнопок на 25/11/2019
+Const btnImportFrmExcel		= 13		' импорт из Excel
+Const btnShowReport				= 24		' показать таблицу с расшифровкой
+
+Dim ExpFileName			' наименование ASH файла шаблона для экспорта в Excel. 
+Dim FormOptions			' настройки формы
+Dim TotalWeight, TotalWeightBrutto
+Dim TotalVolume
+Dim MyCo
+Dim ExMap 					' Мар для работы с дополнительными данными
+Dim ColWidth
+Dim TmlArray				' массив ID шаблонов, на основе которых может быть создана новая ХО
+Dim Op 							' текущая операция
+Dim DefPrice				' прайс лист по умолчанию
+Dim AgreeMscNo				'	номер аналитики договора
+Dim PayTypeMscNo			'	форма оплаты
+Dim PayKindMscNo			'	способ оплаты (нал/безнал)
+Dim DeliveryTypeMscNo	'	условия поставки
+Dim ManagerMscNo			'	менеджер
+Dim ManagerMscID			'	менеджер ID
+Dim CountriesMscNo		'	страны
+Dim DscMscNo				'	дисконтные карты
+Dim PositionListMscNo	'	должность
+Dim CalendarMscNo		'	календарь рабочего времени
+Dim ColorMscNo				'	цвет
+Dim SizeMscNo				'	размер
+Dim TCDMscNo				' ТСД
+Dim MscCostCenterNo
+Dim MscDDSNo, MscCalcNo
+Dim MscCostItem, MscCondNo
+Dim MscOrderNo
+Dim PrintCashMscNo
+'----- переменные на 25/11/2019
+
+'---
+'
+'---
+Function Form_SelectTemplate(Op, Form)
+	Form_SelectTemplate = False
+
+	If MsgBox("Документ не проведен в учете. Провести по типовому шаблону ?",_
+						vbYesNo + vbExclamation, "Внимание !") = vbYes	Then 
+		If Op.BrowseTemplate(7) Then
+			Form_SetCaption Op, Form
+			Form_SelectTemplate = True
+		End If
+	End If	
+End Function
+'---
+'
+'---
+Sub Form_SaveTaxReport(TrList)
+	Dim i, ID, Addr
+
+	With workarea.taxreports
+		For i = 1 To .Count
+			ID = .Item(i).ID
+			Addr = TrList.Item(1).TransTax(ID).Addr1
+			If Addr <> "" Then
+				TrList.SetTax ID, Addr
+			End If
+		Next
+	End With
+
+End Sub
+'---
+'
+'---
+Function Form_Save(Op, Form)
+	Dim Cancel, i, CurID, DocDone, prm, RefAfterCopy
+	
+	If Op.IsNew Then
+		Op.String2 = workarea.dbuser & Formatdate2(Now, " dd-mm-yy hh:nn")
+	Else
+		Op.String2 = Left(token(Op.String2, 1, "/") & "/" & workarea.dbuser & Formatdate2(Now, " dd-mm-yy hh:nn"), 50)
+	End If
+
+	With Op.Trans(1)
+		Op.String1 = Left(.AgFromBind.name, 23) & " -> " & Left(.AgToBind.Name, 23)
+		prm = Array(.AgFromID, .AgToID)
+	End With
+
+	Op.LockDate = True
+	Op.SetDate Op.Date
+
+	DocDone = True
+
+	If Not Form Is Nothing And Op.FormID <> 0 Then
+		If com_getlogicparamvalue(Workarea.ProjectItem(Op.FormID), prmPItemValidate, False) Then
+			DocDone = Form_CheckControls(Form.Page(1), RGB(125,158,192), RGB(255,0,0))
+			If Not DocDone Then MsgBox "Поля в документе, выделенные красным цветом, " & vbNewLine _
+												& "обязательны к заполнению.", vbExclamation, Op.Name
+		End If
+	End If
+
+	Op.Done = DocDone
+
+	If Op.TemplateID = 0 And Not Form Is Nothing Then Call Form_SelectTemplate(Op, Form)
+	If Op.DocNo = "" Then Form_AutoNum Op
+
+	For i = 1 To Op.TransCount
+		CurID = Op.Trans(i).TransCurs(1).CurID
+		If CurID <> 1 Then Op.TransList(i).SetCur 1, CurID
+	Next
+
+	Form_SaveTaxReport Op.TransList(1)
+
+	Cancel = False
+
+	With Op.TransList(1)
+		.EnumTrans GetRef("Form_SetAgRow"), prm	
+		If .Rows > 1 Then .Pack
+	End With 
+
+	With Op.TemplateInvoker2
+		.FireBeforeSave Cancel
+		.FireOnRecalc
+	End With
+
+	If Not op.Save(4) Then
+		MsgBox "Документ не сохранен", vbExclamation, Op.Name
+		Form_Save = False
+	Else
+		Op.SetExTraData ExMap.XML
+		Op.TemplateInvoker2.FireAfterSave
+
+		If Op.Linked.Count > 0 Then
+			If MsgBox("Обновить подчиненные документы ?", vbQuestion + vbOKCancel, Op.Name) = vbOK Then
+
+				Set RefAfterCopy = Nothing
+
+				If Not Form Is Nothing Then
+					If Form.Map.Exists("AfterCopy") Then 
+						Set RefAfterCopy = Form.Map.Item("AfterCopy") 
+					End If
+				End If
+
+				Form_UpdateChildDocs Op, RefAfterCopy
+			End If
+		End If
+
+		Form_Save = True
+	End If
+
+End Function
+'---------------------------------------------------
+' установка заголовка формы по имени шаблона
+'---------------------------------------------------
+Sub Form_SetCaption(Op, Form)
+	Dim CaptionTml, Tml, ProjItem, TmlName, ProjItemName, Pos
+
+	CaptionTml = ""
+	TmlName = ""
+
+	' если есть шаблон, то установим заголовок формы
+	If op.TemplateID <> 0 Then
+		Set Tml = Workarea.Template(op.TemplateID)
+		CaptionTml = com_getparamvalue(Tml, prmTMLCaption, "")
+		If Not Tml Is Nothing Then TmlName = Tml.Name
+	End If
+
+	If CaptionTml = "" And Op.FormID <> 0 Then
+		Set ProjItem = Workarea.ProjectItem(Op.FormID)
+		CaptionTml = com_getparamvalue(ProjItem, prmPItemCaption, "")
+		ExpFileName = com_GetParamValue(ProjItem, prmPItemExport, Form.FileName)
+		
+		Pos = InStrRev(ExpFileName, ".afm")
+
+		If Pos <> 0 Then
+			ExpFileName = Left(ExpFileName, Pos) & "ash"
+			If Not isfileexists(ExpFileName) Then ExpFileName = ""
+		End If
+
+		ProjItemName = ProjItem.Name
+	End If
+
+	Form.Caption = Form_MakeCaption(CaptionTml, Op, Form, TmlName, ProjItemName)
+End Sub
+'---
+'
+'---
+Function Form_MakeCaption(CaptionTml, Op, Form, TName, PName)
+	Dim Cmd
+
+	If CaptionTml <> "" Then
+		While InStr(CaptionTml, "%") <> 0	
+			Cmd = Token(CaptionTml, 2, "%")
+			CaptionTml = Token(CaptionTml, 1, "%") & Eval(Cmd) & Mid(CaptionTml, InStr(CaptionTml, "%") + Len(Cmd) + 2)
+		Wend
+	ElseIf TName <> "" Then
+		CaptionTml = TName
+	Else
+		CaptionTml = PName
+	End If
+
+	Form_MakeCaption = CaptionTml
+
+End Function
+'--------
+'
+'--------
+Function Form_GetCurrentOperation(Obj, ByRef flModified)
+	Dim CurrentOp, CurrentOpMap, btn, Buffer
+
+	Set MyCo = Workarea.MyCompany
+	Set ExMap = CreateLibObject("Map")
+
+	With WorkArea.Map
+		If .Exists(mapWACurrentOperation) Then
+			Set CurrentOp = .Item(mapWACurrentOperation)
+			.Remove(mapWACurrentOperation)
+
+			If .Exists(mapWACurrentOperationMap) Then
+				Set CurrentOpMap = .Item(mapWACurrentOperationMap)
+				com_CopyDict ExMap, CurrentOpMap
+				.Remove mapWACurrentOperationMap
+			ElseIf Not CurrentOp.IsNew Then
+				Buffer = CurrentOp.GetExtraData
+				If Buffer <> "" Then ExMap.XML = Buffer
+			End If
+
+			flModified = True
+		Else
+			Set CurrentOp = Obj.CurrentOperation
+
+			If CurrentOp.IsNew Then 
+				Select Case com_getparamvalue(workarea, prmDBNewDocDate, 0)
+					Case 1	' 1 - текущая дата 
+						CurrentOp.Date = Date()
+					Case 2 	'	2 - текущая дата со временем
+						CurrentOp.Date = Now()
+					Case Else
+						' по умолчанию дата == дате последнего созданного документа
+						CurrentOp.Date = Workarea.LastDocDate
+				End Select 
+			Else
+				Buffer = CurrentOp.GetExtraData
+				If Buffer <> "" Then ExMap.XML = Buffer
+			End If
+
+			flModified = False
+		End If
+	End With
+
+	Form_SetCaption CurrentOp, Obj
+	FormOptions = Form_GetFormOption(CurrentOp.FormID)
+	Form_LoadMiscs
+	Form_ToolbarButtonInit Obj, CurrentOp
+	Set Form_GetCurrentOperation = CurrentOp
+
+End Function
+'--------
+'
+'--------
+Sub Form_PrepareNewButton(ByRef TmlArray, Op, ToolBarButton)
+	Dim ComboString
+	Dim Tml
+	Dim i
+	Dim n
+
+	TmlArray = Array()
+	ComboString = "1:Копия текущего:100|1:-"
+
+	If ToolBarButton Is Nothing Then Exit Sub
+
+	If Op.TemplateID <> 0 Then
+		Set Tml = WorkArea.Template(Op.TemplateID)
+	
+		If Not Tml Is Nothing Then 
+			Set Tml = Tml.Linked(False)
+
+			' ограничиваем количество шаблонов 99-ю из-за ограничения PopUp
+			n = IIF(Tml.Count > 99, 99, Tml.Count)
+	
+			For i = 1 To n
+				With Tml.Item(i)
+					If .Type <> 0 Then
+						ComboString = ComboString & "|" 
+						ReDim Preserve TmlArray(UBound(TmlArray) + 1)
+						TmlArray(UBound(TmlArray)) = .ID
+						ComboString = ComboString & "1: " & .Name & ":1" & IIF(i < 10, "0", "") & CStr(i)
+					End If
+				End With
+			Next
+		End If
+	End If
+	
+	ToolBarButton.PopUp = ComboString
+
+End Sub
+'--------
+'
+'--------
+Sub Form_LoadFirmPicture(frmPicture, FileName)
+	Dim RD
+
+	If IsFileExists(FileName) Then
+		Set RD = CreateLibObject("Redirect")
+		Set frmPicture.Picture = LoadPicture(RD.GetFullPath(FileName))
+	Else
+		Set frmPicture.Picture = Nothing
+	End If
+		
+End Sub
+'--------
+'
+'--------
+Sub Form_LoadPriceList(Ag1, Ag2)
+	Dim PrListID, Tml
+
+	PrListID = 0
+	
+	If Op.TemplateID <> 0 Then
+		Set Tml = Workarea.Template(Op.TemplateID)
+		PrListID = com_getparamvalue(Tml, prmTMLDefPrice, 0)
+	End If
+
+	If PrListID = 0 Then
+		PrListID = com_getparamvalue(Ag1, prmAgDefPrice, 0)
+		If PrListID = 0 Then PrListID = com_getparamvalue(Ag2, prmAgDefPrice, 0)
+	End If
+
+	If PrListID = 0 Then 
+		Set DefPrice = Nothing
+	Else
+		Set DefPrice = WorkArea.PriceKind(PrListID)
+	End If
+End Sub
+'------------------
+'
+'------------------
+'Function SetAgPriceList(Ag)
+'	With Ag.Params
+'		If .Exists(prmAgDefPrice) Then
+'			SetAgPriceList = .Item(prmAgDefPrice).Value2
+'		Else
+'			SetAgPriceList = 0
+'		End If
+'	End With
+'End Function
+'--------
+'
+'--------
+Function Form_GetMscNoByDBPrm(prmNameDB)
+	Dim MscID
+	Dim Msc
+
+	Form_GetMscNoByDBPrm = 0
+
+	With workarea.Params
+		If .Exists(prmNameDB) Then
+			MscID = workarea.Params(prmNameDB).Value2
+
+			If MscID <> 0 Then
+				Set Msc = WorkArea.Misc(MscID)
+
+				If Not Msc Is Nothing Then
+					Form_GetMscNoByDBPrm = Msc.MscNo
+				Else
+					Form_GetMscNoByDBPrm = 0
+				End If
+			End If
+
+		End If
+	End With
+End Function
+'--------
+'
+'--------
+Function Form_GetMscRootByDBPrm(prmDBName)
+	Dim MscID
+	Dim Msc
+
+	Set Form_GetMscRootByDBPrm = Nothing
+
+	With workarea.Params
+		If .Exists(prmDBName) Then
+			MscID = workarea.Params(prmDBName).Value2
+			If MscID <> 0 Then
+				Set Msc = WorkArea.Misc(MscID)
+				Set Form_GetMscRootByDBPrm = Msc
+			End If
+		End If
+	End With
+
+End Function
+'--------
+'
+'--------
+Sub Form_MakeCopyDoc(Op, RefSaveOperation, RefAfterCopy)
+	Dim NewOp
+	Dim Cancel
+
+	Cancel = False
+	Op.CanClose RefSaveOperation, Cancel
+
+	If Not Cancel Then
+		Set NewOp = Op.Clone(1 + 2 + 4)
+
+		With NewOp.TemplateInvoker2
+			.FireOnApply
+			.FireAll
+		End With
+
+		RefAfterCopy Op, NewOp
+
+		Set Op = Nothing
+		Set Op = NewOp
+	End If
+	
+End Sub
+'--------
+'
+'--------
+Sub Form_MakeNewDoc(Op, RefSaveOperation)
+	Dim NewOp
+	Dim Cancel
+
+	Cancel = False
+	Op.CanClose RefSaveOperation, Cancel
+
+	If Not Cancel Then
+		Set NewOp = Workarea.CreateOperation
+		NewOp.TemplateID = Op.TemplateID
+
+		With NewOp.TemplateInvoker2
+			.FireOnApply
+			.FireAll
+		End With
+
+		NewOp.Date = Op.Date
+		NewOp.DocNo = ""
+
+		Set Op = Nothing
+		Set Op = NewOp
+	End If
+
+End Sub
+'--------
+'
+'--------
+Sub Form_CopyDocByTML(Op, TmlID, RefAfterCopy, MakeLink, RefSAveOperation)
+	Dim NewOp, DocID
+	Dim NewForm
+	Dim Sum, Cancel
+
+	Set NewOp = Op.Clone(1 + 2 + 4)
+
+	With NewOp
+		.Name = ""
+		.DocNo = ""
+		.String1 = ""
+		.String2 = ""
+		.String3 = ""
+		.TransCount = 1
+		.TemplateID = TmlID
+
+		With .TemplateInvoker2
+			.FireOnApply
+			.FireAll
+		End With
+
+		If RefAfterCopy(Op, NewOp) Then
+
+			If MakeLink Then
+				Cancel = False
+				Op.CanClose RefSaveOperation, Cancel
+				DocID = Op.ID
+
+				If DocID <> 0 Then
+					NewOp.TransList(1).EnumTrans GetRef("SetParentDocIDRow"), DocID
+					NewOp.Link DocID
+				End If
+			End If
+
+			If com_getparamvalue(workarea.template(Op.TemplateID), prmTMLIsInput, 0) <> _
+				com_getparamvalue(workarea.template(NewOp.TemplateID), prmTMLIsInput, 0) Then
+
+				Form_TurnAg NewOp.TRansList(1)
+			End If
+
+			WorkArea.Map.Item(mapWACurrentOperation) = NewOp
+			Set NewForm = App.CreateForm(.FormID)
+		End If
+
+	End With
+End Sub
+'--------
+'
+'--------
+Function SetParentDocIDRow(Tr, ByRef DocID)
+	SetParentDocIDRow = True
+	Tr.ParentDocID = DocID
+End Function
+'--------
+'
+'--------
+Function Form_GetEntName(Ent)
+	If Ent Is Nothing Then 
+		Form_GetEntName = ""
+	Else
+		With Ent.Params
+			Form_GetEntName = Ent.Name
+
+			If .Exists(prmEntAlterName) Then
+				If .Item(prmEntAlterName).Value2 <> "" Then
+					Form_GetEntName = .Item(prmEntAlterName).Value2
+				End If
+			End If
+		End With
+	End If
+End Function
+'--------
+'
+'--------
+Sub Form_StabilizeGrid(sGrd, Tr)
+	Dim Rows
+
+	Rows = Tr.Rows
+	If Tr.Item(Rows).EntID = 0 Then Rows = Rows - 1
+	sGrd.Rows = Rows
+
+End Sub
+'--------
+'
+'--------
+Sub Form_StabilizeGrid2(sGrd)
+	sGrd.PackAutoGrow
+	sGrd.CalcAutoHeight
+End Sub
+'--------
+'
+'--------
+Sub Form_StabilizeGrid3(sGrd, Tr)
+	Dim Rows
+
+	Rows = Tr.Rows
+	If Tr.Item(Rows).EntID <> 0 Then Rows = Rows + 1
+	sGrd.Rows = Rows
+	sGrd.CalcAutoHeight
+End Sub
+
+'--------
+'
+'--------
+Function Form_GetAgreeName(Tr, AgreeMscNo)
+	If tr.MiscID(AgreeMscNo) <> 0 Then
+		With Tr.MiscBind(AgreeMscNo)
+			Form_GetAgreeName = " № " & .String1 &  " от " & formatdate2(.Date1, "dd/mm/yyyy")
+		End With
+	Else
+		Form_GetAgreeName = ""
+	End If
+
+End Function
+'----
+'
+'----
+Sub SetGRangeMerge(sgrdRange, SetMerge, SetType)
+	If Not sgrdRange.MergeCells And SetMerge Then
+		sgrdRange.MergeCells = True
+	ElseIf sgrdRange.MergeCells And Not SetMerge Then
+		sgrdRange.MergeCells = False
+		sgrdRange.CellDataType = SetType
+	End If
+
+	If sgrdRange = vbCurrency Then
+		sgrdRange.Format = "(&s)"
+	End If
+End Sub
+'----
+'
+'----
+Sub Form_AddTax(TrList)
+	Dim i
+	Dim Qty
+
+	For i = 1 To TrList.Rows
+		With TrList.Item(i)
+			If .Price <> 0 Then .Sum = Round2( .Price * 5 / 6 * .Qty, 2 )
+		End With
+	Next
+
+End Sub
+'----
+'
+'----
+Function GetEntityBalAcc(Ent)
+	If Ent Is Nothing Then
+		GetEntityBalAcc = 0
+	ElseIf Ent.AccID <> 0 Then
+		GetEntityBalAcc = Ent.AccID
+	ElseIf Ent.Parent Is Nothing Then
+		GetEntityBalAcc = 0
+	Else
+		GetEntityBalAcc = GetEntityBalAcc(Ent.Parent)
+	End If
+End Function
+'----
+'
+'----
+Sub Form_SetColumnText(SetupPage, i, Title)
+	Select Case i
+		Case 0
+			SetupPage.LeftHeader = Title
+		Case 1
+			SetupPage.CenterHeader = Title
+		Case 2
+			SetupPage.RightHeader = Title
+		Case 3
+			SetupPage.LeftFooter = Title
+		Case 4
+			SetupPage.CenterFooter = Title
+		Case 5
+			SetupPage.RightFooter = Title
+	End Select
+End Sub
+'----
+'
+'----
+Sub Form_SetupColTitles(ItemParams, SetupPage)
+	Dim aTitles, Title
+	Dim Titles, i
+
+	If ItemParams.Exists(prmFormColontiTles) Then
+		Titles = ItemParams.Item(prmFormColontiTles).Value2
+
+		If Titles <> "" Then
+
+			aTitles = Split(Titles, ";")
+
+			For i = 0 To UBound(aTitles)
+				Title = aTitles(i)
+
+				If Title <> "" Then
+					Title = Replace(Title, Chr(34), "'")
+					Form_SetColumnText SetupPage, i, Title
+				End If
+			Next
+		End If
+	End If
+End Sub
+'----
+'
+'----
+Sub Form_SetupColTitleMargin(ItemParam, SetupPage)
+	Dim aMargins, Margin
+	Dim Margins, i
+
+	If ItemParam.Exists(prmFormMargin) Then
+		Margins = ItemParam.Item(prmFormMargin).Value2
+
+		If Margins <> "" Then
+			aMargins = Split(Margins, ";")
+	
+			For i = 0 To UBound(aMargins)
+				Margin = aMargins(i)
+				If Margin <> "" Then
+					If IsNumeric(Margin) Then
+						If i = 1 Then
+							SetupPage.HeaderMargin = Margin
+						Else
+							SetupPage.FooterMargin = Margin
+						End If
+					End If
+				End If
+			Next
+
+		End If
+	End If
+End Sub
+'----
+'
+'----
+Sub Form_SetupPtintMargins(ItemParams, SetupPage)
+	Dim aTitles, Title
+	Dim Titles, i
+
+	If ItemParams.Exists(prmFormColontiTles) Then
+		Titles = ItemParams.Item(prmFormColontiTles).Value2
+
+		If Titles <> "" Then
+			aTitles = Split(Titles, ";")
+
+			For i = 0 To UBound(aTitles)
+				Title = aTitles(i)
+
+				If Title <> "" Then
+					If IsNumeric(Title) Then
+						Title = Replace(Title, Chr(34), "'")
+						Form_SetColumnText SetupPage, i, Title
+					End If
+				End If
+			Next
+		End If
+	End If
+
+End Sub
+'----
+'
+'----
+Sub Form_PageSetUp(FormID, Form)
+	Dim pItem,SetupPage
+
+	If FormID <> 0 Then
+		Set pItem = Workarea.ProjectItem(FormID)
+		Set SetupPage = Form.ActivePage.PageSetup
+
+		With pItem.Params
+			Form_SetupColTitles pItem.Params, SetupPage
+			Form_SetupColTitleMargin pItem.Params, SetupPage
+			Form_SetupPtintMargins pItem.Params, SetupPage
+		End With
+		
+	End If
+End Sub
+'------------------
+'
+'------------------
+Sub Form_ActivateHelp(Mode, Command, Control, HelpFileName, FormID)
+	Dim WinAPi
+	Dim FormFileName
+	Dim aCommand
+
+	FormFileName = WorkArea.ProjectItem(FormID).FileName
+	If InStrRev(FormFileName, "\") > 0 Then FormFileName = Mid(FormFileName, InStrRev(FormFileName, "\") + 1)
+	If InStrRev(FormFileName, ".") > 1 Then FormFileName = Left(FormFileName, InStrRev(FormFileName, ".") - 1)
+	FormFileName = FormFileName & ".htm"
+
+	Set WinAPi = CreateLibObject("WinAPI")
+
+	Select Case Mode
+		Case 1, 2
+			FormFileName = FormFileName & "#" & Control
+		Case 3
+			FormFileName = FormFileName & "#btnPrint"
+		Case 4
+			aCommand = Array("btnSaveOperation", "btnPrint", "btnTransProps", "btnClose")
+			FormFileName = FormFileName & "#" & aCommand(Command - 1)
+	End Select
+
+	WinAPi.HTMLHelp HelpFileName, 0, FormFileName
+
+End Sub
+'----
+'	устарела
+'----
+Function Form_GetAgAddress(Ag)
+	Dim AgAddress
+
+	AgAddress = ""
+
+	If Not Ag Is Nothing Then
+
+		AgAddress = Form_GetAgAddress2(Ag, 1)
+
+'		AgAddress = ""
+'		If Ag.Address <> "" Then AgAddress = Trim(Replace(Ag.Address, ";", " "))
+'		If Ag.Country <> "" Then AgAddress = Ag.Country & iif(AgAddress <> "", ", ", "") & AgAddress
+	End If
+
+	Form_GetAgAddress = AgAddress
+End Function
+
+'----
+'
+'----
+Function Form_GetAgDetails(Ag)
+	Dim AgDetails, BankAcc
+
+	If Ag Is Nothing Then 
+		Form_GetAgDetails = ""
+	Else
+		AgDetails = Iif(Ag.Code <> "", "ИКЮЛ:" & Ag.Code, "")
+		If Ag.Address <> "" Then AgDetails = AgDetails & " Адрес:" & Form_GetAgAddress2(Ag, 1)
+		If Ag.Phone <> "" Then AgDetails = AgDetails & " тел.:" & Ag.Phone
+
+		With Ag.BankAccounts
+			If .Count > 0 Then
+				With .Item(1)
+					AgDetails = AgDetails & " р/с:" & .AccountNo
+					AgDetails = AgDetails & " " & Form_GetFullBankName(.Bank.Code)
+					AgDetails = AgDetails & " Код банка:" & .Bank.Code
+					AgDetails = AgDetails & iif(.Bank.City <> "", " " & .Bank.City, "")
+				End With
+			End If
+		End With
+	End If
+
+	AgDetails = Trim(AgDetails)
+	Form_GetAgDetails = AgDetails
+
+End Function
+'----
+' исправлена 27.11.2019
+'----
+Function Form_On_PopUp(Op, Form, TmlArray, Command, RefSaveOperation, RefAfterCopy, MakeLink)
+	Form_On_PopUp = True
+
+'	Form.ResetFocus ' Сбросить фокус
+
+	Select Case Command
+		Case 401	'	выбрать типовой шаблон и отработать его код
+			If Op.BrowseTemplate(1 + 2 + 4) Then 
+				Form_SetCaption Op, Form
+				TmlArray = Array()
+				Form_PrepareNewButton TmlArray, Op, Form.ToolBar.ItemByCommand(btnNewDoc)
+			End If
+
+		Case 402	' показать проводки
+			Op.ShowTrans True
+		Case 301 	'	просмотр 1-го экземпляра
+			Form.Print True
+		Case 302	'	печать 1-го экземпляра
+			Form.Preview
+		Case 501	'	экспорт в Word
+			Form_ExportToHTML2 Op, ExpFileName, 1, Form.ActivePage.Index
+		Case 502	'	экспорт в HTML
+			Form_ExportToHTML2 Op, ExpFileName, 0, Form.ActivePage.Index
+
+		'	6xx - зарервировано для команд в документе
+		Case 100	' создать новый документ
+			Form_MakeCopyDoc Op, RefSaveOperation, RefAfterCopy
+		Case Else
+			If Command > 100 And Command < 200 Then 
+				Form_CopyDocByTML Op, tmlArray(Command - 101), RefAfterCopy, MakeLink, RefSaveOperation
+			ElseIf Command > 940 And Command < 950 Then
+				Form.Page(Command - 940).Activate 
+			Else
+				Form_On_PopUp = False
+			End If
+	End Select
+End Function
+'----
+'
+'----
+Function Form_GetParentDocName(PDocID)
+	Dim POp
+
+	If PDocID = 0 Then
+		Form_GetParentDocName = ""
+	Else
+		Set POp = Workarea.Operation(PDocID)
+		Form_GetParentDocName = iif(POp.DocNo = "", "б/н", "№ " & POp.DocNo) & " " & formatdate2(POp.Date, "dd/mm/yyyy ") & POp.Name
+	End If
+End Function
+'---
+'
+'---
+Function Form_GetAgAlterName(Ag, OnDate)
+	Dim AgAlterName
+
+	AgAlterName = ""
+
+	If Not Ag Is Nothing Then
+		If Ag.Params.Exists(prmAgAlterName) Then
+			AgAlterName = Ag.Params(prmAgAlterName).Value2
+		ElseIf Ag.Facts.Exists(fctAgAlterName) Then
+			AgAlterName = Ag.Facts(Ondate).Item(fctAgAlterName).Value2
+		End If
+
+		AgAlterName = Replace(AgAlterName, Chr(10), "")
+		AgAlterName = Replace(AgAlterName, Chr(13), "")
+		AgAlterName = Replace(AgAlterName, Chr(12), "")
+
+		If Trim(AgAlterName) = "" Then
+			AgAlterName = Ag.Name
+		End If
+
+	End If
+
+	Form_GetAgAlterName = AgAlterName
+	
+End Function
+'---
+'
+'---
+Function Form_GetAgAccount(Ag)
+	Dim AgDetails
+
+	AgDetails = ""
+
+	If Not Ag Is Nothing Then
+		With Ag.BankAccounts
+			If .Count > 0 Then
+				With .Item(1)
+					AgDetails = .AccountNo
+					AgDetails = AgDetails & " " & Form_getfullbankname(.Bank.Code)
+					AgDetails = AgDetails & " Код банка:" & .Bank.Code
+					AgDetails = AgDetails & iif(.Bank.City <> "", " " & .Bank.City, "")
+				End With
+			End If
+		End With
+	End If
+
+	Form_GetAgAccount = AgDetails
+End Function
+'---
+'
+'---
+Function Form_GetAgAccountBind(AgBind)
+	Dim AgDetails, AccNo
+
+	AgDetails = ""
+
+	If Not AgBind Is Nothing Then
+		AccNo = AgBind.BankAcc3("AccNo")
+		AgDetails = AccNo
+		AgDetails = AgDetails & " " & Form_getfullbankname(AgBind.BankAcc3("BankCode"))
+		AgDetails = AgDetails & " Код банка:" & AgBind.BankAcc3("BankCode")
+		AgDetails = AgDetails & iif(AgBind.BankAcc3("BankCity") <> "", " " & AgBind.BankAcc3("BankCity"), "")
+	End If
+
+	Form_GetAgAccountBind = AgDetails
+End Function
+
+'---
+'
+'---
+Sub Form_SaveExtData(Op, aAg, ExMap)
+	Dim i, Row
+	
+	For i = 0 To UBound(aAg)
+		Row = i + 1
+		ExMap("Ag" & Row & "ID") = aAg(i).ID
+		ExMap("Ag" & Row & "Name") = aAg(i).Name
+	Next
+	
+	Op.SetExtraData ExMap.XML
+End Sub
+'---
+'
+'---
+Sub Form_SaveExtData2(Op, ElemKind, aElem, ExMap, IsSave)
+	Dim i, Row
+	
+	For i = 0 To UBound(aElem)
+		Row = i + 1
+		ExMap(ElemKind & Row & "ID") = aElem(i).ID
+		ExMap(ElemKind & Row & "Name") = aElem(i).Name
+	Next
+
+	If IsSave Then Op.SetExtraData ExMap.XML
+End Sub
+'---
+'
+'---
+Sub Form_LoadElems(Op, ElemKind, aElems, aSel, ExMap)
+	Dim ExData, Elem, i, Row
+
+	If Not Op.IsNew Then
+		ExData = Op.GetExtraData
+
+		If ExData <> "" Then
+			ExMap.XML = ExData
+		End If
+	End If
+
+	For i = 0 To UBound(aElems)
+		Row = i + 1
+		Set aElems(i).Selector = aSel(i)
+		aElems(i).ID = ExMap(ElemKind & Row & "ID")
+		If aElems(i).Name = "" Then aElems(i).Name = ExMap(ElemKind & Row & "Name")
+	Next
+
+End Sub
+
+'---
+'
+'---
+Sub Form_LoadAgents(Op, aAgs, aSel, ExMap)
+	Dim ExData, Ag, i, Row
+
+	If Not Op.IsNew Then
+		ExData = Op.GetExtraData
+
+		If ExData <> "" Then
+			ExMap.XML = ExData
+		End If
+	End If
+
+	For i = 0 To UBound(aAgs)
+		Row = i + 1
+
+		If Not aSel(i) Is Nothing Then
+			Set aAgs(i).Selector = aSel(i)
+		End If
+
+		aAgs(i).ID = ExMap("Ag" & Row & "ID")
+		If aAgs(i).Name = "" Then aAgs(i).Name = ExMap("Ag" & Row & "Name")
+	Next
+
+End Sub
+'---
+'
+'---
+Sub Form_sgrd_setrealrows(TrList, sgrd)
+	Dim Rows
+
+	Rows = TrList.Rows
+
+	If Rows > 1 And TrList.Item(Rows).EntID = 0 Then Rows = Rows - 1
+	sgrd.Rows = Rows
+	sgrd.CalcAutoHeight
+End Sub
+'---
+'
+'---
+Sub Form_ClearCurr(Tr, Lock)
+	With Tr.TransCurs(1)
+		.CurID = 1
+		.LockRate = Lock
+		.Rate = 1
+	End With
+End Sub
+'---
+'
+'---
+Sub Form_SavePrice(TrList)
+	If DefPrice Is Nothing  Then Exit Sub
+	TrList.EnumTrans GetRef("Form_SetPriceRow"), DefPrice
+End Sub
+'---
+'
+'---
+Function Form_SetPriceRow(Tr, ByRef DefPrice)
+	Form_SetPriceRow = True
+
+	If Tr.EntID <> 0 Then
+		DefPrice.SetEntPrice Tr.EntID, Tr.Date, Tr.Params(prmTrPrice).Value2, Workarea.DefPriceList
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_SetCurByAcc(TrList, IsCash, IsDb)
+	Dim prmName, AccList, i, aAccList, Acc, CurID, AccID
+
+	prmName = iif(IsCash, "CASH_ACC", "BANK_ACC")
+	AccList = com_GetSysParams(prmName)
+	CurID = TrList.Item(1).TransCurs(1).CurID
+
+	If AccList <> "" Then
+		aAccList = Split(AccList, ",")
+
+		For i = 0 To UBound(aAccList)
+			AccID = CLng(Trim(aAccList(i)))
+
+			Set Acc = Workarea.Account(AccID)
+
+			If Not Acc Is Nothing Then 
+				If Acc.Params(prmAccCurrency).Value2 = CurID Then
+					If IsDb Then
+						TrList.SetAccDB AccID
+					Else
+						TrList.SetAccCR AccID
+					End If
+					Exit Sub
+				End If
+			End If
+		Next
+	End If
+
+End Sub
+'---
+'
+'---
+Function Form_GetEntCode(Tr)
+	Dim EntCode
+
+	EntCode = Tr.Params(prmTrCode).Value2
+
+	If EntCode <> "" Then 
+		Form_GetEntCode = EntCode
+	Else
+		Form_GetEntCode = Tr.EntBind.Bar
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_AddEntFromRest(Op, TrList, AccID, AgID, DefPrice)
+	Dim i, RowNo
+	Dim Ents, keys
+	Dim Dlg
+
+	Set Ents = CreateObject("Scripting.Dictionary")
+	TrList.EnumTrans GetRef("Form_AddOneEnt"), Ents
+	
+	Set Dlg = App.CreateDialog("HL74_EntRest.adg")
+	Set Dlg.Map.Item("Ents") = Ents
+	Dlg.Map("OnDate") = Op.Date
+
+	Dlg.Map("AgID") = AgID
+	Dlg.Map("AccID") = AccID
+
+	If DefPrice Is Nothing Then
+		If Dlg.Map.Exists("prKind") Then Dlg.Map.Remove "prKind"
+	Else
+		Set Dlg.Map.Item("prKind") = DefPrice
+	End If
+	
+	If Dlg.DoModal = vbOK Then
+		TrList.EnumTrans GetRef("Form_ReplaceOneEnt"), Ents
+
+		RowNo = TrList.Rows
+		If TrList.Item(TrList.Rows).EntID = 0 Then RowNo = TrList.Rows - 1
+
+		Keys = Ents.Keys
+
+		For i = 0 To UBound(Keys)
+			If Ents(Keys(i)) <> 0 Then
+				RowNo = RowNo + 1
+				With TrList.Item(RowNo)
+					.EntID = Keys(i)
+					.Qty = Ents(Keys(i))
+
+					If Not DefPrice Is Nothing Then
+						.Price = DefPrice.GetEntPrice(Keys(i), Op.Date)
+					End If
+
+					.Sum = Round2(.Sum, 2)
+					.Qty = Ents(Keys(i))
+				End With
+			End If
+		Next
+
+		TrList.Pack
+	End If
+End Sub
+'---
+'
+'---
+Function Form_ReplaceOneEnt(Trans, ByRef Ents)
+	Dim Qty
+
+	Form_ReplaceOneEnt = True
+
+	If Ents.Exists(Trans.EntID) Then
+		Qty = Ents(Trans.EntID)
+
+		If Qty = 0 Then 
+			Trans.EntID = 0
+		Else
+			Trans.Qty = Qty
+			Ents(Trans.EntID) = 0
+			Trans.Sum = Round2(Trans.Sum, 2)
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function Form_AddOneEnt(Trans, ByRef Ents)
+	Form_AddOneEnt = True ' продолжим обработку
+
+	If Trans.EntID <> 0 And Trans.Qty <> 0 Then
+		If Not Ents.Exists(Trans.EntID) Then Ents.Add Trans.EntID, 0
+		Ents(Trans.EntID) = Ents(Trans.EntID) + Trans.Qty
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_ExportToHTML(Op, ShFileName, Mode)
+	Form_ExportToHTML2 Op, ShFileName, Mode, 1
+End Sub
+'---
+'
+'---
+Sub Form_ExportToHTML2(Op, ByVal ShFileName, Mode, PageIndex)
+	Dim SB, HTMLFileName, TmpFolder,Sys, ComApp
+
+	Set Sys = CreatelibObject("System")
+	TmpFolder = Sys.TempFolder
+	If Right(TmpFolder, 1) <> "\" Then TmpFolder = TmpFolder & "\"
+	
+	If PageIndex <> 1 Then
+		ShFileName = Left(ShFileName, InStrRev(ShFileName, ".") - 1) & "-" & PageIndex & ".ash"
+	End If
+
+	HTMLFileName = TmpFolder & Op.Name & " (page " & PageIndex & ").htm"
+	Set SB = app.CreateBook(ShFileName, False, Op)
+
+	If SB.Sheet1.SaveAsHTML(HTMLFileName) Then
+		Select Case Mode 
+			Case 0
+				If MsgBox("Показать созданный файл ?", vbQuestion + vbOKCancel, "Сохранить в HTML") = vbOK Then
+					Sys.ShellExec HTMLFileName, 1, 3
+				End If
+
+			Case 1		' Word
+				On Error Resume Next
+				Set ComApp = CreateObject("Word.Application")
+
+				If Err.Number = 0 Then
+					ComApp.Visible = True
+					ComApp.Documents.Open HTMLFileName
+				Else
+					MsgBox "Ошибка открытия Word", vbExclamation, "Экспорт в Word"
+				End If
+
+			Case 2		' Excel
+				On Error Resume Next
+				Set ComApp = CreateObject("Excel.Application")
+
+				If Err.Number = 0 Then
+					ComApp.Visible = True
+					ComApp.WorkBooks.Open HTMLFileName
+				Else
+					MsgBox "Ошибка открытия Excel", vbExclamation, "Экспорт в Excel"
+				End If
+		End Select
+	End If 
+	
+	sb.Close
+	Set Sb = Nothing
+End Sub
+'---
+'		prm = Array(Form, 	EMail, 	EMailSubj, EMailText)
+'---
+Sub Form_SendDocToEMail(Op, Form, EMailSubj, EMailText)
+	Dim prm, FileName
+
+	If EMailText = "" Then 
+		EMailText = "Этот документ автоматически создан программой Акцент" & vbLf
+		EMailText = EMailText & "Отвечать на него не нужно" & vbLf
+		EMailText = EMailText & "С уважением, администрация" & vbLf
+		EMailText = EMailText & MyCo.Name & vbLf
+		EMailText = EMailText & MyCo.phone & vbLf
+		EMailText = EMailText & MyCo.www & vbLf
+	End If
+
+	prm = Array(Form, 	Op.Trans(1).AgToBind.EMail, EMailSubj, EMailText)
+	App.RunModule "HL74_SendDocToEMail.avb", "SendPDFByEMail", prm
+
+End Sub
+'---
+'
+'---
+Sub Form_Import2Doc(Op, xmlTemplate)
+	Dim xlsFile, prm, Dlg
+
+	If xmlTemplate = "" Then 
+		Set Dlg = App.CreateDialog("HL74_SelectImportTemplate.adg")
+		If Dlg.DoModal = vbOK Then 
+			xmlTemplate = Dlg.Map("FilePath")
+		Else
+			Exit Sub
+		End If
+	End If
+
+	If OpenFileRead(xlsFile, "", "*.xls*", "Файлы Excel (*.xls)", "Выберите файл для импорта") Then
+		com_ClearTrans Op.TransList(1)
+		prm = Array(OP, xmlTemplate, xlsFile)		
+		App.RunModule "HL74_ImportToDoc.avb", "HL74_ImportToDoc", prm
+		Op.TransList(1).Pack
+
+		If Op.Trans(1).TransCurs(1).CurID = 0 Then 
+			com_CurrencyInit Op, 1
+		End If
+
+	End If	
+
+End Sub
+'---
+'
+'---
+Function form_getcolumnwidtharray(FormID, MaxCol)
+	Dim pItem, pSettings, aSettings
+
+	pSettings = ""
+	Set pItem = Workarea.ProjectItem(FormID)
+
+	If Not pItem Is Nothing Then
+		pSettings = com_getparamvalue(pItem, prmFormSettings, "")
+	End If
+
+	If pSettings = "" Then
+		pSettings = com_String("1|", MaxCol)
+		pSettings = pSettings & "1"
+	End If
+
+	aSettings = Split(pSettings, "|")
+
+	If UBound(aSettings) < MaxCol Then 
+		pSettings = pSettings & com_String("1|", MaxCol - UBound(aSettings))
+		pSettings = pSettings & "1"
+		aSettings = Split(pSettings, "|")
+	End If
+
+	form_getcolumnwidtharray = aSettings
+End Function
+'---
+'
+'---
+Function form_saveoption(FormID, aColWidth)
+	Dim pItem, pSettings
+
+	Set pItem = Workarea.ProjectItem(FormID)
+
+	If Not pItem Is Nothing Then
+		pItem.Params(prmFormSettings).Value = Join(aColWidth, "|")
+		form_saveoption = True
+	Else
+		form_saveoption = False
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_SetColumnVisible(Form, ByVal Command, sgrd, grdHeader, grdBottom, ColWidth)
+	Dim ColW 
+
+	If sgrd.Column(Command).ColumnWidth = 0 Then
+		ColW = 270
+		ColWidth(Command - 1) = "1"
+		sgrd.Column(Command).CellType = acEditor
+	Else	
+		ColW = 0
+		ColWidth(Command - 1) = "0"	
+		sgrd.Column(Command).CellType = acLabel
+	End If
+
+	sgrd.Column(Command).ColumnWidth = ColW 
+	grdHeader.EntireColumn(Command).ColumnWidth = ColW 
+	grdBottom.EntireColumn(Command).ColumnWidth = ColW 
+
+	Form.refreshscreen
+
+End Sub
+'---
+'
+'---
+Sub Form_SetPrintColumnCode(Form, ByVal Command, sgrdPrint, grdHeader)
+	Dim aTitle, aDSource
+
+	aTitle = Array("Штрих код", "Артикул", "Каталожный №", "Серийный №", "Номенкл. №")
+	aDSource = Array("EntBind.bar", "EntBind.art", "EntBind.cat", "Params(prmTrCode).Value2", "EntBind.nom")
+
+	sgrdPrint.Column(2).DataSource = "Op.Trans(1, " & sgrdPrint.Name & ".BindRow)." & aDSource(Command)
+	grdHeader.Cell(1, 2).Value = aTitle(Command)
+
+End Sub
+'---
+'
+'---
+Sub Form_SetPrintColumnCode2(Form, ByVal Command, sgrdPrint, grdHeader, Col, Row)
+	Dim aTitle, aDSource
+
+	aTitle = Array("Штрих код", "Артикул", "Каталожный №", "Серийный №", "Номенкл. №")
+	aDSource = Array("EntBind.bar", "EntBind.art", "EntBind.cat", "Params(prmTrCode).Value2", "EntBind.nom")
+
+	sgrdPrint.Column(Col).DataSource = "Op.Trans(1, " & sgrdPrint.Name & ".BindRow)." & aDSource(Command)
+	grdHeader.Cell(Row, Col).Value = aTitle(Command)
+
+End Sub
+'---
+'
+'---
+Sub Form_ColumnWidthInit(Form, sgrd, grdHeader, grdBottom, ColWidth, MaxCol)
+	Dim cWidth, i, CellType
+
+	For i = 1 To MaxCol
+		cWidth = ColWidth(i)
+
+		If ColWidth(i) = "1" Then
+			cWidth = 260
+			CellType = acEditor
+		Else
+			cWidth = 0
+			CellType = acLabel
+		End If
+
+		With sgrd.Column(i + 1)
+			.ColumnWidth = cWidth
+			.CellType = CellType
+		End With
+
+		grdHeader.EntireColumn(i + 1).ColumnWidth = cWidth
+		grdBottom.EntireColumn(i + 1).ColumnWidth = cWidth
+	Next
+End Sub
+'---
+'
+'---
+Function form_getfullbankname(BankCode)
+	Dim BankID, Bank
+
+	Set Bank = Workarea.Banks.ItemCode(BankCode)
+	If Not Bank Is Nothing Then
+		If Bank.Memo <> "" Then
+			form_getfullbankname = Bank.Memo
+		Else
+			form_getfullbankname = Bank.Name
+		End If
+	Else
+		form_getfullbankname = ""
+	End If
+End Function
+'---
+'
+'---
+Function Form_GetFormOption(FormID)
+	Dim Frm, cSettings
+
+	Form_GetFormOption = Array()
+
+	If FormID <> 0 Then
+		Set Frm = Workarea.ProjectItem(FormID)
+		If Not Frm Is Nothing Then
+			cSettings = com_getparamvalue(frm, prmFormSettings, "0|0|0|0|0|0|0")
+'			If cSettings <> "" Then
+			Form_GetFormOption = Split(cSettings, "|")
+'			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_MakePriceKinds(Op, TruncSum)
+	Dim Dlg
+
+	Set Dlg = App.CreateDialog("HL74_SetPriceKinds.adg")
+	Set Dlg.Map.Item("TrList") = Op.TransList(1)
+	Dlg.Map("TruncSum") = TruncSum
+
+	Dlg.DoModal
+End Sub
+'---
+'
+'---
+Function Form_CalcWeightRow(Tr, ByRef TotalWeight)
+	Form_CalcWeightRow = True
+	TotalWeight = TotalWeight + com_getparamvalue(tr.entity, prmEntWeight, 0) * Tr.Qty
+End Function
+'---
+'
+'---
+Function Form_CalcWeightRow2(Tr, ByRef prm)
+	Form_CalcWeightRow2 = True
+	prm(0) = prm(0) + com_getparamvalue(tr.entity, prmEntWeight, 0) * Tr.Qty
+	prm(1) = prm(1) + com_getparamvalue(tr.entity, prmEntWeightBrt, 0) * Tr.Qty
+	prm(2) = prm(2) + com_getparamvalue(tr.entity, prmEntVolume, 0) * Tr.Qty
+End Function
+'---
+'
+'---
+Function Form_CalcWeight2(TrList)
+	Dim prm
+
+	prm = Array(0, 0, 0) 
+	TrList.EnumTrans GetRef("Form_CalcWeightRow2"), prm
+
+	TotalWeight = prm(0)
+	TotalWeightBrutto = prm(1)
+	TotalVolume = prm(2)
+
+End Function
+'---
+'
+'---
+Function Form_CalcWeight(TrList)
+	TotalWeight = 0
+	TrList.EnumTrans GetRef("Form_CalcWeightRow"), TotalWeight
+
+	Form_CalcWeight = TotalWeight
+End Function
+'---
+'
+'---
+Sub Form_SetOneSum(TrList)
+	Dim Tr, TrSum
+
+	Set Tr = TrList.Item(1)
+	TrSum = TrList.Sum
+	Tr.Qty = 0	
+	Tr.Price = 0
+	Tr.EntID = 0
+	TrList.Rows = 1
+	Tr.Sum = TrSum
+End Sub
+'---
+'
+'---
+Function Form_TurnAg(TrList)
+	Dim AgID
+
+	AgID = TrList.Item(1).AgFromID
+	TrList.SetAgFrom TrList.Item(1).AgToID
+	TrList.SetAgTo AgID
+
+End Function
+'---
+'
+'---
+Sub Form_PrintSheet(Form, Op, Mode)
+	Dim SheetFileName, ShBook, RD
+
+	Set RD = CreateLibObject("Redirect")
+	SheetFileName = RD.GetFullPath(SheetFileName)
+	
+	If SheetFileName <> "" Then
+		Set ShBook = App.CreateBook(SheetFileName, True, Op)
+	End If
+
+End Sub 
+'---
+'
+'---
+Function Forms_GetPageConextMenu(Form)
+	Dim i, MenuStr, n, ActivePageNo, Fp
+
+	ActivePageNo = Form.ActivePage.Index
+	MenuStr = "1:-:1|1:Страница:940"
+	n = iif(Form.PageCount > 9, 9, Form.PageCount)
+
+	For i = 1 To n
+		If i <> ActivePageNo Then
+			Set FP = Form.Page(i)
+			If FP.Visible Then
+				MenuStr = MenuStr & "|" & "2:" & FP.Caption & ":" & (940 + i)
+			End If
+		End If
+	Next
+
+	Forms_GetPageConextMenu = MenuStr
+
+End Function
+'---
+'
+'---
+Sub Form_LoadPictureStamp(pctStamp, Ag)
+	Dim PictFile, RD
+
+	PictFile = com_getparamvalue(Ag, prmAgPictureStamp, "")
+
+	If PictFile <> "" Then
+		If isFileExists(PictFile) Then
+			Set RD = CreateLibObject("Redirect")
+			PictFile = RD.GetFullPath(PictFile)
+
+			Set pctStamp.Picture = LoadPicture(PictFile)
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Sub Form_ShowReplations(Op)
+	Dim Dlg, Flag
+
+	Flag = True
+
+	Set Dlg = App.CreateDialog("HL74_OpRelations.adg")
+	Set Dlg.Map.Item("Op") = Op
+
+	Dlg.DoModal
+
+End Sub
+'---
+'
+'---
+Function Form_GetAgTaxStatus(Ag)
+	Dim MscID, Msc
+
+	Form_GetAgTaxStatus = ""		
+
+	If Not Ag Is Nothing Then
+		MscID = com_GetParamValue(Ag, prmAgTaxType, 0)
+
+		If MscID <> 0 Then
+			Set Msc = Workarea.Misc(MscID)
+			Form_GetAgTaxStatus = Msc.String2
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function Form_SetDefCityName(Ag)
+	Form_SetDefCityName = ""
+
+	If Not Ag Is Nothing Then 
+		Form_SetDefCityName = token(Ag.Facts(Date).Item(fctAgAddress).Value2, 5, ";")			
+	End If
+
+End Function
+'---
+'
+'---
+Function Form_SetDefCityNamePost(Ag)
+	Form_SetDefCityNamePost = ""
+
+	If Not Ag Is Nothing Then 
+		Form_SetDefCityNamePost = token(com_GetParamValue(Ag, prmAgPostAddr, Ag.Address), 5, ";")			
+	End If
+
+End Function
+
+'---
+'
+'---
+Sub Form_LoadRes(Form)
+	Dim i, tbtns, frmbtns, btn
+
+	If workarea.Map.exists("frmbtns") Then
+		Set frmbtns = workarea.map("frmbtns")
+		Set tbtns = Form.ToolBar	
+
+		For i = 1 To tbtns.Count
+			With tbtns.Item(i)
+				If frmbtns.exists(.Command) Then
+					Set btn = frmbtns.Item(.Command)
+					.Caption = btn("caption")
+					.tooltip = btn("tooltip")
+					.popup = btn("popup")
+				End If
+			End With
+		Next
+	End If
+
+End Sub
+'----
+'
+'----
+Sub Form_SetCtrlColor(Ctrl, Mode)
+	Dim ForeColor, BackColor, BorderColor
+
+	If Not Mode Then
+		BorderColor = RGB(255,0,0)
+		Ctrl.BorderColor(1) = BorderColor
+		Ctrl.BorderColor(2) = BorderColor
+		Ctrl.BorderColor(4) = BorderColor
+		Ctrl.BorderColor(8) = BorderColor	
+	Else
+		BorderColor = RGB(255, 255, 255)
+		Ctrl.BorderColor(1) = BorderColor
+		Ctrl.BorderColor(2) = BorderColor
+		Ctrl.BorderColor(4) = BorderColor
+		Ctrl.BorderColor(8) = RGB(125, 158, 192)
+	End If
+
+End Sub
+'---
+'
+'---
+Sub Form_AutoNum(Op)
+	Dim DocNo, ePos, sPos, i, Tml, aData
+
+	DocNo = ""
+
+	If Op.TemplateID <> 0 Then
+		Set Tml = Workarea.Template(Op.TemplateID)
+
+		If com_getlogicparamvalue(Tml, prmTMLAutonum, False) Then
+			If GetRs2("Select max(doc_no) from documents where IsNumeric(DOC_NO) <> 0 And TML_ID =" & Op.TemplateID, aData) Then
+ 				DocNo = str2long(checknull(aData(0, 0), 0)) + 1
+			End If
+		End If
+	End If
+
+	If DocNo = "" Then 
+		Op.AutoNum
+		DocNo = Op.DocNo
+	End If
+
+	ePos = InStrRev(DocNo, "^")
+	sPos = InStr(DocNo, "^")
+	
+	If ePos <> 0 Then
+		Op.DocNo = Left(DocNo, sPos - 1) & com_StrZero(Mid(DocNo, ePos + 1), ePos - sPos + 1)
+	Else
+		Op.DocNo = DocNo
+	End If
+End Sub
+'---
+'
+'---
+Sub Form_ToolbarButtonInit(Form, Op)
+	Dim tb, btn, frmFileName, btnVisible
+	Dim OpFolder, MscNo, Tml, MscID, Msc, Flag
+
+	Set Tb = Form.ToolBar
+
+	' Excel
+	Set btn = Tb.ItemByCommand(btnToExcel)
+	btnVisible = False
+
+	If Not btn Is Nothing Then
+		btnVisible = IsFileExists(ExpFileName)
+		If btn.Group Then btn.Group = btn.Visible
+		btn.Visible = btnVisible
+	End If
+
+	' доступно ли смотреть проводки
+	Set btn = Tb.ItemByCommand(btnShowTrans)
+
+	If Not btn Is Nothing And Not Op.Folder Is Nothing Then
+		btnVisible = Op.Folder.IsRightEnabled(32)
+		If Not btnVisible And btn.Group Then btn.Group = False
+		btn.Visible = btnVisible
+	End If
+
+	' нужно ли печатать этикетки
+	Set btn = tb.ItemByCommand(btnPrintLabels)
+	MscNo = Com_GetMscNoByDBPrm(prmDBZebraPrint)	
+	
+	If Not btn Is Nothing Then
+		btn.Visible = False
+
+		If Op.TemplateID <> 0 Then
+			Set Tml = Workarea.Template(Op.TemplateID)
+			MscID = com_getparamvalue(Tml, prmTMLPrintLabels, 0)
+
+			If MscID <> 0 Then
+				btn.Visible = (workarea.misc(MscID).MscNo = MscNo) And MscNo <> 0
+			End If
+		End If
+
+		btn.Group = btn.Visible
+	End If
+
+	' показать кнопки для печати чека на КР
+	Set btn = tb.ItemByCommand(btnPrintCheckFrom)
+	
+	If Not btn Is Nothing Then
+		If MscNo = 0 Then MscNo = Com_GetMscNoByDBPrm(prmDBCashPrint)
+		btn.Visible = (Op.Trans(1).MiscID(MscNo) <> 0)
+		btn.Group = btn.Visible
+		Flag = True
+	Else
+		Flag = False
+	End If
+
+	' показать кнопки для печати чека возврата на КР
+	Set btn = tb.ItemByCommand(btnPrintCheckTo)
+	
+	If Not btn Is Nothing Then
+		If MscNo = 0 Then MscNo = Com_GetMscNoByDBPrm(prmDBCashPrint)
+		btn.Visible = (Op.Trans(1).MiscID(MscNo) <> 0)
+		' если есть кнопка печати чека, значит не первая в группе
+		If Not flag Then
+			btn.Group = btn.Visible
+		End If 
+	End If
+
+	' показать кнопки для импорта из ТСД
+	Set btn = tb.ItemByCommand(btnTCDImport)
+	
+	If Not btn Is Nothing Then
+		If MscNo = 0 Then MscNo = Com_GetMscNoByDBPrm(prmDBTCD)
+		btn.Visible = False
+
+		If Op.TemplateID <> 0 Then
+			Set Tml = Workarea.Template(Op.TemplateID)
+			MscID = com_getparamvalue(Tml, prmTMLTCD, 0)
+
+			If MscID <> 0 Then
+				btn.Visible = (workarea.misc(MscID).MscNo = MscNo) And MscNo <> 0
+			End If
+		End If
+
+		btn.Group = btn.Visible
+	End If
+End Sub
+'-----
+'
+'-----
+Function Form_CheckControls(FormPage, NormalBorderColor, AlertBorderColor)
+	Dim i, aControls, frmCtrl, IsChecked, j, Pos
+
+	Form_CheckControls = True
+	aControls = FormPage.ControlArray
+
+	For i = 0 To UBound(aControls)
+		Set frmCtrl = aControls(i)
+
+		If frmCtrl.Visible And LCase(frmCtrl.Tag) = "check" Then
+			Select Case frmCtrl.TypeName
+				Case "FrmSelector", "FrmEdit"
+					IsChecked = (frmCtrl.Text <> "")
+				Case "FrmComboBox"
+					IsChecked = (frmCtrl.value <> 0)
+			End Select
+
+			If Not IsChecked Then Form_CheckControls = False
+
+			For j = 0 To 3
+				Pos = 2 ^ j
+
+				If frmCtrl.BorderColor(Pos) = NormalBorderColor And Not IsChecked Then
+					frmCtrl.BorderColor(Pos) = AlertBorderColor
+				ElseIf frmCtrl.BorderColor(Pos) = AlertBorderColor And IsChecked Then
+					frmCtrl.BorderColor(Pos) = NormalBorderColor
+				End If
+			Next
+
+		End If
+	Next
+
+End Function
+'---
+'
+'---
+Sub Form_BrowseEnums(Form, EnumName, StartCommand)
+	Dim EnumString, EnumTmp
+	
+	' получить список перечислений по имени группы
+	Set EnumTmp = WorkArea.Enum(EnumName)
+
+	If Not EnumTmp Is Nothing Then
+		' сформировать строку для отображения меню
+		EnumString = EnumTmp.PopupMenuText(StartCommand)
+
+		If EnumString = "" Then 
+			' группа перечислений пуста
+			EnumString = "1:<Пусто>:999"
+		Else
+			' отобразить меню на экране
+			Form.ShowPopUp EnumString			
+		End If
+	Else
+		' группа перечислений пуста
+		EnumString = "1:<Пусто>:999"
+	End If
+
+End Sub
+'---
+'
+'---
+Sub Form_CheckDate(Op)
+	On Error Resume Next
+
+	Op.Date = Op.Date
+	
+	If err.number <> 0 Then
+		Op.Date = Op.Trans(1).Date
+	End If
+
+	Err.Clear
+
+End Sub
+'---
+'
+'---
+Function Form_GetEntDocName(EntBind)
+	Dim EntName
+
+	EntName = EntBind.ParamString(prmEntAlterName)
+	If EntName = "" Then EntName = EntBind.Name
+	Form_GetEntDocName	= EntName
+End Function
+'---
+'
+'---
+Function Form_GetUnitTag(Unit)
+	If Not Unit Is Nothing Then
+		Form_GetUnitTag = Unit.Tag
+	Else
+		Form_GetUnitTag = ""
+	End If
+End Function
+'---
+'
+'---
+Function Form_GetEnumValue(EnumName, Index, ByTag)
+	Dim EnumID, En
+
+	EnumID = WorkArea.Enums.Find(EnumName)
+
+	If EnumID <> 0 Then
+		Set En = WorkArea.Enum(EnumID)
+
+		If ByTag Then
+			Form_GetEnumValue = En.ItemTag(Index)
+		Else
+			Form_GetEnumValue = En.ItemName(Index)
+		End If
+	Else
+		Form_GetEnumValue = ""
+	End If
+
+End Function
+'---
+'
+'---
+Function Form_LoadPriceKinds(PriceID)
+	Dim i, pList, ComboStr
+
+	ComboStr = ""
+
+	If PriceID <> 0 Then
+	
+		Set pList = Workarea.PriceList(PriceID)
+	
+		With pList.priceKinds
+			For i = 1 To .count
+				If Not .Item(i) Is Nothing Then
+					With .Item(i)
+						If ComboStr <> "" Then ComboStr = ComboStr & "|"
+						ComboStr = ComboStr & .Name & ":" & .ID
+					End With
+				End If
+			Next		
+		End With
+	End If
+
+	Form_LoadPriceKinds = ComboStr
+
+End Function
+
+'---
+'
+'---
+Function Form_SetAgRow(Tr, ByRef prm)
+	Form_SetAgRow = True
+
+	If Tr.AgFromID = 0 Then 
+		Tr.AgFromID = prm(0)
+	Else
+		prm(0) = Tr.AgFromID
+	End If
+
+	If Tr.AgToID = 0 Then 
+		Tr.AgToID = prm(1)
+	Else
+		prm(1) = Tr.AgToID
+	End If
+
+End Function
+'---
+'
+'---
+Sub Form_UpdateChildDocs(Op, RefAfterCopy)
+	Dim i, ChildTrans, ChildOp, Mtr, exData
+
+	With Op.Linked
+		Set Mtr = Meter
+
+		Mtr.Open "Обновление документов ...", 1, .count
+
+		For i = 1 To .count
+			Mtr.Pos = i
+			Set ChildOp = .Item(i)
+			exData = updateMap(Op.GetExtraData, ChildOp.GetExtraData)
+
+			Set ChildTrans = ChildOp.TransList(1)
+			com_ClearTrans ChildTrans
+
+			Op.TransList(1).EnumTrans GetRef("UpdateChildRow"), ChildTrans
+
+			If Not RefAfterCopy Is Nothing Then RefAfterCopy Op, ChildOp
+
+			If Not Form_Save(ChildOp, Nothing) Then
+				MsgBox "Ну удалось сохранить подчиненный документ", vbExclamation, Op.Name
+			Else
+				ChildOp.SetExtraData exData
+			End If
+		Next
+
+		Mtr.Close
+	End With
+	
+End Sub
+'---
+'
+'---
+Function updateMap(exDataParent, exDataChild)
+	Dim ParentMap, ChildMap, keys, key, i, itemvalue, IsAdd
+
+	If exDataParent <> "" Then
+		Set ParentMap = CreateLibObject("Map")
+		ParentMap.xml = exDataParent
+
+		Set ChildMap = CreateLibObject("Map")
+		ChildMap.xml = exDataChild
+
+		keys = ParentMap.keys
+
+		For i = 0 To UBound(keys)
+			key = keys(i)
+
+			If ParentMap.Exists(key) Then
+				itemvalue = ParentMap(key)
+
+				If IsNumeric(itemvalue) Then
+					IsAdd = (itemvalue <> 0)
+				Else
+					IsAdd = (itemvalue <> "")
+				End If
+
+				If IsAdd Then	ChildMap(key) = ParentMap(key)
+
+			End If
+		Next
+
+		ChildMap("update") = "true"
+		updateMap = ChildMap.xml
+	Else
+		updateMap = ""
+	End If
+	
+	
+End Function
+'---
+'
+'---
+Function UpdateChildRow(Tr, ByRef ChildTrans)
+	Dim TrChild, i
+
+	UpdateChildRow = True
+	Set TrChild = ChildTrans.Item(Tr.RowNo2)
+	
+	TrChild.EntID = Tr.EntID
+	TrChild.SeriesID = Tr.SeriesID
+	TrChild.UnitID = Tr.UnitID
+	TrChild.Qty = Tr.Qty
+	TrChild.Sum = Tr.Sum
+	TrChild.Price = Tr.Price
+
+'	TrChild.FUnitID = Tr.FUnitID
+
+	With Tr.Params
+		For i = 1 To .Count
+			With .Item(i)
+				TrChild.Params(.Name).Value = Tr.Params(.Name).Value2
+			End With
+		Next
+	End With
+
+	With Workarea.Miscs
+		For i = 1 To .Count
+			With .Item(i)
+				If Tr.MiscID(.MscNo) <> 0 Then TrChild.MiscID(.MscNo) = Tr.MiscID(.MscNo)
+			End With
+		Next
+	End With
+
+End Function
+'---
+'
+'---
+Sub Form_CheckLibra(Op, sgrdEntsCol, ByRef LibraModule, ByRef ComPort)
+	Dim LibraID, LibraMsc, Tml
+
+	If Op.TemplateID = 0 Then
+		LibraID	 = 0
+	Else
+		Set Tml = Workarea.Template(Op.TemplateID)
+		LibraID = com_GetParamValue(Tml, prmTMLLibra, 0)
+	End If
+
+	If LibraID <> 0 Then
+		sgrdEntsCol.DisableBindClick True
+		sgrdEntsCol.CellType = acSelector
+		Set LibraMsc = Workarea.Misc(LibraID)
+		LibraModule = LibraMsc.String1
+		ComPort = LibraMsc.String2
+	Else
+		sgrdEntsCol.CellType = acEditor
+		sgrdEntsCol.DisableBindClick False
+		LibraModule = ""
+		ComPort = ""
+	End If		
+
+End Sub
+'---
+'
+'---
+Function Form_PopUpMenu(Form, aMenuCommands, aGroups)
+	Dim PopUpStr, i, IsEnabled
+
+	For i = 0 To UBound(aMenuCommands)
+		If aGroups(i) <> "" Then
+			IsEnabled = IsUserInGroup(aGroups(i))
+		Else
+			IsEnabled = True
+		End If
+				
+		If IsEnabled Then
+			PopUpStr = PopUpStr & iif(Right(PopUpStr, 1) <> "|" And PopUpStr <> "", "|", "") & aMenuCommands(i)
+		End If
+	Next
+
+	If Left(PopUpStr, 6) = "1:-:1|" Then PopUpStr = Mid(PopUpStr, 7)
+	Form_PopUpMenu = PopUpStr
+End Function
+'---
+'
+'---
+Sub Forms_sgrdSetRights(sgrd, cols, GroupName)
+	Dim CanEdit, i
+
+	CanEdit = IsUserNotInGroup(GroupName)
+	
+	For i = 0 To UBound(Cols)
+		With sgrd.Column(Cols(i))
+			If CanEdit Then
+				.CellType = acEditor
+				.CellDataType = vbCurrency
+				.BackColor = RGB(255, 255, 224)
+			Else
+				.CellType = acLabel
+				.CellDataType = vbCurrency
+				.BackColor = RGB(255, 255, 255)
+			End If
+		End With
+	Next
+End Sub
+'-----
+'
+'-----
+Function Form_GetAgAddress2(Ag, KindAddr)
+	Dim Addrs, Addr, PostAddr, JurAddr
+
+	Addr = ""
+
+	If Not Ag Is Nothing Then
+		JurAddr = Trim(Ag.Address)
+		PostAddr = Trim(com_getparamvalue(Ag, prmAgPostAddr, ""))
+
+		' если нужен адрес юридический (1)
+		If JurAddr <> "" And KindAddr = 1 Then Addr = JurAddr
+
+		' если нужен адрес почтовый (1) или почтовый пустой
+		If (PostAddr <> "" And KindAddr = 2) Or Addr = "" Then Addr = PostAddr
+
+		' если нужен почтовый, но он пустой
+		If JurAddr <> "" And KindAddr = 1 Then Addr = JurAddr
+	
+		' если оба адреса пустые, берем первый из фактов
+		If Addr = "" Then Addr = com_getfactvalue(Ag, fctAgAddress, Date, "")
+	End If
+
+	Form_GetAgAddress2 = com_addressnormalize(Addr)
+
+End Function
+'---
+'
+'---
+Function Form_Save2(Op, ExMap)
+	Dim Cancel, i, CurID
+
+	If Op.IsNew Then
+		Op.String2 = workarea.dbuser & Formatdate2(Now, " dd-mm-yy hh:nn")
+	Else
+		Op.String2 = Left(token(Op.String2, 1, "/") & "/" & workarea.dbuser & Formatdate2(Now, " dd-mm-yy hh:nn"), 50)
+	End If
+
+	With Op.Trans(1)
+		Op.String1 = Left(.AgFromBind.name, 23) & " -> " & Left(.AgToBind.Name, 23)
+	End With
+
+	Op.LockDate = True
+	Op.SetDate Op.Date
+
+	Op.Done = True
+
+	If Op.DocNo = "" Then Form_AutoNum Op
+
+	For i = 1 To Op.TransCount
+		CurID = Op.Trans(i).TransCurs(1).CurID
+		If CurID > 1 Then Op.TransList(i).SetCur 1, CurID
+	Next
+
+	Form_SaveTaxReport Op.TransList(1)
+
+	Cancel = False
+
+	With Op.TemplateInvoker2
+		.FireBeforeSave Cancel
+		.FireOnRecalc
+	End With
+
+	If Not op.Save(4) Then
+		MsgBox "Документ не сохранен", vbExclamation, Op.Name
+		Form_Save2 = False
+	Else
+		Op.SetExtraData ExMap.XML
+		Form_Save2 = True
+	End If
+End Function
+'--------
+'
+'--------
+Sub Form_LoadDefaultTml(CurrentOp)
+	Dim FolderID, TmlID, CurrentForm, aData, SQL
+
+	If Not CurrentOp.Folder Is Nothing Then
+		TmlID = CurrentOp.Folder.TemplateID
+	End If
+
+	If TmlID = 0 Then
+		If token(App.Version, 1, ".") = "7" Then
+			SQL = "select top 1 tml_id from templates where FRM_ID=" & CurrentOp.FormID
+		Else
+			SQL = "select top 1 tml_id from templates where TML_HIDDEN = 0 and FRM_ID=" & CurrentOp.FormID
+		End If
+
+		If GetRs2(SQL, aData) Then TmlID = aData(0, 0)
+	End If
+
+	If TmlID <> 0 Then
+		CurrentOp.TemplateID = TmlID
+		CurrentOp.TemplateInvoker2.FireAll
+	End If
+
+End Sub
+'--------
+'
+'--------
+Sub Form_LoadMiscs
+
+	PayTypeMscNo = Form_GetMscNoByDBPrm(prmDBPayType)
+	DeliveryTypeMscNo = Form_GetMscNoByDBPrm(prmDBDelivCond)
+	ManagerMscNo = Form_GetMscNoByDBPrm(prmDBManagers)
+
+	MscCostCenterNo = Form_GetMscNoByDBPrm(prmDbCostCenter)
+	MscDDSNo = Form_GetMscNoByDBPrm(prmDBDDS)
+	MscCalcNo = Form_GetMscNoByDBPrm(prmDBCalc)
+	MscCostItem = Form_GetMscNoByDBPrm(prmDBCostItem)
+
+	MscCondNo = Form_GetMscNoByDBPrm(prmDBCond)
+	MscOrderNo = Form_GetMscNoByDBPrm(prmDBOrder)
+
+	PayKindMscNo = Form_GetMscNoByDBPrm(prmDBPayKind)
+	AgreeMscNo = Form_GetMscNoByDBPrm(prmDBAgree)
+	CountriesMscNo = Form_GetMscNoByDBPrm(prmDBCountries)
+	DscMscNo = Form_GetMscNoByDBPrm(prmDBDiscountCards)
+	PositionListMscNo = Form_GetMscNoByDBPrm(prmDBPositionList)
+	CalendarMscNo = Form_GetMscNoByDBPrm(prmDBCalendar)
+	ColorMscNo = Form_GetMscNoByDBPrm(prmDBColor)
+	SizeMscNo = Form_GetMscNoByDBPrm(prmDBSize)
+	TCDMscNo = Form_GetMscNoByDBPrm(prmDBTCD)
+	' изменено 27/03/2020
+	PrintCashMscNo = Form_GetMscNoByDBPrm(prmDBCashPrint)
+End Sub
+'---
+' процедура импорта данных из ТСД
+'---
+Sub Form_DImport(Op, ExMap)
+	
+End Sub
+'---
+' расшифровка регистрационного номера корреспондента
+'---
+Function Form_AgRegNo(Ag, Mode)
+	If Not Ag Is Nothing Then
+		Form_AgRegNo = iif(Mode = 0 Or Mode = 1, Token(Ag.RegNo, 1, ";"), "") & iif(Mode = 0, " от ", "") & iif(Mode = 0 Or Mode = 2, Token(Ag.RegNo, 2, ";"), "")
+	Else
+		Form_AgRegNo = ""
+	End If
+End Function
+'---
+'
+'---
+'----- процедуры и функции на 25/11/2019

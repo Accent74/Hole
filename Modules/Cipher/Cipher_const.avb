@@ -1,0 +1,40 @@
+Option Explicit
+
+Const CIPHER_ENT_ROOT					= "CIPHER_ENT_ROOT"
+Const CIPHER_NEW_ENT_ROOT			= "CIPHER_NEW_ENT_ROOT" 
+Const CIPHER_AG_ROOT					= "CIPHER_AG_ROOT"				' Устарело
+Const CIPHER_NEW_AG_ROOT			= "CIPHER_NEW_AG_ROOT"
+Const CIPHER_ACC_ROOT					= "CIPHER_ACC_ROOT"
+Const CIPHER_ACC_INV_ROOT			= "CIPHER_ACC_INV_ROOT"		' Устарело
+Const CIPHER_PORT						= "CIPHER_PORT"
+Const CIPHER_BOUD						= "CIPHER_BOUD"
+Const CIPHER_AG_FOLDERS_LIST 	= "CIPHER_AG_FOLDERS_LIST"
+Const CIPHER_ENT_FOLDERS_LIST 	= "CIPHER_ENT_FOLDERS_LIST"
+Const CIPHER_ACC_INV_ID						= "CIPHER_ACC_INV_ID"
+Const CIPHER_AG_INV_ID						= "CIPHER_AG_INV_ID"
+
+Const FILE_NAME_ENT = "DBEnt.txt"
+Const FILE_NAME_AG = "DBAg.txt"
+Const FILE_NAME_REST = "DBRest.txt"
+Const FILE_NAME_INVENT = "DBInvent.txt"
+
+Const CIPHER_ENT_FLAG = "EntFlag"
+Const CIPHER_AG_FLAG = "AgFlag"
+Const CIPHER_REST_FLAG = "RestFlag"
+Const CIPHER_INVENT_FLAG = "Inventlag"
+Const CIPHER_NO_FLAGS = "NoFlags"
+
+Const AG_FULL_NAME = "Полное наименование"
+
+Const PRM_ENT_IRON_ID = 5338																' параметр для признака "металл"
+Const PRM_ENT_IRON_NAME = "ОТ_ Спец. режим учета по ед. изм."		' наименование параметра для признака "металл"
+Const PRM_ENT_IRON_VALUE = 747															' значение перечисления для признака "металл"
+Const CIPHER_PRL_IRON = "Металл"
+
+Const CIPHER_NO_ENT = 65659
+
+Const CIPHER_PRM_NEW_AG_ROOT = "Папка для новых корреспондентов"
+Const CIPHER_PRM_NEW_ENT_ROOT = "Папка для новых объектов учета"
+Const CIPHER_PRM_FLAGS = "Флажки"
+Const CIPHER_PRM_ENT_FLDS = "Папки объектов учета для загрузки"
+Const CIPHER_PRM_AG_FLDS = "Папки корреспондентов для загрузки"

@@ -1,0 +1,47 @@
+Option Explicit
+
+ChangeAccounts
+
+Sub ChangeAccounts
+	Dim i, n, j, NewAccCode, NewAccID
+
+	With Workarea.Accounts
+		For i = 1 To .Count
+			With .Item(i).Nested
+				For j = 1 To .Count
+					With .Item(j)
+						If InStr(.Code, "/") <> 0 Then	
+							NewAccCode = Token(.Code, 1, "/")
+							NewAccID = Workarea.GetAccID(NewAccCode)
+
+							If NewAccID <> 0 Then update_data .ID, NewAccID
+				
+						End If	
+					End With
+				Next
+			End With
+		Next
+	End With
+
+End Sub
+
+
+Sub update_data(OldID, NewID)
+	Dim SQL
+
+	With workarea.daodatabase
+		SQL = "update journal set j_sum = j_sum / 2 where acc_db = " & OldID & " or acc_cr = " & OldID
+		.execute SQL
+
+		SQL = "update journal set acc_db = " & NewID & " where acc_db=" & OldID
+		.execute SQL
+
+		SQL = "update journal set acc_cr = " & NewID & " where acc_cr=" & OldID
+		.execute SQL
+
+		SQL = "update entities set acc_id = " & NewID & " where acc_id=" & OldID
+		.execute SQL
+
+	End With
+
+End Sub

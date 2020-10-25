@@ -1,0 +1,218 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	022
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "022"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+	
+	If Not updater.fail Then PackBackupfiles Updater
+	If Not updater.fail Then updateparams workarea.ProjectItems(1).Item(1).params, prmPItemValidate, "frm", Updater
+	If Not updater.fail Then updateparams workarea.params, prmDBExtRepWizard, "db", Updater
+	If Not updater.fail Then updateparams findtemplateparam(workarea.templates), prmTMLAutonum, "tml", Updater
+	If Not updater.fail Then UpdateTml updater
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'---
+'
+'---
+Sub PackBackupfiles(Updater)
+	Dim RD, FSO, aBackUp, Fl, Fld
+	Dim Mtr, fName, fTime
+
+	If App.AppType <> "DAO" Then Exit Sub
+
+	Set RD = CreateLibObject("Redirect")
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+	
+	aBackUp = RD.GetPathArray("*.backup")
+	writelog Array("Упаковка копий баз данных."), updater
+
+	If UBound(aBackUp) <> -1 Then
+		Set Fld = FSO.GetFolder(aBackUp(0))
+
+		If Not Fld Is Nothing Then
+			Set Mtr = Meter
+
+			Mtr.Open "Упаковываю копии базы данных ...", 1, Fld.Files.Count
+
+			For Each Fl In Fld.Files
+				Mtr.StepIt
+
+				If InStr(fl.path, ".backup") <> 0 Then
+					fName = Left(fl.path, InStrRev(fl.path, ".adb") + 3)
+					fTime = Mid(fl.path, InStrRev(fl.path, ".adb") + 4)
+					if IsFileExists(fName) then FSO.DeleteFile fName
+					FSO.MoveFile fl.path, fName
+					If Not Backup_DAO(aBackUp(0), fName, fTime, updater) Then Exit Sub
+					FSO.DeleteFile fName
+				End If
+			Next
+
+			Mtr.Close
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Function Backup_DAO(Path, dbFileName, fTime, updater)
+	Dim Done, BackUpFileName
+	Dim Z, Sys
+
+	Set Sys = CreateLibObject("System")
+	BackUpFileName = Path & "\" & GetShortName(dbFileName) & Left(fTime, InStrRev(fTime, ".backup")) & "zip"
+
+	Set z = New zip
+	Done = False
+
+	If z.open(BackUpFileName) = 1 Then 
+		z.AddFile dbFileName
+		z.close
+
+		Done = Sys.Copyfile(BackUpFileName, Left(BackUpFileName, InStrRev(BackUpFileName, ".")) & "backup", True)
+		If Done Then Done = Sys.DeleteFile(BackUpFileName)
+	Else
+		writelog Array("Ошибка открытия файла: ", BackUpFileName), updater
+	End If
+
+	Backup_DAO = Done
+End Function
+'---
+'
+'---
+Function GetShortName(fName)
+	GetShortName = Right(fName, Len(fName) - InStrRev(fName, "\"))
+End Function
+'---
+'
+'---
+Sub updateparams(prms, prmName, prefix, Updater)
+	Dim prm, En, SQL, msgError
+
+	If prms.exists(prmName) Then
+		Set prm = prms.item(prmName)
+
+		If prm.RefKind = 18 Then
+			If workarea.enum(prm.RefID) Is Nothing Then
+				Set En = Workarea.Enum("Логика")
+				SQL = "update " & prefix & "_param_names Set prm_refid=" & En.ID & " where prm_id=" & prm.id
+				ExecQuery SQL, msgError
+
+				If msgError <> "" Then
+					writelog Array("Ошибка выполнения запроса: ", msgError, SQL), updater
+					updater.fail = True
+				End If
+			End If
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Function findtemplateparam(Root)
+	Dim i
+
+	Set findtemplateparam = Nothing
+
+	For i = 1 To Root.count
+		With Root.item(i)
+			If .type = 1 Then
+				Set findtemplateparam = .params
+				Exit Function
+			Else
+				Set findtemplateparam = findtemplateparam(.Children)
+			End If
+		End With
+	Next
+
+End Function
+'---
+'
+'---
+Sub UpdateTml(updater)
+	Dim OldTmlCmd, NewTmlCmd, i, j, TmlScript1, TmlScript2
+	Dim Mtr
+
+	writelog Array("Обработка шаблонов ..."), updater
+
+	OldTmlCmd = "				If MscID <> 0 Then" & vbCrLf & _
+						"					For j = 2 To nTransList" & vbCrLf & _
+						"						Op.TransList(j).SetMisc .MscNo, MscID" & vbCrLf & _
+						"					Next" & vbCrLf & _
+						"				End If" & vbCrLf
+
+	NewTmlCmd	= 	"				For j = 2 To nTransList " & vbCrLf & _
+						"					If (Op.Trans(j).MiscID(.MscNo) <> 0 And MscID = 0) Or MscID <> 0 Then" & vbCrLf & _
+						"						Op.TransList(j).SetMisc .MscNo, MscID" & vbCrLf & _
+						"					End If" & vbCrLf & _
+						"				Next" & vbCrLf
+
+	With Workarea.Templates
+		Set Mtr = Meter
+		Mtr.Open "Обработка шаблонов ...", 1, .Count
+
+		For i = 1 To .Count
+			Mtr.Pos = i
+			With .Item(i)
+				If .Type = 0 Then
+					With .Nested
+						For j = 1 To .Count
+							With .Item(j)
+								If .Type <> 0 Then
+									TmlScript1 = .GetScript
+									TmlScript2 = Replace(TmlScript1, OldTmlCmd, NewTmlCmd)
+									If TmlScript1 <> TmlScript2 Then	
+										.SetScript TmlScript2
+									End If
+								End If
+							End With
+						Next
+					End With
+				Else
+					TmlScript1 = .GetScript
+					TmlScript2 = Replace(TmlScript1, OldTmlCmd, NewTmlCmd)
+					If TmlScript1 <> TmlScript2 Then	
+						.SetScript TmlScript2
+					End If
+				End If
+			End With
+		Next
+
+		Mtr.Close
+	End With
+End Sub
+'---
+'
+'---
+		

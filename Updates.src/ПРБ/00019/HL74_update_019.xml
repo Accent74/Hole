@@ -1,0 +1,1230 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs>
+		<misc ID="161" GUID="{guid {F09DFDE9-1EF4-4845-A4E0-2E9FB027EC33}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="14" Name="Признаки документа" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="284" GUID="{guid {C277742C-4467-47B7-9D3F-36FC24C469A0}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="32" Name="Классы профессионального риска" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="197" GUID="{guid {9805D295-5051-4E8F-8B7F-F83AAF4ECF43}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="29" Name="Маршруты" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="287" GUID="{guid {A32BCE95-9543-4DBD-8BBC-BFE75B9F1CBA}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="33" Name="Способы оплаты" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="172" GUID="{guid {4E201ECA-6246-4565-8CF6-CFE074C7DC75}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="18" Name="Страны" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums>
+		<enum Name="Вид дохода для подоходного налога" ID="16" Tag="">
+			<enum Name="Зарплата" Tag="01:11010100" />
+			<enum Name="Вознаграждение" Tag= "02:11010200" />
+			<enum Name="Аренда" Tag="08:11010200" />
+			<enum Name="Социальные выплаты" Tag="10:11010100" />
+			<enum Name="Алименты" Tag="11:11010100" />
+			<enum Name="Доход самозанятых" Tag="13:11010100" />
+			<enum Name="Аренда земли" Tag="16:11010200" />
+			<enum Name="Больничные листы" Tag="19:11010100" />
+			<enum Name="Профсозные выплаты" Tag="15:11010100" />
+			<enum Name="Профсюзные подарки" Tag="14:11010100" />
+			<enum Name="Сдача вторсырья" Tag="18:11010200" />
+			<enum Name="Социальная помощь" Tag="20:11010100" />
+			<enum Name="Стоимость угля" Tag="17:11010100" />
+		</enum>
+		<enum Name="Вид дохода для ЕСВ" ID="17" Tag="">
+			<enum Name="Зарплата" Tag="1" />
+			<enum Name="Вознаграждение" Tag="2" />
+			<enum Name="Пособие" Tag="3" />
+		</enum>
+	</AccentEnums>
+	<AccentWorkarea>
+		<scripts configversion="019" configname="ПРБ" configdate="31/03/2018">
+			<query type="DAO" name="HL74_PayRollTaxRep" cmd="del"/>
+			<query type="DAO" name="HL74_PayRollTaxRep" cmd="add" lastmodifieddate="6/17/2017 2:30:24 PM">
+			PARAMETERS AccPayID Long, dStart DateTime, dEnd DateTime, prmID Long, mc Long;
+			SELECT JOURNAL.J_AG2, AGENTS.AG_CODE, AGENTS.AG_NAME, AGENTS.AG_DATE1, AGENTS.AG_DATE2, Sum(JOURNAL.[J_SUM]) AS AgSum, ENUMS.ENM_TAG
+			FROM ((DOCUMENTS INNER JOIN JOURNAL ON DOCUMENTS.DOC_ID = JOURNAL.DOC_ID) LEFT JOIN (ENT_PARAMS LEFT JOIN ENUMS ON ENT_PARAMS.PRM_LONG = ENUMS.ENM_ID) ON JOURNAL.J_ENT = ENT_PARAMS.ENT_ID) INNER JOIN AGENTS ON JOURNAL.J_AG2 = AGENTS.AG_ID
+			WHERE (((JOURNAL.ACC_CR)=[AccPayID]) AND ((JOURNAL.J_DONE)=2) AND ((DOCUMENTS.DOC_PD1)&gt;=[dStart] And (DOCUMENTS.DOC_PD1)&lt;[dEnd]) AND ((JOURNAL.MC_ID)=[MC]))
+			GROUP BY JOURNAL.J_AG2, AGENTS.AG_CODE, AGENTS.AG_NAME, AGENTS.AG_DATE1, AGENTS.AG_DATE2, ENUMS.ENM_TAG, ENT_PARAMS.PRM_ID
+			HAVING (((ENT_PARAMS.PRM_ID)=prmID));
+			</query>
+			<query type="DAO" name="HL74_RestEntPriceList2" cmd="del"/>
+			<query type="DAO" name="HL74_RestEntPriceList2" cmd="add" lastmodifieddate="8/15/2017 4:53:38 PM">
+			PARAMETERS AgID Long, AccID Long, EntID Long, plist Long, Pkind Long, onDate DateTime, MC Long;
+			SELECT ge.ent_ID, ge.ent_name, j.j_ent, e.ent_name, e.ENT_CAT, e.ENT_ART, e.ENT_NOM, e.ENT_BAR, Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum], (Select top 1 PRC_CONTENTS.PRC_VALUE 
+				FROM PRC_CONTENTS 
+				WHERE 
+			PRC_CONTENTS.ENT_ID=j_ent And 
+					PRC_CONTENTS.PRC_DATE&lt;=[OnDate] And 
+					PRC_CONTENTS.PRL_ID= [plist] And 
+					PRC_CONTENTS.PRC_ID=[pkind]
+				Order by PRC_CONTENTS.PRC_DATE DESC) AS EntPrice, IIf([e].[UN_SELF]=1,[eu].[UN_SHORT],[geu].[UN_SHORT]) AS UnName
+			FROM (ENTITIES AS e LEFT JOIN UNITS AS eu ON e.UN_ID = eu.UN_ID) RIGHT JOIN (((JOURNAL AS j LEFT JOIN ENT_TREE AS et ON j.J_ENT = et.ID) LEFT JOIN ENTITIES AS ge ON et.P0 = ge.ENT_ID) LEFT JOIN UNITS AS geu ON ge.UN_ID = geu.UN_ID) ON e.ENT_ID = j.J_ENT
+			WHERE j.J_DONE=2 
+			AND j.J_DATE&lt;[onDate] 
+			AND j.MC_ID=[MC]
+			AND ((j.ACC_DB=[AccID] AND j.J_AG1=[AgID]) OR (j.ACC_CR=[AccID] AND j.J_AG2=[AgID]))
+			AND ([j].[J_ent] In (select id from ent_tree where EntID in (id, p0, p1, p2, p3, p4, p5, p6, p7))) = true
+			GROUP BY ge.ent_ID, ge.ent_name, j.j_ent, e.ent_name, e.ENT_CAT, e.ENT_ART, e.ENT_NOM, e.ENT_BAR, IIf([e].[UN_SELF]=1,[eu].[UN_SHORT],[geu].[UN_SHORT])
+			HAVING (((Sum([J_QTY]*(IIf([ACC_DB]=[AccID] And [J_AG1]=[AgID],1,0)-IIf([ACC_CR]=[AccID] And [J_AG2]=[AgID],1,0))))&lt;&gt;0) AND ((Sum([J_SUM]*(IIf([ACC_DB]=[AccID] And [J_AG1]=[AgID],1,0)-IIf([ACC_CR]=[AccID] And [J_AG2]=[AgID],1,0))))&lt;&gt;0));
+			</query>
+			<query type="DAO" name="ST7_Assets_CalcTotalSum" cmd="del"/>
+			<query type="DAO" name="ST7_Assets_CalcTotalSum" cmd="add" lastmodifieddate="3/29/2018 2:54:26 PM">
+			PARAMETERS AgID Long, AccID Long, EntID Long, onDate DateTime, DocID Long, MC Long;
+			SELECT Sum(IIF(ACC_DB = [AccID] And J_AG1 = [AgID], J_SUM, 0) -
+								 IIF(ACC_CR = [AccID] And J_AG2 = [AgID], J_SUM, 0)), Sum(IIF(ACC_DB = [AccID] And J_AG1 = [AgID], J_QTY, 0) -
+								 IIF(ACC_CR = [AccID] And J_AG2 = [AgID], J_QTY, 0))
+			FROM JOURNAL
+			WHERE ((JOURNAL.ACC_DB = [AccID] And JOURNAL.J_AG1 = [AgID])
+				   OR (JOURNAL.ACC_CR = [AccID] And JOURNAL.J_AG2 = [AgID]))
+			   And JOURNAL.J_DONE = 2
+			   And JOURNAL.J_DATE &lt;= [OnDate]
+			   And JOURNAL.J_ENT = [EntID]
+			   And JOURNAL.DOC_ID &lt;&gt; [DocID]
+			   And JOURNAL.MC_ID = [MC];
+			</query>
+			<query type="DAO" name="ST74_AssetsGetRest2" cmd="del"/>
+			<query type="DAO" name="ST74_AssetsGetRest2" cmd="add" lastmodifieddate="2/20/2017 8:45:33 PM">
+			SELECT ST74_AssetsGetRest.J_ENT, ST74_AssetsGetRest.AgID, sum(ST74_AssetsGetRest.Expr1002), sum(ST74_AssetsGetRest.Expr1003), ST74_AssetsGetRest.ENT_NAME
+			FROM ST74_AssetsGetRest
+			GROUP BY ST74_AssetsGetRest.J_ENT, ST74_AssetsGetRest.AgID, ST74_AssetsGetRest.ENT_NAME
+			ORDER BY ST74_AssetsGetRest.ENT_NAME;
+			</query>
+			<query type="DAO" name="ST74_AssetsGetRestEnt2" cmd="del"/>
+			<query type="DAO" name="ST74_AssetsGetRestEnt2" cmd="add" lastmodifieddate="2/20/2017 8:42:38 PM">
+			SELECT ST74_AssetsGetRestEnt.J_ENT, ST74_AssetsGetRestEnt.AgID, sum(ST74_AssetsGetRestEnt.Expr1002), sum(ST74_AssetsGetRestEnt.Expr1003), ST74_AssetsGetRestEnt.ENT_NAME
+			FROM ST74_AssetsGetRestEnt
+			GROUP BY ST74_AssetsGetRestEnt.J_ENT, ST74_AssetsGetRestEnt.AgID, ST74_AssetsGetRestEnt.ENT_NAME
+			ORDER BY ST74_AssetsGetRestEnt.ENT_NAME;
+			</query>
+
+			<query type="OLEDB" name="" cmd="exec">
+			if (select IsNull(Object_id('[dbo].[HL74_GetRestsSeriesRT]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[HL74_GetRestsSeriesRT]
+				
+			if (select IsNull(Object_id('[dbo].[ST74_CalcEntRest]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_CalcEntRest]
+
+			if (select IsNull(Object_id('[dbo].[HL74_CalcGSM_Total]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[HL74_CalcGSM_Total]
+
+			if (select IsNull(Object_id('[dbo].[HL74_custombind_goods_oddments_twice_price]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[HL74_custombind_goods_oddments_twice_price]
+
+			if (select IsNull(Object_id('[dbo].[HL74_CalcFirstEntSeriesCostPrice]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[HL74_CalcFirstEntSeriesCostPrice]
+
+			if (select IsNull(Object_id('[dbo].[ST7_SelectDocsForTMLPriority2]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST7_SelectDocsForTMLPriority2]
+
+			if (select IsNull(Object_id('[dbo].[ST7_ClearDocDoneForTMLPriority]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST7_ClearDocDoneForTMLPriority]
+
+			if (select IsNull(Object_id('[dbo].[ST74_CalcEntRest2]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_CalcEntRest2]
+
+			if (select IsNull(Object_id('[dbo].[ST74_CRReport]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_CRReport]
+
+			if (select IsNull(Object_id('[dbo].[ST74_DBReport]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_DBReport]
+
+			if (select IsNull(Object_id('[dbo].[ST74_DBReportCurs]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_DBReportCurs]
+
+			if (select IsNull(Object_id('[dbo].[ST7_ClearDocDoneForTMLPriority2]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST7_ClearDocDoneForTMLPriority2]
+
+			if (select IsNull(Object_id('[dbo].[ST74_CRReportCurs]'),0))  &lt;&gt; 0
+				DROP PROCEDURE [dbo].[ST74_CRReportCurs]
+
+			</query>
+			<query type="OLEDB" name="" cmd="exec">
+
+			CREATE PROCEDURE [dbo].[ST7_ClearDocDoneForTMLPriority]
+				@dStart DateTime, @dEnd DateTime, @TmlPrmID int, @MC int
+
+			AS
+			SET NOCOUNT ON
+
+			select doc_id 
+			into #docs
+			from DOCUMENTS
+			Where DOCUMENTS.TML_ID in (Select TML_ID FROM TML_PARAMS Where PRM_ID = @TmlPrmID And PRM_LONG &lt;&gt; 0)
+					And (DOC_DATE between @dStart and @dEnd )
+					And DOC_DONE &lt;100 and MC_ID = @MC
+
+
+			BEGIN TRY
+				BEGIN TRAN
+					update documents 
+					set doc_done = 0
+					where doc_id in (select doc_id from #docs)
+
+					update journal
+					set j_done = 0
+					where doc_id in (select doc_id from #docs);
+				COMMIT TRAN
+			END TRY
+
+			BEGIN CATCH
+				ROLLBACK TRAN
+			END CATCH
+
+			GRANT EXECUTE ON [dbo].[ST7_ClearDocDoneForTMLPriority] TO ap_public
+
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			create PROCEDURE [dbo].[HL74_custombind_goods_oddments_twice_price]
+					  @EntName nvarchar(255), 
+					  @AgID Int, 
+					  @AccID Int, 
+					  @DocID Int, 
+					  @OnDate DateTime, 
+					  @MC int, 
+					  @pID int, 
+					  @pKindID int
+
+				AS
+				SET NOCOUNT ON
+
+				Declare @str nvarchar(255)
+
+				Set @str = N'%' + @EntName + N'%' 
+
+				---
+				--- Создаем временную таблицу для выборки объектов 
+				---
+				CREATE TABLE #Ent(EntID Int, EntQty Money, EntSum Money)
+
+				--- добавляем все ОУ, подходящие по имени
+				INSERT INTO #Ent (EntID,  EntQty, EntSum)
+				select ent_id, 0, 0
+				from entities 
+				where ENTITIES.ENT_TYPE &gt; 1000 and upper( ENTITIES.ENT_NAME) like upper(@str)
+
+				--вставляем дебет (с плюсами)
+				INSERT INTO #Ent (EntID,  EntQty, EntSum)
+
+				SELECT JOURNAL.J_ENT, 
+					Sum(CASE 
+						WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN IsNull(J_QTY, 0)
+					ELSE 0
+					END),
+
+					Sum(CASE 
+						WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+					ELSE 0
+					END)
+
+				FROM JOURNAL
+					left join entities as e on e.ent_id = journal.J_ENT 
+				WHERE (JOURNAL.ACC_DB=@AccID) 
+						AND (JOURNAL.J_AG1=@AgID)  
+						AND (JOURNAL.J_DONE=2) 
+						and JOURNAL.MC_ID = @MC
+						AND (JOURNAL.DOC_ID&lt;&gt;@DocID) 
+						AND (JOURNAL.J_DATE &lt; @OnDate)
+						and j_ent in (select EntID from #Ent)
+				group by JOURNAL.J_ENT
+				--вставляем кредит (с минусами)
+				INSERT INTO #Ent (EntID,  EntQty, EntSum)
+
+				SELECT JOURNAL.J_ENT, 
+					Sum(CASE 
+						WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN IsNull(-J_QTY, 0)
+					ELSE 0
+					END),
+
+					Sum(CASE 
+						WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+					ELSE 0
+					END)
+
+				FROM JOURNAL 
+					left join entities as e on e.ent_id = journal.J_ENT 
+				WHERE (JOURNAL.ACC_CR=@AccID) 
+						AND (JOURNAL.J_AG2=@AgID)  
+						AND (JOURNAL.J_DONE=2) 
+						and JOURNAL.MC_ID = @MC
+						AND (JOURNAL.DOC_ID&lt;&gt;@DocID) 
+						AND (JOURNAL.J_DATE&lt;@OnDate) 
+						and j_ent in (select EntID from #Ent)
+				group by JOURNAL.J_ENT
+
+				--Окончательная выборка
+				SELECT top 21 ENTITIES.ENT_NAME, 
+						Sum(EntQty),
+						Sum(EntSum) / Sum(EntQty),
+						(select top 1 p.prc_value 
+							from prc_contents as p 
+							where p.ent_id = EntID 
+								and p.prl_id = @pID 
+								and p.prc_id = @pKindID 
+								and p.prc_date &lt;= @OnDate 
+							order by p.prc_date desc) as EntityPrice,
+						Sum (EntSum) AS Sum, 
+						#Ent.EntID as EntID
+
+				FROM #Ent LEFT JOIN  ENTITIES ON #Ent.EntID= ENTITIES.ENT_ID
+				GROUP BY #Ent.EntID,  ENTITIES.ENT_NAME,  ENTITIES.ENT_TYPE
+				HAVING Sum (EntSum) &lt;&gt; 0
+				ORDER BY  Sum (EntSum) desc, ENTITIES.ENT_NAME
+
+			GRANT EXECUTE ON HL74_custombind_goods_oddments_twice_price TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE PROCEDURE [dbo].[HL74_CalcGSM_Total]
+					   @A203ID Int, 
+					   @AUATPKID Int, 
+					   @Date1 DateTime, 
+					   @Date2 DateTime, 
+					   @MC int
+
+					AS
+					SET NOCOUNT ON
+
+					CREATE TABLE #Jur (DocID int, Dt datetime, AccDB int, AccCR int, Ent int, Suma Money, Qty Money, FQty Money)
+
+					INSERT INTO #Jur (DocID, Dt, AccDB, AccCR, Ent, Suma, Qty, FQty)
+					Select DOC_ID, J_DATE, ACC_DB, ACC_CR, J_ENT, J_SUM, J_QTY, JF_QTY
+					From JOURNAL
+					Where MC_ID = @MC
+					and J_DONE = 2
+					and J_DATE &lt;= @Date2
+
+			select je.ENT_NAME, isnull(sum(j1.Qty), 0) as Run, isnull(sum(j1.FQty), 0) as Hrs,
+				isnull(sum(j2.Qty), 0) as Ltr_OnStart, isnull(sum(j2.Suma), 0) as Sm_OnStart,
+				isnull(sum(j3.Qty), 0) as Ltr_DT, isnull(sum(j3.Suma), 0) as Sm_DT,
+				isnull(sum(j4.Qty), 0) as Ltr_CR, isnull(sum(j4.Suma), 0) as Sm_CR,
+				isnull(sum(j5.Qty), 0) as Ltr_OnEnd, isnull(sum(j5.Suma), 0) as Sm_OnEnd
+			from 
+				(select j.DocID, j.Ent, e.ENT_NAME
+				from #Jur j, ENTITIES e
+				where j.Dt between @Date1 and @Date2
+				and @A203ID in (j.AccCR, j.AccDB)
+				and j.Ent in
+					(select e.ENT_ID
+					from ENTITIES f, ENT_TREE et, ENTITIES e
+					where f.ENT_NAME = 'Топливо'
+					and f.ENT_ID in (P0, P1, P2, P3, P4, P5, P6)
+					and e.ENT_ID = et.ID)
+				and e.ENT_ID = j.Ent) je
+			left join
+				(select j.DocID, j.Qty, j.FQty
+				from #Jur j
+				where j.AccDB = @AUATPKID
+				and j.Dt between @Date1 and @Date2) j1 on j1.DocID = je.DocID
+			left join
+				(select DocID,
+				iif(j.AccCR = @A203ID, -j.Qty, j.Qty) as Qty,
+				iif(j.AccCR = @A203ID, -j.Suma, j.Suma) as Suma
+				from #Jur j
+				where j.Dt &lt; @Date1
+				and @A203ID in (j.AccCR, j.AccDB)) j2 on j2.DocID = je.DocID
+			left join
+				(select DocID, j.Qty,	j.Suma
+				from #Jur j
+				where j.Dt between @Date1 and @Date2
+				and j.AccDB = @A203ID) j3 on j3.DocID = je.DocID
+			left join
+				(select DocID,	j.Qty,	j.Suma
+				from #Jur j
+				where j.Dt between @Date1 and @Date2
+				and j.AccCR = @A203ID) j4 on j4.DocID = je.DocID
+			left join
+				(select DocID,
+				iif(j.AccCR = @A203ID, -j.Qty, j.Qty) as Qty,
+				iif(j.AccCR = @A203ID, -j.Suma, j.Suma) as Suma
+				from #Jur j
+				where @A203ID in (j.AccCR, j.AccDB)) j5 on j5.DocID = je.DocID
+			group by je.ENT_NAME
+			order by je.ENT_NAME
+
+				DROP TABLE #Jur
+
+			GRANT EXECUTE ON HL74_CalcGSM_Total TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE PROCEDURE [dbo].[ST74_CalcEntRest]
+					   @AgID Int, 
+					   @AccID Int, 
+					   @DocID Int, 
+					   @OnDate DateTime, 
+					   @MC int
+
+					AS
+					SET NOCOUNT ON
+
+					---
+					--- Создаем временную таблицу для выборки объектов в разрезе серий
+					---
+					CREATE TABLE #Ent(SerID int, EntID int, RestQty Money, RestSum Money)
+
+					--вставляем дебет (с плюсами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID ) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+					WHERE JOURNAL.ACC_DB=@AccID AND JOURNAL.J_AG1=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID ) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+					WHERE	JOURNAL.ACC_CR=@AccID AND JOURNAL.J_AG2=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+					--Окончательная выборка
+					SELECT	0, 
+							EntID, 
+							Sum(RestQty) AS RestQty, 
+							Sum (RestSum) AS RestSum
+					FROM #Ent 
+					group by EntID
+					HAVING Sum(RestQty)&lt;&gt;0 or Sum(RestSum)&lt;&gt;0 
+
+					drop table #Ent
+			GRANT EXECUTE ON ST74_CalcEntRest TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+		
+			create PROCEDURE [dbo].[HL74_GetRestsSeriesRT]
+			   @AgID Int, 
+			   @AccID Int, 
+			   @AccExtID Int, 
+			   @DocID int,
+			   @OnDate DateTime, 
+			   @MC int
+
+			AS
+			SET NOCOUNT ON
+
+			---
+			--- Создаем временную таблицу для выборки объектов в разрезе серий
+			---
+			CREATE TABLE #Ent(EntID int, SerID int, RestQty Money, RestSum Money, RestExtSum Money, RestCost Money)
+
+			--вставляем дебет (с плюсами)
+			INSERT INTO #Ent (EntID, SerID, RestQty, RestSum, RestExtSum, RestCost)
+
+			SELECT
+				j_ent,
+				SER_ID,
+				CASE 
+					WHEN (ACC_DB=@AccID And J_AG1=@AgID ) THEN IsNull(J_QTY, 0)
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_DB=@AccID And ACC_CR=@AccExtID And J_AG1=@AgID) THEN J_SUM
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_DB=@AccID And ACC_CR&lt;&gt;@AccExtID And J_AG1=@AgID) THEN J_SUM
+				ELSE 0
+				end
+			FROM JOURNAL
+			WHERE ((JOURNAL.ACC_DB=@AccID AND JOURNAL.J_AG1=@AgID) 
+					or (JOURNAL.ACC_DB=@AccExtID  AND JOURNAL.J_AG1=@AgID))
+					and JOURNAL.J_DONE=2
+					AND (JOURNAL.J_DATE&lt;=@OnDate) 
+					and JOURNAL.MC_ID = @MC
+					and DOC_ID &lt;&gt; @DocID 
+
+			--вставляем кредит (с минусами)
+			INSERT INTO #Ent (EntID, SerID, RestQty, RestSum, RestExtSum, RestCost)
+
+			SELECT
+				j_ent,
+				SER_ID,
+				CASE 
+					WHEN (ACC_CR=@AccID And J_AG2=@AgID ) THEN IsNull(-J_QTY, 0)
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_CR=@AccID And ACC_DB=@AccExtID And J_AG2=@AgID) THEN -J_SUM
+				ELSE 0
+				END,
+
+				CASE 
+					WHEN (ACC_CR=@AccID And ACC_DB&lt;&gt;@AccExtID And J_AG2=@AgID) THEN -J_SUM
+				ELSE 0
+				end
+			FROM JOURNAL
+			WHERE ((JOURNAL.ACC_CR=@AccID AND JOURNAL.J_AG2=@AgID) 
+					or (JOURNAL.ACC_CR=@AccExtID  AND JOURNAL.J_AG2=@AgID))
+					and JOURNAL.J_DONE=2
+					AND (JOURNAL.J_DATE&lt;=@OnDate) 
+					and JOURNAL.MC_ID = @MC
+					and DOC_ID &lt;&gt; @DocID 
+					
+			--Окончательная выборка
+			SELECT EntID, 
+					SerID, 
+					Sum (RestSum) AS RestSum, 
+					Sum(RestExtSum), 
+					Sum(RestQty) AS RestQty, 
+					Sum(RestCost) as RestCost
+			FROM #Ent 
+			--HAVING Sum(RestQty)&lt;&gt;0
+
+			drop table #Ent
+			GRANT EXECUTE ON HL74_GetRestsSeriesRT TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			create procedure HL74_CalcFirstEntSeriesCostPrice 
+				@Acc28 int,
+				@Acc63 int,
+				@serID int,
+				@OnDate datetime,
+				@mc int
+
+			as
+				set nocount on
+
+				select id
+				into #acc28
+				from acc_tree
+				where @Acc28 in (id, p0, p1, p2, p3, p4, p5, p6, p7)
+
+				select id
+				into #acc63
+				from acc_tree
+				where @acc63 in (id, p0, p1, p2, p3, p4, p5, p6, p7)
+
+				select sum(j_sum), sum(j_qty)
+				from journal
+				where 
+					j_done = 2
+					and mc_id = @mc
+					and acc_db in (select id from #acc28)
+					and acc_cr in (select id from #acc63)
+					and j_date &lt; @OnDate 
+					and ser_id = @serID
+
+			drop table #acc28
+			drop table #acc63
+
+			GRANT EXECUTE ON HL74_CalcFirstEntSeriesCostPrice TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE PROCEDURE 	[dbo].[ST7_SelectDocsForTMLPriority2]
+				@dStart DateTime, @dEnd DateTime, @pStart DateTime, @pEnd DateTime, @TmlPrmID int, @MC int
+			AS
+			SET NOCOUNT ON
+
+			Select DOCUMENTS.DOC_ID
+			FROM DOCUMENTS INNER Join TML_PARAMS On DOCUMENTS.TML_ID = TML_PARAMS.TML_ID
+			WHERE (((TML_PARAMS.PRM_LONG)&lt;&gt;0) And ((DOCUMENTS.DOC_DONE) &lt; 100) 
+				And ((DOCUMENTS.DOC_DATE) between @dStart and @dEnd) 
+				And ((DOCUMENTS.DOC_DATE) between @pStart and @pEnd) 
+				And ((TML_PARAMS.PRM_ID)=@TmlPrmID)) and MC_ID = @MC
+			ORDER BY documents.DOC_DATE, TML_PARAMS.PRM_LONG
+
+			GRANT EXECUTE ON ST7_SelectDocsForTMLPriority2 TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+			CREATE PROCEDURE [dbo].[ST7_ClearDocDoneForTMLPriority2] 
+				@dStart DateTime, @dEnd DateTime, @pStart DateTime, @pEnd DateTime, @TmlPrmID int, @MC int
+
+			AS
+			SET NOCOUNT ON
+
+			select doc_id 
+			into #docs
+			from DOCUMENTS
+			Where DOCUMENTS.TML_ID in (Select TML_ID FROM TML_PARAMS Where PRM_ID = @TmlPrmID And PRM_LONG &lt;&gt; 0)
+					And (DOC_DATE between @dStart and @dEnd )
+					And (DOC_DATE between @pStart and @pEnd )
+					And DOC_DONE &lt;100 and MC_ID = @MC
+
+
+			BEGIN TRY
+				BEGIN TRAN
+					update documents 
+					set doc_done = 0
+					where doc_id in (select doc_id from #docs)
+
+					update journal
+					set j_done = 0
+					where doc_id in (select doc_id from #docs);
+				COMMIT TRAN
+			END TRY
+
+			BEGIN CATCH
+				ROLLBACK TRAN
+			END CATCH
+
+			GRANT EXECUTE ON ST7_ClearDocDoneForTMLPriority2 TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE PROCEDURE [dbo].[ST74_CalcEntRest2]
+					   @EntID Int,
+					   @AgID Int, 
+					   @AccID Int, 
+					   @DocID Int, 
+					   @OnDate DateTime, 
+					   @MC int
+
+					AS
+					SET NOCOUNT ON
+
+					---
+					--- —оздаем временную таблицу дл¤ выборки объектов в разрезе серий
+					---
+					CREATE TABLE #Ent(SerID int, EntID int, RestQty Money, RestSum Money)
+
+					--вставл¤ем дебет (с плюсами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID ) THEN IsNull(J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_DB=@AccID And J_AG1=@AgID) THEN J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+					WHERE JOURNAL.ACC_DB=@AccID AND JOURNAL.J_AG1=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+					--вставляем кредит (с минусами)
+					INSERT INTO #Ent (SerID, EntID, RestQty, RestSum)
+
+					SELECT SER_ID, J_ent, 
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID ) THEN IsNull(-J_QTY, 0)
+						ELSE 0
+						END),
+
+						sum(CASE 
+							WHEN (ACC_CR=@AccID And J_AG2=@AgID) THEN -J_SUM
+						ELSE 0
+						END)
+
+					FROM JOURNAL
+					WHERE	JOURNAL.ACC_CR=@AccID AND JOURNAL.J_AG2=@AgID
+							and JOURNAL.J_DONE=2
+							AND (doc_id&lt;&gt;@DocID) 
+							AND (JOURNAL.J_DATE&lt;=@OnDate) 
+							and JOURNAL.MC_ID = @MC
+					group by SER_ID, J_ent
+
+					--окончательная выборка
+					SELECT	SerID, EntID, 
+							Sum(RestQty) AS RestQty, 
+							Sum (RestSum) AS RestSum
+					FROM #Ent e, ENT_TREE et
+					WHERE et.ID = e.EntID AND @EntID in (p0,p1,p2,p3,p4,p5,p6,p7)
+					group by SerID, EntID
+					HAVING Sum(RestQty)&lt;&gt;0 or Sum(RestSum)&lt;&gt;0
+					order by SerID, EntID
+
+					drop table #Ent
+
+			GRANT EXECUTE ON [dbo].[ST74_CalcEntRest2] TO [ap_public]
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE procedure [dbo].[ST74_CRReport] 
+				@AccID int,
+				@dEnd datetime,
+				@mc int
+			as
+				set nocount on
+
+				--- результирующая таблица
+				create table #report (AgID int, TotalSum money, DocID int, DocDate datetime, DocNo nvarchar(50), DocSum money, PayDate datetime)
+
+				--- выбрали кредиторку. только задолженности по покупателям
+				select	j_ag1 as AgID, 
+						sum(j_sum) as TotalSum
+				into #JO6
+				from journal j
+				with (nolock) 
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_db = @AccID
+				group by j_ag1
+				
+				insert into #JO6 (AgID, TotalSum)
+				select	j_ag2, 
+						-sum(j_sum)
+				from 	journal j
+				with (nolock) 
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_cr = @AccID
+				group by j_ag2
+
+				--- курсор по все записям дебиторки
+				declare @AgID int, @AgSum Money
+				declare DocList cursor for
+
+					select #JO6.AgID, 
+						-Sum(#JO6.TotalSum)
+					from #JO6 with (nolock) 
+					Group by #JO6.AgID
+					Having Sum(#JO6.TotalSum) &lt; 0
+
+				open DocList
+
+				fetch next From DocList into @AgID, @AgSum
+
+				while @@FETCH_STATUS = 0
+					begin
+						declare @DocID int, 
+								@DocDate datetime, 
+								@DocNo nvarchar(50),
+								@DocSum money,
+								@PayDate datetime,
+								@PaySum money = 0,
+								@TotalSum money = 0
+
+						--- выбрали все документы по покупателю до даты отчета
+						declare AgDocList cursor for
+							select j.doc_id, 
+									doc_date, 
+									doc_no, 
+									sum(j.j_sum), 
+									isnull(doc_pd3, doc_date) 
+							from journal j
+								left join documents d on d.doc_id = j.doc_id
+							where j_ag1 = @AgID
+								and acc_db = @AccID 
+								and acc_cr &lt;&gt; @AccID
+								and j_done = 2
+								and j.mc_id = @mc 
+								and d.doc_date &lt; @dEnd 
+							group by j.doc_id, doc_date, doc_no, isnull(doc_pd3, doc_date)
+							having sum(j.j_sum) &gt; 0
+							order by isnull(doc_pd3, doc_date) desc, doc_no desc
+
+						open AgDocList
+						fetch next from AgDocList
+						into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+
+						--- макс сумма задолженности (для расчетов)
+						set @TotalSum = @AgSum
+
+						insert into #report (AgID, DocID, TotalSum) values (@AgID, 0, @AgSum)
+
+						--- по всем документам от конца пока не выбрали всю сумму
+						while @@FETCH_STATUS = 0 and @TotalSum &gt; 0
+							begin
+								--- если остаток суммы меньше суммы по документу, то делаем сумму задолженности == остатку
+								if @TotalSum &lt; @DocSum
+									set @DocSum = @TotalSum
+
+								--- уменьшили сумму задолженности на сумму документа
+								set @TotalSum = @TotalSum - @DocSum
+								
+								insert into #report (AgID, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate) values
+												(@AgID, 0, @DocID, @DocDate, @DocNo, @DocSum, @PayDate)
+								fetch next from AgDocList
+								into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+							end
+
+						close AgDocList
+						deallocate AgDocList
+
+						fetch next From DocList into @AgID, @AgSum
+					end
+
+				close DocList
+				deallocate DocList
+
+				select AgID, 
+					Ag_Code, 
+					Ag_NAME, 
+					TotalSum, 
+					DocID, 
+					DocDate, 
+					DocNo, 
+					DocSum, 
+					PayDate
+				from #report
+					left join AGENTS on ag_id = AgID
+				order by Ag_Name, AgID, DocDate, DocID, DocNo, PayDate
+
+				drop table #report, #JO6
+
+			GRANT EXECUTE ON [dbo].[ST74_CRReport] TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE procedure [dbo].[ST74_CRReportCurs] 
+				@AccID int,
+				@CursID int,
+				@dEnd datetime,
+				@mc int
+			as
+				set nocount on
+
+				--- результирующая таблица
+				create table #report (AgID int, TotalSum money, DocID int, DocDate datetime, DocNo nvarchar(50), DocSum money, PayDate datetime)
+
+				--- выбрали кредиторку. только задолженности по поставщикам
+				select	j_ag1 as AgID, 
+						sum(JC_SUM) as TotalSum
+				into #JO6
+				from journal j with (nolock) 
+					left join JRN_CRC jc on jc.J_ID = j.J_ID
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_db = @AccID
+					and jc.CRC_ID = @CursID
+				group by j_ag1
+				
+				insert into #JO6 (AgID, TotalSum)
+				select	j_ag2, 
+						-sum(JC_SUM)
+				from 	journal j with (nolock) 
+					left join JRN_CRC jc on jc.J_ID = j.J_ID
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_cr = @AccID
+					and jc.CRC_ID = @CursID
+				group by j_ag2
+
+				--- курсор по все записям дебиторки
+				declare @AgID int, @AgSum Money
+				declare DocList cursor for
+
+					select #JO6.AgID, 
+						-Sum(#JO6.TotalSum)
+					from #JO6 with (nolock) 
+					Group by #JO6.AgID
+					Having Sum(#JO6.TotalSum) &lt; 0
+
+				open DocList
+
+				fetch next From DocList into @AgID, @AgSum
+
+				while @@FETCH_STATUS = 0
+					begin
+						declare @DocID int, 
+								@DocDate datetime, 
+								@DocNo nvarchar(50),
+								@DocSum money,
+								@PayDate datetime,
+								@PaySum money = 0,
+								@TotalSum money = 0
+
+						--- выбрали все документы по покупателю до даты отчета
+						declare AgDocList cursor for
+							select j.doc_id, 
+									doc_date, 
+									doc_no, 
+									sum(jc.jc_sum), 
+									isnull(doc_pd3, doc_date) 
+							from journal j with (nolock)
+								left join documents d on d.doc_id = j.doc_id
+								left join JRN_CRC jc on jc.J_ID = j.J_ID
+							where j_ag1 = @AgID
+								and acc_db = @AccID 
+								and acc_cr &lt;&gt; @AccID
+								and j_done = 2
+								and j.mc_id = @mc 
+								and d.doc_date &lt; @dEnd 
+								and jc.CRC_ID = @CursID
+							group by j.doc_id, doc_date, doc_no, isnull(doc_pd3, doc_date)
+							having sum(jc.jc_sum) &gt; 0
+							order by isnull(doc_pd3, doc_date) desc, doc_no desc
+
+						open AgDocList
+						fetch next from AgDocList
+						into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+
+						--- макс сумма задолженности (для расчетов)
+						set @TotalSum = @AgSum
+
+						insert into #report (AgID, DocID, TotalSum) values (@AgID, 0, @AgSum)
+
+						--- по всем документам от конца пока не выбрали всю сумму
+						while @@FETCH_STATUS = 0 and @TotalSum &gt; 0
+							begin
+								--- если остаток суммы меньше суммы по документу, то делаем сумму задолженности == остатку
+								if @TotalSum &lt; @DocSum
+									set @DocSum = @TotalSum
+
+								--- уменьшили сумму задолженности на сумму документа
+								set @TotalSum = @TotalSum - @DocSum
+								
+								insert into #report (AgID, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate) values
+												(@AgID, 0, @DocID, @DocDate, @DocNo, @DocSum, @PayDate)
+								fetch next from AgDocList
+								into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+							end
+
+						close AgDocList
+						deallocate AgDocList
+
+						fetch next From DocList into @AgID, @AgSum
+					end
+
+				close DocList
+				deallocate DocList
+
+				select AgID, Ag_Code, Ag_NAME, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate
+				from #report
+					left join AGENTS on ag_id = AgID
+				order by Ag_Name, AgID, DocDate, DocID, DocNo, PayDate
+
+				drop table #report, #JO6
+
+			GRANT EXECUTE ON [dbo].[ST74_CRReportCurs] TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE procedure [dbo].[ST74_DBReport] 
+				@AccID int,
+				@dEnd datetime,
+				@mc int
+			as
+				set nocount on
+
+				--- результирующая таблица
+				create table #report (AgID int, TotalSum money, DocID int, DocDate datetime, DocNo nvarchar(50), DocSum money, PayDate datetime)
+
+				--- выбрали кредиторку. только задолженности по покупателям
+				select	j_ag1 as AgID, 
+						sum(j_sum) as TotalSum
+				into #JO6
+				from journal j
+				with (nolock) 
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_db = @AccID
+				group by j_ag1
+				
+				insert into #JO6 (AgID, TotalSum)
+				select	j_ag2, 
+						-sum(j_sum)
+				from 	journal j
+				with (nolock) 
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_cr = @AccID
+				group by j_ag2
+
+				--- курсор по все записям дебиторки
+				declare @AgID int, @AgSum Money
+				declare DocList cursor for
+
+					select #JO6.AgID, 
+						Sum(#JO6.TotalSum)
+					from #JO6 with (nolock) 
+					Group by #JO6.AgID
+					Having Sum(#JO6.TotalSum) &gt; 0
+
+				open DocList
+
+				fetch next From DocList into @AgID, @AgSum
+
+				while @@FETCH_STATUS = 0
+					begin
+						declare @DocID int, 
+								@DocDate datetime, 
+								@DocNo nvarchar(50),
+								@DocSum money,
+								@PayDate datetime,
+								@PaySum money = 0,
+								@TotalSum money = 0
+
+						--- выбрали все документы по покупателю до даты отчета
+						declare AgDocList cursor for
+							select j.doc_id, 
+									doc_date, 
+									doc_no, 
+									sum(j.j_sum), 
+									isnull(doc_pd3, doc_date) 
+							from journal j
+								left join documents d on d.doc_id = j.doc_id
+							where j_ag1 = @AgID
+								and acc_db = @AccID 
+								and acc_cr &lt;&gt; @AccID
+								and j_done = 2
+								and j.mc_id = @mc 
+								and d.doc_date &lt; @dEnd 
+							group by j.doc_id, doc_date, doc_no, isnull(doc_pd3, doc_date)
+							having sum(j.j_sum) &gt; 0
+							order by isnull(doc_pd3, doc_date) desc, doc_no desc
+
+						open AgDocList
+						fetch next from AgDocList
+						into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+
+						--- макс сумма задолженности (для расчетов)
+						set @TotalSum = @AgSum
+
+						insert into #report (AgID, DocID, TotalSum) values (@AgID, 0, @AgSum)
+
+						--- по всем документам от конца пока не выбрали всю сумму
+						while @@FETCH_STATUS = 0 and @TotalSum &gt; 0
+							begin
+								--- если остаток суммы меньше суммы по документу, то делаем сумму задолженности == остатку
+								if @TotalSum &lt; @DocSum
+									set @DocSum = @TotalSum
+
+								--- уменьшили сумму задолженности на сумму документа
+								set @TotalSum = @TotalSum - @DocSum
+								
+								insert into #report (AgID, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate) values
+												(@AgID, 0, @DocID, @DocDate, @DocNo, @DocSum, @PayDate)
+								fetch next from AgDocList
+								into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+							end
+
+						close AgDocList
+						deallocate AgDocList
+
+						fetch next From DocList into @AgID, @AgSum
+					end
+
+				close DocList
+				deallocate DocList
+
+				select AgID, Ag_Code, Ag_NAME, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate
+				from #report
+					left join AGENTS on ag_id = AgID
+				order by Ag_Name, AgID, DocDate, DocID, DocNo, PayDate
+
+				drop table #report, #JO6
+
+			GRANT EXECUTE ON [dbo].[ST74_DBReport] TO ap_public
+		</query>
+		<query type="OLEDB" name="" cmd="exec">
+
+			CREATE procedure [dbo].[ST74_DBReportCurs] 
+				@AccID int,
+				@CursID int,
+				@dEnd datetime,
+				@mc int
+			as
+				set nocount on
+
+				--- результирующая таблица
+				create table #report (AgID int, TotalSum money, DocID int, DocDate datetime, DocNo nvarchar(50), DocSum money, PayDate datetime)
+
+				--- выбрали кредиторку. только задолженности по поставщикам
+				select	j_ag1 as AgID, 
+						sum(JC_SUM) as TotalSum
+				into #JO6
+				from journal j with (nolock) 
+					left join JRN_CRC jc on jc.J_ID = j.J_ID
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_db = @AccID
+					and jc.CRC_ID = @CursID
+				group by j_ag1
+				
+				insert into #JO6 (AgID, TotalSum)
+				select	j_ag2, 
+						-sum(JC_SUM)
+				from 	journal j with (nolock) 
+					left join JRN_CRC jc on jc.J_ID = j.J_ID
+				where
+					j_done = 2 and MC_ID = @mc 
+					and j_date &lt; @dEnd
+					and acc_cr = @AccID
+					and jc.CRC_ID = @CursID
+				group by j_ag2
+
+				--- курсор по все записям дебиторки
+				declare @AgID int, @AgSum Money
+				declare DocList cursor for
+
+					select #JO6.AgID, 
+						Sum(#JO6.TotalSum)
+					from #JO6 with (nolock) 
+					Group by #JO6.AgID
+					Having Sum(#JO6.TotalSum) &gt; 0
+
+				open DocList
+
+				fetch next From DocList into @AgID, @AgSum
+
+				while @@FETCH_STATUS = 0
+					begin
+						declare @DocID int, 
+								@DocDate datetime, 
+								@DocNo nvarchar(50),
+								@DocSum money,
+								@PayDate datetime,
+								@PaySum money = 0,
+								@TotalSum money = 0
+
+						--- выбрали все документы по покупателю до даты отчета
+						declare AgDocList cursor for
+							select j.doc_id, 
+									doc_date, 
+									doc_no, 
+									sum(jc.jc_sum), 
+									isnull(doc_pd3, doc_date) 
+							from journal j with (nolock)
+								left join documents d on d.doc_id = j.doc_id
+								left join JRN_CRC jc on jc.J_ID = j.J_ID
+							where j_ag1 = @AgID
+								and acc_db = @AccID 
+								and acc_cr &lt;&gt; @AccID
+								and j_done = 2
+								and j.mc_id = @mc 
+								and d.doc_date &lt; @dEnd 
+								and jc.CRC_ID = @CursID
+							group by j.doc_id, doc_date, doc_no, isnull(doc_pd3, doc_date)
+							having sum(jc.jc_sum) &gt; 0
+							order by isnull(doc_pd3, doc_date) desc, doc_no desc
+
+						open AgDocList
+						fetch next from AgDocList
+						into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+
+						--- макс сумма задолженности (для расчетов)
+						set @TotalSum = @AgSum
+
+						insert into #report (AgID, DocID, TotalSum) values (@AgID, 0, @AgSum)
+
+						--- по всем документам от конца пока не выбрали всю сумму
+						while @@FETCH_STATUS = 0 and @TotalSum &gt; 0
+							begin
+								--- если остаток суммы меньше суммы по документу, то делаем сумму задолженности == остатку
+								if @TotalSum &lt; @DocSum
+									set @DocSum = @TotalSum
+
+								--- уменьшили сумму задолженности на сумму документа
+								set @TotalSum = @TotalSum - @DocSum
+								
+								insert into #report (AgID, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate) values
+												(@AgID, 0, @DocID, @DocDate, @DocNo, @DocSum, @PayDate)
+								fetch next from AgDocList
+								into @DocID, @DocDate, @DocNo, @DocSum, @PayDate
+							end
+
+						close AgDocList
+						deallocate AgDocList
+
+						fetch next From DocList into @AgID, @AgSum
+					end
+
+				close DocList
+				deallocate DocList
+
+				select AgID, Ag_Code, Ag_NAME, TotalSum, DocID, DocDate, DocNo, DocSum, PayDate
+				from #report
+					left join AGENTS on ag_id = AgID
+				order by Ag_Name, AgID, DocDate, DocID, DocNo, PayDate
+
+				drop table #report, #JO6
+
+			GRANT EXECUTE ON [dbo].[ST74_DBReportCurs] TO ap_public
+			</query>
+
+			<query type="OLEDB" name="" cmd="exec">
+			Declare @tblFound int
+
+			set @tblFound = (select IsNull(Object_id('[dbo].[REP_ITEMS_ATTR]'),0))
+
+			if @tblFound = 0 
+				Create Table [dbo].[REP_ITEMS_ATTR]
+					(ID [int] IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+					REP_KIND integer NOT NULL, 
+					REP_ID integer NOT NULL, 
+					REP_ITEM integer NOT NULL, 
+					REP_ITEM_ATTR_NAME varchar(50) NOT NULL)
+
+			GRANT SELECT ON [dbo].[REP_ITEMS_ATTR] TO [ap_public]
+					
+			set @tblFound = (select IsNull(Object_id('[dbo].[BIND_TML]'),0))
+
+			if  @tblFound = 0 
+				Create Table [dbo].[BIND_TML]
+				 (PK [int] IDENTITY(1,1) NOT NULL PRIMARY KEY, 
+				 BIND_ID integer NOT NULL, 
+				 TML_ID integer NOT NULL)
+				 
+			GRANT SELECT ON [dbo].[BIND_TML] TO [ap_public]
+			</query>
+
+			<query type="DAO" name = "REP_ITEMS_ATTR" cmd="create" kind="table">
+			Create Table REP_ITEMS_ATTR
+				(ID counter CONSTRAINT pk PRIMARY KEY, 
+				REP_KIND integer NOT NULL, 
+				REP_ID integer NOT NULL, 
+				REP_ITEM integer NOT NULL, 
+				REP_ITEM_ATTR_NAME varchar(50) NOT NULL)
+			</query>
+
+			<query type="DAO" name = "BIND_TML" cmd="create" kind="table">
+			Create Table BIND_TML 
+				(PK counter CONSTRAINT prk PRIMARY KEY, 
+				BIND_ID integer NOT NULL, 
+				TML_ID integer NOT NULL)
+
+			</query>
+		</scripts>
+	</AccentWorkarea>
+</AccentExportData>

@@ -1,0 +1,208 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	021
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "021"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+	
+	If Not updater.fail Then update_ag_addreses Workarea.Agents, updater
+	If Not updater.fail Then AddFieldToTable(updater)
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+
+Sub update_ag_addreses(AgRoot, updater)
+	Dim Ag, i
+
+	For i = 1 To AgRoot.Count
+		Set Ag = AgRoot.Item(i)
+
+		If Ag.Type = 1 Or Ag.Type = 4 Or Ag.Type = 5 Then ConvertAddress Ag, updater
+		If Ag.HasChildren Then update_ag_addreses Ag.Children, updater
+	Next
+End Sub
+
+Sub ConvertAddress(Ag, updater)
+	Dim NewAddress, aAddress, i, AddrPart, aNewAddress
+
+	If Ag.Address <> "" Then
+		aAddress = Split(Ag.Address, ",")
+	
+		'улица;дом;кварт;индекс;город;страна;тел;контакт;меил;0
+
+		aNewAddress = Array("", "", "", "", "", "", "", "", "", "", "", "")
+
+		For i = 0 To UBound(aAddress)
+			AddrPart = LCase(aAddress(i))
+
+			aNewAddress(0) = Trim(AddAddrValue(InStr(AddrPart, "кв-л") <> 0 _
+										Or InStr(AddrPart, "квартал") <> 0 _
+										Or InStr(AddrPart, "переулок") <> 0 _
+										Or InStr(AddrPart, "ул.") <> 0 _
+										Or InStr(AddrPart, "проезд") <> 0 _
+										Or InStr(AddrPart, "пр") <> 0 _
+										Or InStr(AddrPart, "пер.") <> 0 _
+										Or InStr(AddrPart, "бульвар") <> 0 _
+										Or InStr(AddrPart, "б-р") <> 0 _
+										Or InStr(AddrPart, "микро") <> 0 _
+										Or InStr(AddrPart, "Микроцентр") <> 0 _
+										Or InStr(AddrPart, "площадь") <> 0 _
+										Or InStr(AddrPart, "улица") <> 0 _
+										Or InStr(AddrPart, "пр-т") <> 0, aAddress(i), aNewAddress(0)))
+
+			aNewAddress(1) = AddAddrValue(InStr(AddrPart, "д.") <> 0 Or InStr(AddrPart, "дом") <> 0 , aAddress(i), aNewAddress(1))
+			aNewAddress(1) = Trim(Replace(Replace(aNewAddress(1), "д.", ""), "дом", ""))
+
+ 			aNewAddress(2) = AddAddrValue(InStr(AddrPart, "к.") <> 0 Or InStr(AddrPart, "кв.") <> 0 Or InStr(AddrPart, "квартира") <> 0, aAddress(i), aNewAddress(2))
+			aNewAddress(2) = Trim(Replace(Replace(Replace(aNewAddress(2), "к.", ""), "кв.", ""), "квартира", ""))
+
+			aNewAddress(3) = AddAddrValue(IsNumeric(AddrPart), aAddress(i), aNewAddress(3))
+			aNewAddress(4) = AddAddrValue(InStr(AddrPart, "пгт.") <> 0 Or InStr(AddrPart, "г.") <> 0, aAddress(i), aNewAddress(4))
+			aNewAddress(4) = Trim(Replace(Replace(aNewAddress(4), "пгт.", ""), "г.", ""))
+
+			aNewAddress(5) = AddAddrValue(InStr(AddrPart, "лнр") <> 0 Or InStr(AddrPart, "днр") <> 0 , aAddress(i), aNewAddress(5))
+			aNewAddress(10) = AddAddrValue(InStr(AddrPart, "район") <> 0 Or InStr(AddrPart, "р-н") <> 0 , Trim(aAddress(i)), aNewAddress(10))
+
+		Next
+
+		NewAddress = Join(aNewAddress, ";")
+
+		'writelog Array("Обновление адреса", "Процесс установки прерван из-за возникшей ошибки"), updater
+		com_SetFactValue Ag, fctAgAddress, CDate("01/01/2014"), NewAddress
+
+	End If
+End Sub
+
+Function AddAddrValue(Check, AddrPart, DefValue)
+
+	If Check Then
+		AddAddrValue = AddrPart
+	Else
+		AddAddrValue = DefValue
+	End If
+
+End Function
+
+Sub AddFieldToTable(updater)
+	Dim SQL, aData, ErrorMsg, flds, i
+
+	If App.AppType = "DAO" Then
+		Set flds = Workarea.DAODataBase.TableDefs("SYS_LOG").Fields	
+
+		For i = 0 To flds.count - 1
+			If UCase(flds.item(i).Name) = "ITEM_NAME" Then
+				Exit Sub
+			End If
+		Next
+
+		SQL = "ALTER TABLE SYS_LOG ADD COLUMN ITEM_NAME TEXT(255)"
+
+		If execquery(SQL, ErrorMsg) <> 0 Then
+			MsgBox "Ошибка изменения структуры базы. " & ErrorMsg
+			Exit Sub
+		End If
+	Else
+
+		SQL = "SELECT 1 FROM sys.columns WHERE Name = N'ITEM_NAME' And Object_ID = Object_ID(N'dbo.SYS_LOG')"
+		If GetRs2(SQL, aData) Then Exit Sub
+
+		GetRs _
+		"CREATE TABLE [dbo].[SYS_LOG1]( " & _
+		"	[LOGID] [Int] IDENTITY(1,1) Not Null, " & _
+		"	[LOG_DATE] [datetime] Not Null, " & _
+		"	[UID] [smallint] Not Null, " & _
+		"	[ITEM] [nchar](1) Not Null, " & _
+		"	[SYS_ACTION] [nchar](1) Not Null, " & _
+		"	[ITEM_ID] [Int] Null, " & _
+		"	[ITEM_DATE] [datetime] Null, " & _
+		"	[ITEM_CY] [money] Null, " & _
+		"	[ITEM_STR1] [nvarchar](50) Null, " & _
+		"	[ITEM_STR2] [nvarchar](50) Null, " & _
+		"	[GUID] [uniqueidentifier] Null, " & _
+		"	[FLAGS1] [Int] Null, " & _
+		" CONSTRAINT [PK_SYS_LOG1] PRIMARY KEY NONCLUSTERED  " & _
+		"( " & _
+		"	[LOGID] Asc " & _
+		")With (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = On, ALLOW_PAGE_LOCKS = On) On [PRIMARY] " & _
+		") On [PRIMARY] "
+		
+		GetRs _
+		"insert into sys_log1 " & _
+		"Select " & _
+		"	LOG_DATE, " & _
+		"	UID, " & _
+		"	ITEM, " & _
+		"	SYS_ACTION, " & _
+		"	ITEM_ID, " & _
+		"	ITEM_DATE, " & _
+		"	ITEM_CY, " & _
+		"	ITEM_STR1, " & _
+		"	ITEM_STR2, " & _
+		"	GUID, " & _
+		"	FLAGS1 " & _
+		"from sys_log  "
+		
+		GetRs "delete from sys_log "
+		
+		GetRs "ALTER TABLE dbo.sys_log ADD ITEM_NAME nVARCHAR(255) Null;  "
+		
+		GetRs _
+		"insert into sys_log " & _
+		"	(LOG_DATE, " & _
+		"	UID, " & _
+		"	ITEM, " & _
+		"	SYS_ACTION, " & _
+		"	ITEM_ID, " & _
+		"	ITEM_DATE, " & _
+		"	ITEM_CY, " & _
+		"	ITEM_STR1, " & _
+		"	ITEM_STR2, " & _
+		"	GUID, " & _
+		"	FLAGS1) " & _
+		"Select " & _
+		"	LOG_DATE, " & _
+		"	UID, " & _
+		"	ITEM, " & _
+		"	SYS_ACTION, " & _
+		"	ITEM_ID, " & _
+		"	ITEM_DATE, " & _
+		"	ITEM_CY, " & _
+		"	ITEM_STR1, " & _
+		"	ITEM_STR2, " & _
+		"	GUID, " & _
+		"	FLAGS1 " & _
+		"from sys_log1 "
+		
+		GetRs "drop table sys_log1 "
+	End If
+
+End Sub

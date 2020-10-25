@@ -1,0 +1,67 @@
+Option Explicit
+'#include "HL74_Json.avb"
+
+Dim JSon
+
+'Code to create JSON using Dictionary Objects and Collection Objects
+Dim d, c(1), d2(4)
+
+Set d = CreateObject("Scripting.Dictionary")
+
+d.Add "kind", "calendar#event"
+d.Add "summary", "Event Title/Summary"
+
+Set d2(0) = CreateObject("Scripting.Dictionary")
+Set d2(1) = CreateObject("Scripting.Dictionary")
+Set d2(2) = CreateObject("Scripting.Dictionary")
+Set d2(3) = CreateObject("Scripting.Dictionary")
+Set d2(4) = CreateObject("Scripting.Dictionary")
+
+d2(0).Add "dateTime", "2012-04-14T16:00:00.000-04:00"
+d.Add "start", d2(0)
+
+d2(1).Add "dateTime", "2012-04-14T18:00:00.000-04:00"
+d.Add "end", d2(1)
+
+'First Attendee
+d2(2).Add "email", "john.doe@gmail.com"
+d2(2).Add "displayName", "John Doe"
+d2(2).Add "organizer", True
+d2(2).Add "self", True
+'Add attendee to collection
+Set c(0) = d2(2)
+
+'Second attendee
+d2(3).Add "email", "suzy.doe@gmail.com"
+d2(3).Add "displayName", "Suzy Doe"
+'Add attendee to collection
+Set c(1) = d2(3)
+
+'Add collection to original/primary dictionary object
+d.Add "attendees", c
+
+'Add more nested pairs to original/primary dictionary object
+d2(4).Add "useDefault", True
+d.Add "reminders", d2(4)
+
+'Now output the JSON/results
+'This requires the VBJSON module (named just JSON, a module, not a class module)
+
+Set JSon = New VbsJson
+
+Dim objXMLHTTP, sPostData , sURL
+
+Set objXMLHTTP = CreateObject("MSXML2.ServerXMLHTTP")
+sPostData = JSon.Encode(d)
+
+sURL = "https://www.googleapis.com/calendar/v3/calendars/primary/events?sendNotifications=false&fields=etag%2ChtmlLink%2Cid&pp=1&access_token="
+
+With objXMLHTTP
+    .Open "POST", sURL, False
+    .setRequestHeader "Content-Type", "application/json"
+    .Send (sPostData)
+End With
+
+Debug.Print objXMLHTTP.ResponseText
+
+Set objXMLHTTP = Nothing

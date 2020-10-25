@@ -1,0 +1,38 @@
+<Workarea ident="guid">
+	<OnProperties>
+		<HL74 kind="3" type="4" module="HL74_AgProps.avb" proc="HL74_AgProps"/>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnProperties"/>
+		<HL74 kind="5" type="1" module="HL74_TradeEqProps.avb" proc="HL74_CashPrintProps"/>
+		<HL74 kind="3" type="1" module="HL74_AgProps.avb" proc="HL74_AgProps"/>
+	</OnProperties>
+	<OnLoad>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnLoad"/>
+	</OnLoad>
+	<AfterCreate>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_AfterCreate"/>
+	</AfterCreate>
+	<OnPopup>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnPopup"/>
+	</OnPopup>
+	<OnReportStart>
+		<!-- <HL74 module = "HL74_Workarea.avb" proc = "HL74_OnReportStart" /> -->
+	</OnReportStart>
+	<CanToTrash>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_CanToTrash"/>
+	</CanToTrash>
+	<OnTemplateScriptChanged>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnTemplateScriptChanged"/>
+	</OnTemplateScriptChanged>
+	<CanDelete>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_CanDelete"/>
+	</CanDelete>
+	<BeforeClose>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_BeforeClose"/>
+	</BeforeClose>
+	<OnChanged>
+		<HL74 module="HL74_Workarea.avb" proc="HL74_OnChanged"/>
+	</OnChanged>
+	<OnShowWebTab>
+		<HL74 kind="3" type="1" module="HL74_Web.avb" proc="HL74_OnShowWebTab"/>
+	</OnShowWebTab>
+</Workarea>

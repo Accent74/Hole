@@ -1,0 +1,28 @@
+Option Explicit
+
+Dim RD, i, aMasks, FSO, Path, Fls, Fl, pItem
+
+Set FSO = CreateObject("Scripting.FileSystemObject")
+Set RD = CreateLibObject("Redirect")
+aMasks = Array("afm", "adg", "ash", "avb")
+
+stop
+
+For i = 1 To 4
+	With Workarea.ProjectItems(i)
+		Path = RD.GetPathArray("*." & aMasks(i - 1))
+		If UBound(Path) <> -1 Then
+			Set Fls = FSO.GetFolder(Path(0)).Files
+
+			For Each Fl In Fls
+				Set pItem = .FindFile(Fl.Name)
+
+				If pItem Is Nothing Then
+					Set pItem = .Create(Fl.Name, Fl.Name)
+					pItem.Memo = "Add:" & Formatdate2(Now, "dd/mm/yy nn:ss")
+					pItem.Save
+				End If
+			Next
+		End If
+	End With
+Next

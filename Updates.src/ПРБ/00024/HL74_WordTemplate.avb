@@ -1,0 +1,142 @@
+'{клиент_наименование}
+'{клиент_юридический_адрес}
+'{клиент_ИНЮЛ}
+'{клиент_свидетельство_о_регистрации_дата}
+'{клиент_свидетельство_о_регистрации_номер}	
+'{поверенный_наименование}
+'{поверенный_паспорт_номер}
+'{поверенный_паспорт_серия}
+'{поверенный_паспорт_выдан}
+'{поверенный_адрес}
+'{сумма_цифрами}
+'{сумма_прописью}
+'{документ_номер}
+'{документ_дата}
+'{договор_номер}
+'{договор_дата}
+'{моя_фирма_расчетный_счет}
+'{моя_фирма_банк_название}
+'{моя_фирма_банк_БИК}
+'{моя_фирма_ИНЮЛ}
+'{моя_фирма_наименование}
+
+Option Explicit
+'---
+'
+'---
+Sub MakeWordDoc(DocFileName, Op, ExMap, ByRef Dict, ByRef Func)
+	Dim wrd, dictValue
+	Dim Keys, i, RD, Pos
+	Dim NewDocFileName
+
+	Set RD = CreateLibObject("Redirect")
+
+	DocFileName = RD.GetFullPath(DocFileName)
+
+	If DocFileName <> "" Then
+		Set wrd = CreateObject("Word.Application")
+	
+		If Not wrd Is Nothing Then
+			If Dict Is Nothing Then Set Dict = GetStdDict()
+	
+	 		wrd.Documents.Open DocFileName, False, False, False, "", "", False, "", "", 0, ""
+			wrd.Documents(DocFileName).Activate
+			wrd.Visible = False
+			Keys = Dict.Keys
+
+			For i = 0 To UBound(Keys)
+							
+				With wrd.Selection.Find
+					.ClearFormatting
+					.Replacement.ClearFormatting
+					If Func Is Nothing Then
+						DictValue = Eval(Dict(keys(i)))
+					Else
+						DictValue = func(Dict(keys(i)))
+					End If
+
+					.execute keys(i),0,0,0,0,0, 1,1, 0, DictValue, 2
+				End With
+			Next
+			
+			pos = InStrRev(DocFileName, ".")
+			NewDocFileName = Left(DocFileName, pos - 1) & "(" & Replace(Op.Trans(1).AgToBind.Name, Chr(34), " ") & ")" & Mid(DocFileName, pos)
+
+			If CheckWordDocFile(NewDocFileName) Then
+				wrd.Documents(DocFileName).SaveAs NewDocFileName
+
+				If MsgBox("Договор сформирован в " & NewDocFileName & vbNewLine & "Показать ?", vbInformation + vbOKCancel, "Формирование договора") = vbOK Then
+					wrd.Visible = True
+					Exit Sub
+				Else
+					wrd.Documents(NewDocFileName).Close
+				End If
+			Else
+				wrd.Documents(DocFileName).Close
+			End If
+
+			wrd.quit
+			Set wrd = Nothing
+
+		Else
+		End If
+	End If	
+End Sub
+'---
+'
+'---
+Function CheckWordDocFile(NewDocFileName)
+	On Error Resume Next
+
+	If IsFileExists(NewDocFileName) Then
+		CreateObject("Scripting.FileSystemObject").DeleteFile NewDocFileName
+		If IsFileExists(NewDocFileName) Or Err.Number <> 0 Then
+			MsgBox "Невозможно удалить файл " & NewDocFileName & vbNewLine & _
+					Err.Description , vbExclamation, "Формирование договора"
+		End If
+	End If
+	
+	CheckWordDocFile = (Err.Number = 0)
+End Function
+'---
+'
+'---
+Function GetStdDict()
+	Dim dEval
+
+	Set dEval = CreateLibObject("Map")
+
+	dEval("{клиент_наименование}") = "Form_GetAgAlterName(Op.Trans(1).AgTo, Op.Date)"
+	dEval("{клиент_юридический_адрес}") = "Form_GetAgAddress2(Op.Trans(1).AgTo, 1)"
+	dEval("{клиент_ИНЮЛ}") = "Op.Trans(1).AgToBind.Code"
+	dEval("{клиент_свидетельство_о_регистрации_дата}") = "token(Op.Trans(1).AgToBind.RegNo, 2, "";"")"
+	dEval("{клиент_свидетельство_о_регистрации_номер}") = "token(Op.Trans(1).AgToBind.RegNo, 1, "";"")" 
+	dEval("{клиент_город}") = "Form_SetDefCityNamePost(Op.Trans(1).AgTo)" 
+	
+	dEval("{поверенный_наименование}") = "Ag4.AlterName"
+	dEval("{поверенный_паспорт_номер}") = "Ag4.PassNo"
+	dEval("{поверенный_паспорт_серия}") = "Ag4.PassSer"
+	dEval("{поверенный_паспорт_дата}") = "Ag4.PassFromDateString"
+	dEval("{поверенный_паспорт_кем_выдан}") = "Ag4.PassFromName"
+	dEval("{поверенный_адрес}") = "Ag4.GetAddress(0)"
+
+	dEval("{сумма_цифрами}") = "Op.Sum"
+	dEval("{сумма_прописью}") = "replace(SpellMoney(Op.Sum, 1), ""_"", "" "")"
+
+	dEval("{документ_номер}") = "Op.DocNo"
+	dEval("{документ_дата}") = "formatdate2(Op.Date, ""«dd» mmmm yyyy г."")"
+	dEval("{договор_номер}") = "iif(Op.Trans(1).MiscID(AgreeMscNo) <> 0, Op.Trans(1).MiscBind(AgreeMscNo).String1, ""Без договора"")"
+	dEval("{договор_дата}") = "iif(Op.Trans(1).MiscID(AgreeMscNo) <> 0, formatdate2(Op.Trans(1).MiscBind(AgreeMscNo).Date1, ""«dd» mmmm yyyy г.""), ""Без договора"")"
+
+	dEval("{моя_фирма_расчетный_счет}") = "workarea.MCBind.BankAcc"
+	dEval("{моя_фирма_банк_название}") = "workarea.MCBind.BankName"
+	dEval("{моя_фирма_банк_БИК}") = "workarea.MCBind.BankCode"
+	dEval("{моя_фирма_ИНЮЛ}") = "workarea.MCBind.Code"
+	dEval("{моя_фирма_наименование}") = "Form_GetAgAlterName(MyCo, Op.Date)"
+	dEval("{моя_фирма_город}") = "Form_SetDefCityNamePost(MyCo)" 
+
+	Set GetStdDict = dEval
+End Function
+'---
+'
+'---

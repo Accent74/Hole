@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<meta name="vs_snapToGrid" content="True">
+		<meta content="True" name="vs_showGrid">
+		<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+		<LINK href="default.css" type="text/css" rel="stylesheet">
+			<SCRIPT language="vbScript">
+			
+Dim wa
+Dim HTMLPages
+Dim repDict
+Dim IsLoaded
+	
+Set repDict = CreateObject("Scripting.Dictionary")
+HTMLPages = Array("folders.htm", "accounts.htm", "agents.htm", "entities.htm", "miscs.htm", "binders.htm", "templates.htm")
+IsLoaded = False
+
+function window_onload()
+	Dim Name
+	
+	set wa = window.external.Application.Workarea
+	If wa.site is nothing then exit function
+		
+	With wa.site
+
+		If .Kind <> 3 then window.document.location.assign HTMLPages(.Kind - 1)
+		
+		IF Not wa.map.exists("tblPropsVisible") then wa.map("tblPropsVisible") = 11
+		IF Not wa.map.exists("tblReportsVisible") then wa.map("tblReportsVisible") = 31
+		
+		showtable(wa.map("tblPropsVisible"))
+		showtable(wa.map("tblReportsVisible"))
+
+		If .ID = 0 then 
+			Name = "Корень дерева корреспондентов"
+		Else
+			If Not IsLoaded then Loadreports .repelems
+
+			Name = .Name
+			If .IsShortCut then Name = Name & " (ярлык)"
+			If .Type = 0 then
+				agtype.innerHTML = "Текущая папка : "
+			Else
+				agtype.innerHTML = "Текущий корреспондент : "
+				LoadAgProps wa.agent(.ID)
+			end If
+		end if
+	end With
+	
+	AgName.InnerHTML = Name
+End function
+
+sub LoadReports(repElems)
+	Dim i
+
+	IsLoaded = true
+	repDict.REmoveAll
+
+	For i = 1 To repelems.count
+		Addreport i, repelems.Item(i)
+		With repelems.Item(i)
+			repDict.Add .ID, repelems.Item(i)
+		end With
+	Next
+	
+end sub
+
+sub Addreport(Row, report)
+	Dim NewRow
+	Dim NewCell
+	
+	Set NewRow = Reports.insertrow(Row)
+	Set NewCell = NewRow.InsertCell(0)
+	Reports.Rows(NewRow.RowIndex).Cells(0).InnerHTML = "<a href='agents.htm' onclick='vbscript:reportstart(" & report.ID & ")'>" & "<IMG alt='' border='0' src='images\SendChat.gif'></a>"
+	Set NewCell = NewRow.InsertCell(1)
+	Reports.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = "<a href='agents.htm' onclick='vbscript:reportstart(" & report.ID & ")'>" & report.name & "</a>"
+end sub
+
+Sub LoadAgProps(Ag)
+	AgCode.InnerHTML = "<b>" & Ag.Code & "</b"
+	AgRegNo.InnerHTML = "<b>" & Ag.RegNo & "</b"
+	AGVatNo.InnerHTML = "<b>" & AG.VatNo & "</b"
+	AgPhone.InnerHTML = "<b>" & Ag.Phone & "</b"
+	AGAddress.InnerHTML = "<b>" & Ag.Address & "</b"
+	AgMemo.InnerHTML = "<b>" & Ag.Memo & "</b"
+end Sub
+
+function showtable(Mode)
+	Dim TableNo, OnOff
+	
+	TableNo = Int(Mode / 10)
+	OnOff = Mode - TableNo * 10
+	
+	select Case TableNo
+		Case 1
+			If OnOff = 0 then
+				tblProps.style.display = "none"
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(11)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				tblProps.style.display = ""
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(10)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblPropsVisible") = TableNo * 10 + OnOff
+			
+		Case 3
+			If OnOff = 0 then
+				reports.style.display = "none"
+				reportspicture.innerhtml = "<a onclick='vbscript:showtable(31)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				reports.style.display = ""
+				reportspicture.innerhtml = "<a onclick='vbscript:showtable(30)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblReportsVisible") = TableNo * 10 + OnOff
+
+	end select
+end function
+
+function reportstart(ID)
+	RepDict.Item(ID).RunReport
+end function
+
+			</SCRIPT>
+	</head>
+	<body onload="window_onload()">
+		<TABLE id="Table2" cellSpacing="1" cellPadding="1" width="312" border="0" height="171">
+			<TR>
+				<TD height="39">
+					<IMG alt="" src="images\agents.bmp">
+				</TD>
+				<TD width="169" height="39">
+					<H3 align="left">Корреспонденты</H3>
+				</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2" width="310" height="103">
+					<HR width="304" SIZE="1" align="left">
+					В режиме работы&nbsp; с корреспондентами отображаются дерево корреспондентов.<BR>
+					В&nbsp; <STRONG>Информационном окне</STRONG> отображаются только те документы, 
+					которые проводились по указанному в списке корреспонденту.</TD>
+			</TR>
+			<TR>
+				<TD width="310" colSpan="2">
+					<HR width="304" SIZE="1" align="left">
+				</TD>
+			</TR>
+			<TR>
+			</TR>
+			<TR>
+			</TR>
+			<TR>
+			</TR>
+		</TABLE>
+		<TABLE id="Table3" height="27" cellSpacing="3" cellPadding="0" width="312" bgColor="#009900"
+			border="0">
+			<TR>
+				<TD id="propspicture" width="20"><A onclick="vbscript:showtable(11)"><IMG id="tblPropsShow" alt="" src="images\up-arrow-green.GIF"></A></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Свойства</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="tblProps" cellSpacing="3" width="370" cellPadding="1" border="0" height="147">
+			<TR>
+				<TD colSpan="2" id="AgType">Текущая папка:
+				</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2">
+					<H4 id="AgName">наименование&nbsp;корреспондента
+					</H4>
+				</TD>
+			</TR>
+			<TR>
+				<TD width="85" height="17">ОКПО&nbsp;</TD>
+				<TD height="17" id="AgCode">Код ОКПО</TD>
+			</TR>
+			<TR>
+				<TD width="85" colSpan="1" height="8">№&nbsp; регистр.</TD>
+				<TD id="AgRegNo" height="8"></TD>
+			</TR>
+			<TR>
+				<TD width="85" height="17">№ плат.НДС</TD>
+				<TD id="AgVatNo" height="17"></TD>
+			</TR>
+			<TR>
+				<TD width="85" height="17">Телефон</TD>
+				<TD id="AgPhone" height="17"></TD>
+			</TR>
+			<TR>
+				<TD width="85" height="15">Адрес</TD>
+				<TD id="AgAddress" height="15"></TD>
+			</TR>
+			<TR>
+				<TD width="85">Примечание</TD>
+				<TD id="AgMemo"></TD>
+			</TR>
+		</TABLE>
+		<HR align="left" width="312" SIZE="1">
+		<TABLE id="tblReps" height="27" cellSpacing="3" cellPadding="0" width="312" bgColor="#009900"
+			border="0">
+			<TR>
+				<TD id="reportspicture" width="20"><A onclick="vbscript:showtable(31)"><IMG id="tblReports" alt="" src="images\up-arrow-green.GIF"></A></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Отчеты</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="reports" height="20" cellSpacing="1" cellPadding="1" width="312" border="0">
+			<TR>
+				<TD width="23"></TD>
+				<TD></TD>
+			</TR>
+		</TABLE>
+		<HR align="left" width="312" SIZE="1">
+	</body>
+</html>

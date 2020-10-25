@@ -1,0 +1,41 @@
+Option Explicit
+
+Dim dHtml, RD, i, Doc
+
+Set Rd = CreateLibObject("Redirect")
+
+Set dHtml = Workarea.Assistant
+dHtml.reset
+dHtml.visible = True
+dHtml.navigate RD.GetFullPAth("ST74_Log.htm")
+
+	Set Doc = dHtml.HTMLDocument
+		
+	Doc.GetElementByID("caption").InnerHTML = "Очень длинный текст для проверки того, есть ли переносы или нет"
+	For i = 1 To 10
+		AddRow Doc, 1, ""
+
+	Next
+	
+	Sub AddRow(Doc, Row, cTExt)
+		Dim NewRow
+		Dim NewCell
+		Dim logtable
+
+		Set logtable = Doc.GetElementByID("logtable")
+		
+		Set NewRow = logtable.insertrow(Row)
+	
+		Set NewCell = NewRow.InsertCell(0)
+		logtable.Rows(NewRow.RowIndex).Cells(0).InnerHTML = "<img src='" & RD.GetFullPath("Error.gif") & "'>"
+	
+		Set NewCell = NewRow.InsertCell(1)
+		logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = Now()
+	
+		Set NewCell = NewRow.InsertCell(2)
+		logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = "Столбец3-" & Row
+	
+		Set NewCell = NewRow.InsertCell(3)
+		logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = "Столбец4-" & Row
+		
+	End Sub

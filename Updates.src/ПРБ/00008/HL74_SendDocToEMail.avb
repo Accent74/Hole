@@ -1,0 +1,161 @@
+Option Explicit
+
+Const PDF_PRN_NAME = "PDFCreator"
+Const MY_EMAIL = ""
+Const MY_EMAIL_PASSWORD = ""
+Const MY_EMAIL_PORT = 25		'465
+Const MY_EMAIL_SSL = False
+Const MY_EMAIL_CONN_TIMEOUT = 600
+
+Const MSG_BOX_CAPTION = "Отправка PDF копии документа по почте"
+
+'---
+'
+'---
+Function delay(nSec)
+	Dim Timeout
+
+	Timeout = Timer()
+	While Form.Map.Exists("Print") 
+		While Timer() - Timeout < nSec
+			DoEvent
+		Wend
+	Wend
+
+	delay = True
+End Function
+'---
+'
+'---
+Sub SendPDFByEMail(prm)
+	Dim DefPrinter, Form, EMail
+	Dim EMailSubj, EMailText, EmailFileName
+
+	Set Form = prm(0)
+	EMail = prm(1)
+	EMailSubj = prm(2)
+	EMailText = prm(3)
+
+	DefPrinter = SetDefPrinter(PDF_PRN_NAME)
+	Form.Print
+	
+	EmailFileName = Replace(Form.Caption, Chr(34), "_") & ".pdf"
+	SendFile2Mail EmailFileName, EMail, EMailSubj, EMailText
+
+	If EmailFileName = "" Then
+		MsgBox "Файл для отправки не найден", vbExclamation, MSG_BOX_CAPTION
+	Else
+		MsgBox "Файл отправлен", vbInformation, MSG_BOX_CAPTION
+	End If
+
+	If DefPrinter <> PDF_PRN_NAME Then SetDefPrinter DefPrinter
+
+End Sub
+'---
+'
+'---
+Function SetDefPrinter(DefPrinter)
+	Dim objPrinter, colInstalledPrinters, objWMIService
+	Dim prnLocation
+
+	Set objWMIService = GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+	Set colInstalledPrinters =  objWMIService.ExecQuery("Select * from Win32_Printer")
+
+	For Each objPrinter In colInstalledPrinters
+		If objPrinter.Default Then
+			prnLocation = checknull(objPrinter.Location, "")
+			SetDefPrinter = iif(prnLocation <> "", prnLocation & "\", "") & objPrinter.Name
+			Exit For
+		End If
+	Next
+
+	For Each objPrinter In colInstalledPrinters
+		If InStr(objPrinter.Name, DefPrinter) = 1 Then
+			objPrinter.SetDefaultPrinter()
+			Exit Function
+		End If
+	Next
+
+End Function
+'---
+'
+'---
+Sub SendFile2Mail(EMailFileName, EMailAddress, EMailSubj, EMailText)
+	Dim objMessage, RD, EMailPath, TimeOut, FSO, AttachmentFile, wait
+
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+	Set RD = CreatelibObject("Redirect")
+
+	TimeOut = Timer()
+	EMailPath = ""
+
+	While EMailPath = ""
+		DoEvent	
+		EMailPath = RD.GetFullPath(EMailFileName)
+
+		If Timer() - Timeout > 10 Then
+			If MsgBox("Файл не найден. Прервать операцию ?", vbQuestion + vbYesNo, MSG_BOX_CAPTION) = vbYes Then
+				EMailFileName = ""
+				Exit Sub
+			Else
+				TimeOut = Timer()
+			End If
+		End If
+	Wend
+
+	Set AttachmentFile = FSO.GetFile(EMailPath)
+	Timeout = Timer()
+
+	While (AttachmentFile.Attributes And 1) = 1
+		If Timer() - Timeout > 15 Then
+			If MsgBox("Файл занят другим приложением. Прервать операцию ?", vbQuestion + vbYesNo, MSG_BOX_CAPTION) = vbYes Then
+				EMailFileName = ""
+				Exit Sub
+			Else
+				TimeOut = Timer()
+			End If
+		End If
+	Wend
+
+	Set AttachmentFile = Nothing	
+
+	Set objMessage = CreateObject("CDO.Message") 
+ 	objMessage.Subject = EMailSubj
+ 	objMessage.From = MY_EMAIL
+ 	objMessage.To = EMailAddress
+ 	objMessage.CC = MY_EMAIL
+ 	objMessage.TextBody = EMailText
+ 
+	objMessage.Configuration.Fields.Item _
+				 ("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2 
+	objMessage.AddAttachment EMailPath
+ 
+	objMessage.Configuration.Fields.Item _
+ 				("http://schemas.microsoft.com/cdo/configuration/smtpserver") = "mail.accent6.com"
+ 
+ 	objMessage.Configuration.Fields.Item _
+ 				("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
+ 
+	objMessage.Configuration.Fields.Item _
+ 				("http://schemas.microsoft.com/cdo/configuration/sendusername") = MY_EMAIL
+ 
+	objMessage.Configuration.Fields.Item _
+		 		("http://schemas.microsoft.com/cdo/configuration/sendpassword") = MY_EMAIL_PASSWORD
+ 
+	objMessage.Configuration.Fields.Item _
+				("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = MY_EMAIL_PORT
+ 
+	objMessage.Configuration.Fields.Item _
+	 			("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = MY_EMAIL_SSL
+ 
+ 	objMessage.Configuration.Fields.Item _
+			 ("http://schemas.microsoft.com/cdo/configuration/smtpconnectiontimeout") = MY_EMAIL_CONN_TIMEOUT
+ 
+	objMessage.Configuration.Fields.Update
+ 
+ 	objMessage.Send	
+
+End Sub
+'---
+'
+'---

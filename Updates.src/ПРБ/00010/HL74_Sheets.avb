@@ -1,0 +1,127 @@
+Const ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+Dim MyCoCode, IsPrivate
+Dim MyCo
+Dim Totals
+'---
+'
+'---
+Sub ash_init_data
+	Set Totals = CreateLibObject("Map")
+	Set MyCo = Workarea.MyCompany
+	MyCoCode = ash_AlignSring(MyCo.Code, 10, " ", acRight)
+	IsPrivate = com_getFactValue(MyCo, fctAgIsIndivid, workarea.period.start, False)
+End Sub
+'---
+'
+'---
+Function ash_speriod(pos)
+	Dim sDate
+
+	sDate = formatdate2(workarea.period.start, "yyyy.mm.dd")
+	ash_speriod = CharAt(sDate, Pos)
+End Function
+'---
+'
+'---
+Function ash_AlignSring(StrValue, StrLen, StrChar, StrAlign)
+	Dim StrAdd
+
+	If StrValue = "" Then
+		ash_AlignSring = ""
+	Else
+		trAdd = ""
+
+		If Len(StrValue) < StrLen Then
+			StrAdd = String(Len(StrValue) - StrLen, StrChar)
+	
+			If StrAlign = acRight Then
+				ash_AlignSring = StrAdd & StrValue
+			Else
+				ash_AlignSring = StrValue & StrAdd
+			End If
+	
+		ElseIf Len(StrValue) > StrLen Then
+			If StrAlign = acRight Then
+				ash_AlignSring = Right(StrValue, StrLen)
+			Else
+				ash_AlignSring = Left(StrValue, StrLen)
+			End If
+		Else
+			ash_AlignSring = StrValue
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function ash_getcharnavigatekey(Row, Column)
+	ash_getcharnavigatekey = Row & ":" & NumAddrToChar(Column)
+End Function
+'---
+'
+'---
+Sub ash_LetCellValue(AddrKey, Sh, CellValue)
+	Dim Row, Col
+
+	Row = CInt(Token(AddrKey, 1, ":"))
+	Col = CharAddrToNum(Token(AddrKey, 2, ":"))
+	Sh.Cell(Row, Col).Value = CellValue
+End Sub
+'---
+'
+'---
+Sub ash_deleterows(sh, row, col, checkvalue)
+	While sh.cell(row, col).value <> checkvalue
+		sh.deleterow row
+	Wend
+End Sub
+'---
+'
+'---
+Function CharAddrToNum(CharValue)
+	Dim i, IntValue
+
+	IntValue = 0
+
+	For i = 1 To Len(CharValue)
+		IntValue = IntValue + InStr(ABC, Left(Right(CharValue, i), 1)) * (Len(ABC) ^ (i - 1))
+	Next
+
+	CharAddrToNum = IntValue
+
+End Function
+'---
+'
+'---
+Function NumAddrToChar(ByVal IntValue)
+	Dim i, CharValue, RestValue, n
+
+	n = Len(ABC)
+	CharValue = ""
+
+	While IntValue > n
+		RestValue = IntValue Mod n
+		CharValue = CharAt(ABC, RestValue) & CharValue
+		IntValue = IntValue \ n
+	Wend
+
+	NumAddrToChar = CharAt(ABC, IntValue) & CharValue
+
+End Function
+'---
+'
+'---
+Sub ash_cleartotals(Totals)
+	Dim akeys, key
+
+	akeys = Totals.keys
+
+	For Each key In aKeys
+		Totals(Key) = 0
+	Next
+
+End Sub
+'---
+'
+'---

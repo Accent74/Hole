@@ -1,0 +1,8 @@
+Option Explicit
+
+Sub HL74_RunClientBank
+	Dim Dlg
+
+	Set Dlg = App.CreateDialog("HL74_ClientBank.adg")
+	Dlg.DoModal
+End Sub

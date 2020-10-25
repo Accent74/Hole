@@ -1,0 +1,63 @@
+Option Explicit
+
+'Dim ErrorMsg, Weight
+'ErrorMsg = ""
+'
+'Weight = GetWeightFromLibra(1, "com1", ErrorMsg)
+'
+'If ErrorMsg <> "" Then 
+'	MsgBox ErrorMsg
+'Else
+'	MsgBox Weight
+'End If
+'---
+'
+'---
+Function GetWeightFromLibra(Model, PortNo, ErrorMsg)
+	Dim Libra
+
+	GetWeightFromLibra = 0
+
+	Select Case Model
+		' весы ВТА-60
+		Case 1
+			Set Libra = GetLibraCom(ErrorMsg)
+
+			If Not Libra Is Nothing Then
+
+				If Libra.OpenPort("COM1") Then
+					If Libra.GetInfo() Then
+						GetWeightFromLibra = Libra.Weight	
+					Else
+						ErrorMsg = "Ошибка при получении данных: " & Libra.LastError
+					End If
+
+					If Not Libra.ClosePort Then
+						ErrorMsg = "Ошибка закрытия порта: " & Libra.LastError
+					End If
+				Else
+					ErrorMsg = "Ошибка открытия порта: " & Libra.LastError
+				End If
+
+				Set Libra = Nothing
+			End If
+	End Select
+End Function
+'---
+'
+'---
+Function GetLibraCom(ByRef ErrorMsg)
+	On Error Resume Next
+
+	' обертка для ScalesCOMServerLib 
+	Set GetLibraCom = CreateObject("LibraComLib.BTA60")
+	If Err.number = 0 Then Exit Function
+
+	ErrorMsg = Err.Description & " " & Err.Number
+
+	Set GetLibraCom = Nothing
+	Err.Clear
+End Function
+'---
+'
+'---

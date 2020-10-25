@@ -1,0 +1,102 @@
+'#include "HL74_Zip.avb"
+'-----
+'
+'-----
+Option Explicit
+
+Dim RD, Sys
+Dim aBackUp, Done
+
+Dim msg_error
+
+msg_error = "Для создания копии файла необходимо указать " & vbCrLf & "путь для *.backup в меню Сервис|Расположение файлов"
+
+'-----
+'
+'-----
+Function GetShortName(fName)
+	GetShortName = Right(fName, Len(fName) - InStrRev(fName, "\"))
+End Function
+'-----
+'
+'-----
+
+Set RD = CreateLibObject("Redirect")
+aBackUp = RD.GetPathArray("*.backup")
+
+If UBound(aBackUp) <> -1 Then
+	If App.AppType = "DAO" Then
+		Done = backup_DAO(aBackUp(0), WorkArea.DAOdataBase.name)
+'		Done = backup_DAO(aBackUp(0), "D:\testing\Hole\Data\ERP.adb")
+	Else
+		Done = backup_ADO(aBackUp(0))
+	End If
+	
+	If Done Then
+		Workarea.userparam("LAST_BACKUP") = Now
+		MsgBox "Резервная копия базы данных успешно сохранена", vbInformation, "Резервное копирование"
+	Else
+		MsgBox "Ошибка при создании резервной копии !", vbCritical, "Внимание !"
+	End If
+Else
+	MsgBox msg_error, vbCritical, "Внимание !"		
+End If
+'-----
+'
+'-----
+Function Backup_DAO(Path, dbFileName)
+	Dim Done, BackUpFileName
+	Dim Z, Sys
+	Dim Suffix
+
+	Set Sys = CreateLibObject("System")
+	Suffix = "-" & Formatdate2(Now, "yyyy_mm_dd_hh_nn_ss")
+	BackUpFileName = Path & "\" & GetShortName(dbFileName) & Suffix & ".zip"
+
+	Set z = New zip
+	Done = True
+
+	If z.open(BackUpFileName) = 1 Then 
+		z.AddFile dbFileName
+		z.close
+
+		Done = Sys.Copyfile(BackUpFileName, Left(BackUpFileName, InStrRev(BackUpFileName, ".")) & "backup", True)
+
+		If Done Then
+			Sys.DeleteFile(BackUpFileName)
+			Done = Not IsFileExists(BackUpFileName)
+		End If
+	End If
+
+	Set z = Nothing
+	Backup_DAO = Done
+End Function
+'-----
+'
+'-----
+Function backup_ADO(Path)
+	Dim dbFileName
+	Dim cn, Rs, SQL
+
+	Set Cn = Workarea.ADOConnection
+	Set Rs = Cn.Execute("select db_name()")
+
+	dbFileName = Trim(rs.Fields(0).Value)
+
+	SQL = "BACKUP DATABASE [%DBName] To  DISK = N'%Name' WITH NOFORMAT, NOINIT,  NAME = N'%DBName-Полная База данных Резервное копирование', SKIP, NOREWIND, NOUNLOAD,  STATS = 10"
+	SQL = Replace(SQL, "%DBName", dbFileName)
+	SQL = Replace(SQL, "%Name", Path & "\" & dbFileName & ".bak")
+
+	On Error Resume Next
+
+	Set Rs = Cn.Execute(SQL)
+
+	backup_ADO = (Err.Number = 0)
+
+End Function
+
+
+'-----
+'
+'-----
+

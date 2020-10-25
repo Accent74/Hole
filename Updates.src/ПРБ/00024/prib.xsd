@@ -1,0 +1,852 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="REPORT">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="DPAHEAD">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element  name="TYPE">
+              <xs:simpleType>
+                  <xs:restriction base="xs:byte">
+                    <xs:pattern value="[0-1]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element> 
+              
+              <xs:element name="DATE_PODACHI">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                              
+                            <xs:pattern value="(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+              
+              <xs:element name="TYPE_DECL">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-3]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element> 
+              
+              
+              
+              <xs:element name="TYPE_PERIOD">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-2]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+
+              
+              <xs:element name="MONTH_REPORT">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="(0[1-9]|1[012])"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              
+              
+              <xs:element name="YEAR_REPORT">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="(20)[0-9]{2}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              <xs:element type="xs:long" name="INN"/>
+           
+              
+              <xs:element name="FACE_MODE">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-3]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              
+              
+         
+              
+              
+              <xs:element name="NAME_PLAT">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+              
+              
+              <xs:element name="YUR_ADDRES">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="4"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            
+
+              <xs:element type="xs:string" name="TEL"/>
+              <xs:element type="xs:string" name="EMAIL"/>
+              <xs:element type="xs:float" name="KVED"/>
+              
+              <xs:element name="STI">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[0-9]{3}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+
+              <xs:element type="xs:long" name="SHARE_GOS"/>
+              
+              <xs:element name="FIO_PREDPR">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="4"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+              
+              
+              <xs:element type="xs:string" name="FIO_BUH"/>
+               
+              <xs:element type="xs:float" name="ROW1"/>
+              <xs:element type="xs:float" name="ROW1_1"/>
+              <xs:element type="xs:float" name="ROW2"/>
+              <xs:element type="xs:float" name="ROW3"/>
+              <xs:element type="xs:float" name="ROW4"/>
+              <xs:element type="xs:float" name="ROW5"/>
+              <xs:element type="xs:float" name="ROW6"/>
+              <xs:element type="xs:float" name="ROW7"/>
+              <xs:element type="xs:float" name="ROW8"/>
+              <xs:element type="xs:float" name="ROW9"/>
+              <xs:element type="xs:float" name="ROW10"/>
+              <xs:element type="xs:float" name="ROW11"/>
+              <xs:element type="xs:float" name="ROW12"/>
+              <xs:element type="xs:float" name="ROW13"/>
+              <xs:element type="xs:float" name="ROW14"/>
+              <xs:element type="xs:float" name="ROW15"/>
+              <xs:element type="xs:float" name="ROW16"/>
+              <xs:element type="xs:float" name="ROW17"/>
+              <xs:element type="xs:float" name="ROW18"/>
+              <xs:element type="xs:float" name="ROW19"/>
+              <xs:element type="xs:float" name="ROW20"/>
+              <xs:element type="xs:float" name="ROW21"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_ISSUE">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_BUYER"/>
+                    <xs:element type="xs:string" name="VIEW_DOC"/>
+                    
+                     <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element name="SUMMA">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:float">
+                                <xs:pattern value="[^0-9.]"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_GET">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_PROVAIDER"/>
+                    <xs:element type="xs:string" name="VIEW_DOC"/>
+                    
+                      <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element name="SUMMA">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:float">
+                                <xs:pattern value="[^0-9.]"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_2">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_2"/>
+                    <xs:element type="xs:float" name="ROW1_1_3"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_2_1"/>
+                    <xs:element type="xs:float" name="ROW1_2_2"/>
+                    <xs:element type="xs:float" name="ROW1_3"/>
+                    <xs:element type="xs:float" name="ROW1_4"/>
+                    <xs:element type="xs:float" name="ROW1_5"/>
+                    <xs:element type="xs:float" name="ROW1_6"/>
+                    <xs:element type="xs:float" name="ROW1_7"/>
+                    <xs:element type="xs:float" name="ROW1_8"/>
+                    <xs:element type="xs:float" name="ROW1_9"/>
+                    <xs:element type="xs:float" name="ROW1_10"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_2"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_2_1"/>
+                    <xs:element type="xs:float" name="ROW2_2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_5_1"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                    <xs:element type="xs:float" name="ROW2_7"/>
+                    <xs:element type="xs:float" name="ROW2_8"/>
+                    <xs:element type="xs:float" name="ROW2_9"/>
+                    <xs:element type="xs:float" name="ROW2_10"/>
+                    <xs:element type="xs:float" name="ROW2_11"/>
+                    <xs:element type="xs:float" name="ROW2_12"/>
+                    <xs:element type="xs:float" name="ROW2_13"/>
+                    <xs:element type="xs:float" name="ROW2_14"/>
+                    <xs:element type="xs:float" name="ROW2_15"/>
+                    <xs:element type="xs:float" name="ROW2_16"/>
+                    <xs:element type="xs:float" name="ROW2_17"/>
+                    <xs:element type="xs:float" name="ROW2_18"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_3">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_2"/>
+                    <xs:element type="xs:float" name="ROW1_1_3"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_2_1"/>
+                    <xs:element type="xs:float" name="ROW1_2_2"/>
+                    <xs:element type="xs:float" name="ROW1_3"/>
+                    <xs:element type="xs:float" name="ROW1_4"/>
+                    <xs:element type="xs:float" name="ROW1_5"/>
+                    <xs:element type="xs:float" name="ROW1_6"/>
+                    <xs:element type="xs:float" name="ROW1_7"/>
+                    <xs:element type="xs:float" name="ROW1_8"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_2"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_2_1"/>
+                    <xs:element type="xs:float" name="ROW2_2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_5_1"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                    <xs:element type="xs:float" name="ROW2_7"/>
+                    <xs:element type="xs:float" name="ROW2_8"/>
+                    <xs:element type="xs:float" name="ROW2_9"/>
+                    <xs:element type="xs:float" name="ROW2_10"/>
+                    <xs:element type="xs:float" name="ROW2_11"/>
+                    <xs:element type="xs:float" name="ROW2_12"/>
+                    <xs:element type="xs:float" name="ROW2_13"/>
+                    <xs:element type="xs:float" name="ROW2_14"/>
+                    <xs:element type="xs:float" name="ROW2_15"/>
+                    <xs:element type="xs:float" name="ROW2_16"/>
+                    <xs:element type="xs:float" name="ROW2_17"/>
+                    <xs:element type="xs:float" name="ROW2_18"/>
+                    <xs:element type="xs:float" name="ROW2_19"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_4">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_3"/>
+                    <xs:element type="xs:float" name="ROW1_4"/>
+                    <xs:element type="xs:float" name="ROW1_5"/>
+                    <xs:element type="xs:float" name="ROW1_6"/>
+                    <xs:element type="xs:float" name="ROW1_7"/>
+                    <xs:element type="xs:float" name="ROW1_8"/>
+                    <xs:element type="xs:float" name="ROW1_9"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                    <xs:element type="xs:float" name="ROW2_7"/>
+                    <xs:element type="xs:float" name="ROW2_8"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_5">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_1_1"/>
+                    <xs:element type="xs:float" name="ROW1_1_2"/>
+                    <xs:element type="xs:float" name="ROW1_1_3"/>
+                    <xs:element type="xs:float" name="ROW1_1_4"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_2_1"/>
+                    <xs:element type="xs:float" name="ROW1_2_2"/>
+                    <xs:element type="xs:float" name="ROW1_2_3"/>
+                    <xs:element type="xs:float" name="ROW1_2_4"/>
+                    <xs:element type="xs:float" name="ROW1_2_5"/>
+                    <xs:element type="xs:float" name="ROW1_2_6"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                    <xs:element type="xs:float" name="ROW2_7"/>
+                    <xs:element type="xs:float" name="ROW2_7_1"/>
+                    <xs:element type="xs:float" name="ROW2_8"/>
+                    <xs:element type="xs:float" name="ROW2_9"/>
+                    <xs:element type="xs:float" name="ROW2_10"/>
+                    <xs:element type="xs:float" name="ROW2_11"/>
+                    <xs:element type="xs:float" name="ROW2_12"/>
+                    <xs:element type="xs:float" name="ROW2_13"/>
+                    <xs:element type="xs:float" name="ROW2_14"/>
+                    <xs:element type="xs:float" name="ROW3_1"/>
+                    <xs:element type="xs:float" name="ROW4_1"/>
+                    <xs:element type="xs:float" name="ROW4_2"/>
+                    <xs:element type="xs:float" name="ROW4_3"/>
+                    <xs:element type="xs:float" name="ROW4_4"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_6">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_3"/>
+                    <xs:element type="xs:float" name="ROW1_4"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_1_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_1_2"/>
+                    <xs:element type="xs:float" name="ROW2_1_1_3"/>
+                    <xs:element type="xs:float" name="ROW2_1_2"/>
+                    <xs:element type="xs:float" name="ROW2_1_3"/>
+                    <xs:element type="xs:float" name="ROW2_1_4"/>
+                    <xs:element type="xs:float" name="ROW2_1_5"/>
+                    <xs:element type="xs:float" name="ROW2_1_5_1"/>
+                    <xs:element type="xs:float" name="ROW2_1_5_2"/>
+                    <xs:element type="xs:float" name="ROW2_1_5_3"/>
+                    <xs:element type="xs:float" name="ROW2_1_6"/>
+                    <xs:element type="xs:float" name="ROW2_1_7"/>
+                    <xs:element type="xs:float" name="ROW2_1_8"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_7">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    <xs:element type="xs:float" name="ROW1_3"/>
+                    <xs:element type="xs:float" name="ROW1_4"/>
+                    <xs:element type="xs:float" name="ROW1_5"/>
+                    <xs:element type="xs:float" name="ROW1_6"/>
+                    <xs:element type="xs:float" name="ROW1_7"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW2_1"/>
+                    <xs:element type="xs:float" name="ROW2_2"/>
+                    <xs:element type="xs:float" name="ROW2_3"/>
+                    <xs:element type="xs:float" name="ROW2_4"/>
+                    <xs:element type="xs:float" name="ROW2_5"/>
+                    <xs:element type="xs:float" name="ROW2_6"/>
+                    <xs:element type="xs:float" name="ROW2_7"/>
+                    <xs:element type="xs:float" name="ROW2_8"/>
+                    <xs:element type="xs:float" name="ROW2_9"/>
+                    <xs:element type="xs:float" name="ROW2_10"/>
+                    <xs:element type="xs:float" name="ROW2_11"/>
+                    <xs:element type="xs:float" name="ROW2_12"/>
+                    <xs:element type="xs:float" name="ROW2_13"/>
+                    <xs:element type="xs:float" name="ROW2_14"/>
+                    <xs:element type="xs:float" name="ROW2_15"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_8">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1"/>
+                    <xs:element type="xs:float" name="ROW2"/>
+                    <xs:element type="xs:float" name="ROW3"/>
+                    <xs:element type="xs:float" name="ROW4"/>
+                    <xs:element type="xs:float" name="ROW5"/>
+                    <xs:element type="xs:float" name="ROW5_1"/>
+                    <xs:element type="xs:float" name="ROW5_2"/>
+                    <xs:element type="xs:float" name="ROW5_3"/>
+                    <xs:element type="xs:float" name="ROW5_4"/>
+                    <xs:element type="xs:float" name="ROW6"/>
+                    <xs:element type="xs:float" name="ROW7"/>
+                    <xs:element type="xs:float" name="ROW8"/>
+                    <xs:element type="xs:float" name="ROW9"/>
+                    <xs:element type="xs:float" name="ROW10"/>
+                    <xs:element type="xs:float" name="ROW11"/>
+                    <xs:element type="xs:float" name="ROW12"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        <xs:element name="NOT_INCLUDED_INCOMES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME"/>
+                    <xs:element name="SUMMA">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:float">
+                                <xs:pattern value="[^0-9.]"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    <xs:element type="xs:string" name="STRING_DECL"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="NOT_INCLUDED_COSTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                    <xs:element type="xs:string" name="STRING_DECL"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_BH">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_BUYER"/>
+                    
+                     <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_BHGET">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_PROVAIDER"/>
+                    
+                      <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_11">
+          <xs:complexType>
+            <xs:sequence> 
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                   <xs:element type="xs:long" name="COL1"/>
+                   <xs:element type="xs:string" name="COL2"/>
+                   <xs:element type="xs:string" name="COL3"/>
+                   <xs:element type="xs:float" name="COL4"/>
+                   <xs:element type="xs:float" name="COL5"/>
+                   <xs:element type="xs:float" name="COL6"/>
+                   <xs:element type="xs:float" name="COL7"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        
+        <xs:element name="ATTACMENT_C">
+             <xs:complexType>
+                <xs:sequence>
+                    <xs:element type="xs:float" name="D11_3"/>
+                    <xs:element type="xs:long" name="D11_4"/>
+                    <xs:element type="xs:long" name="D11_5"/>
+                    <xs:element type="xs:float" name="D12_3"/>
+                    <xs:element type="xs:long" name="D12_4"/>
+                    <xs:element type="xs:long" name="D12_5"/>
+                    <xs:element type="xs:float" name="D13_3"/>
+                    <xs:element type="xs:long" name="D13_4"/>
+                    <xs:element type="xs:long" name="D13_5"/>
+                    <xs:element type="xs:float" name="D14_3"/>
+                    <xs:element type="xs:long" name="D14_4"/>
+                    <xs:element type="xs:long" name="D14_5"/>
+                    <xs:element type="xs:float" name="D15_3"/>
+                    <xs:element type="xs:long" name="D15_4"/>
+                    <xs:element type="xs:long" name="D15_5"/>
+                    <xs:element type="xs:float" name="D16_3"/>
+                    <xs:element type="xs:long" name="D16_4"/>
+                    <xs:element type="xs:long" name="D16_5"/>
+                    <xs:element type="xs:float" name="D21_3"/>
+                    <xs:element type="xs:long" name="D21_4"/>
+                    <xs:element type="xs:long" name="D21_5"/>
+                    <xs:element type="xs:float" name="D22_3"/>
+                    <xs:element type="xs:long" name="D22_4"/>
+                    <xs:element type="xs:long" name="D22_5"/>
+                    <xs:element type="xs:float" name="D23_3"/>
+                    <xs:element type="xs:long" name="D23_4"/>
+                    <xs:element type="xs:long" name="D23_5"/>
+                    <xs:element type="xs:float" name="D24_3"/>
+                    <xs:element type="xs:long" name="D24_4"/>
+                    <xs:element type="xs:long" name="D24_5"/>
+                    <xs:element type="xs:float" name="D25_3"/>
+                    <xs:element type="xs:long" name="D25_4"/>
+                    <xs:element type="xs:long" name="D25_5"/>
+                    <xs:element type="xs:float" name="D26_3"/>
+                    <xs:element type="xs:long" name="D26_4"/>
+                    <xs:element type="xs:long" name="D26_5"/>
+                    <xs:element type="xs:float" name="D31_3"/>
+                    <xs:element type="xs:long" name="D31_4"/>
+                    <xs:element type="xs:long" name="D31_5"/>
+                    <xs:element type="xs:float" name="D32_3"/>
+                    <xs:element type="xs:long" name="D32_4"/>
+                    <xs:element type="xs:long" name="D32_5"/>
+                    <xs:element type="xs:float" name="D33_3"/>
+                    <xs:element type="xs:long" name="D33_4"/>
+                    <xs:element type="xs:long" name="D33_5"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        
+        <xs:element name="ATTACHMENT_AM">
+          <xs:complexType>
+            <xs:sequence> 
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>                    
+                    <xs:element type="xs:long" name="COL1"/>
+                    <xs:element type="xs:string" name="COL2"/>
+                    <xs:element type="xs:float" name="COL3"/>
+                    <xs:element type="xs:float" name="COL4"/>
+                    <xs:element type="xs:float" name="COL5"/>
+                    <xs:element type="xs:float" name="COL6"/>
+                    <xs:element type="xs:float" name="COL7"/>
+                    <xs:element type="xs:float" name="COL8"/>
+                    <xs:element type="xs:float" name="COL9"/>
+                    <xs:element type="xs:float" name="COL10"/>
+                    <xs:element type="xs:float" name="COL11"/>
+                    <xs:element type="xs:float" name="COL12"/>
+                    <xs:element type="xs:float" name="COL13"/>
+                    <xs:element type="xs:float" name="COL14"/>
+                    <xs:element type="xs:float" name="COL15"/>
+                    <xs:element type="xs:float" name="COL16"/>
+                    <xs:element type="xs:float" name="COL17"/>
+                    <xs:element type="xs:float" name="COL18"/>
+                    <xs:element type="xs:float" name="COL19"/>
+                    <xs:element type="xs:float" name="COL20"/>
+                    <xs:element type="xs:float" name="COL21"/>
+                    <xs:element type="xs:float" name="COL22"/>
+                    <xs:element type="xs:float" name="COL23"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        
+        <xs:element name="ATTACHMENT_14">
+          <xs:complexType>
+            <xs:sequence> 
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                   <xs:element type="xs:long" name="COL1"/>
+                   <xs:element type="xs:string" name="COL2"/>
+                   <xs:element type="xs:string" name="COL3"/>
+                   <xs:element type="xs:string" name="COL4"/>
+                   <xs:element type="xs:string" name="COL5"/>
+                   <xs:element type="xs:string" name="COL6"/>
+                   <xs:element type="xs:float" name="COL7"/>
+                   <xs:element type="xs:float" name="COL8"/>
+                   <xs:element type="xs:float" name="COL9"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        
+        <xs:element name="ATTACHMENT_15">
+          <xs:complexType>
+            <xs:sequence>
+                    <xs:element type="xs:float" name="ROW1_1"/>
+                    <xs:element type="xs:float" name="ROW1_2"/>
+                    
+                    <xs:element type="xs:float" name="ROW_200_1"/>
+                    <xs:element type="xs:float" name="ROW_200_2"/>
+                    <xs:element type="xs:float" name="ROW_200_3"/>
+                    <xs:element type="xs:float" name="ROW_200_4"/>
+                    <xs:element type="xs:float" name="ROW_200_5"/>
+                    <xs:element type="xs:float" name="ROW_200_6"/>
+                    <xs:element type="xs:float" name="ROW_200_7"/>
+                    <xs:element type="xs:float" name="ROW_200_8"/>
+                    <xs:element type="xs:float" name="ROW_200_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_299_1"/>
+                    <xs:element type="xs:float" name="ROW_299_2"/>
+                    <xs:element type="xs:float" name="ROW_299_3"/>
+                    <xs:element type="xs:float" name="ROW_299_4"/>
+                    <xs:element type="xs:float" name="ROW_299_5"/>
+                    <xs:element type="xs:float" name="ROW_299_6"/>
+                    <xs:element type="xs:float" name="ROW_299_7"/>
+                    <xs:element type="xs:float" name="ROW_299_8"/>
+                    <xs:element type="xs:float" name="ROW_299_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_201_1"/>
+                    <xs:element type="xs:float" name="ROW_201_2"/>
+                    <xs:element type="xs:float" name="ROW_201_3"/>
+                    <xs:element type="xs:float" name="ROW_201_4"/>
+                    <xs:element type="xs:float" name="ROW_201_5"/>
+                    <xs:element type="xs:float" name="ROW_201_6"/>
+                    <xs:element type="xs:float" name="ROW_201_7"/>
+                    <xs:element type="xs:float" name="ROW_201_8"/>
+                    <xs:element type="xs:float" name="ROW_201_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_202_1"/>
+                    <xs:element type="xs:float" name="ROW_202_2"/>
+                    <xs:element type="xs:float" name="ROW_202_3"/>
+                    <xs:element type="xs:float" name="ROW_202_4"/>
+                    <xs:element type="xs:float" name="ROW_202_5"/>
+                    <xs:element type="xs:float" name="ROW_202_6"/>
+                    <xs:element type="xs:float" name="ROW_202_7"/>
+                    <xs:element type="xs:float" name="ROW_202_8"/>
+                    <xs:element type="xs:float" name="ROW_202_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_203_1"/>
+                    <xs:element type="xs:float" name="ROW_203_2"/>
+                    <xs:element type="xs:float" name="ROW_203_3"/>
+                    <xs:element type="xs:float" name="ROW_203_4"/>
+                    <xs:element type="xs:float" name="ROW_203_5"/>
+                    <xs:element type="xs:float" name="ROW_203_6"/>
+                    <xs:element type="xs:float" name="ROW_203_7"/>
+                    <xs:element type="xs:float" name="ROW_203_8"/>
+                    <xs:element type="xs:float" name="ROW_203_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_204_1"/>
+                    <xs:element type="xs:float" name="ROW_204_2"/>
+                    <xs:element type="xs:float" name="ROW_204_3"/>
+                    <xs:element type="xs:float" name="ROW_204_4"/>
+                    <xs:element type="xs:float" name="ROW_204_5"/>
+                    <xs:element type="xs:float" name="ROW_204_6"/>
+                    <xs:element type="xs:float" name="ROW_204_7"/>
+                    <xs:element type="xs:float" name="ROW_204_8"/>
+                    <xs:element type="xs:float" name="ROW_204_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_205_1"/>
+                    <xs:element type="xs:float" name="ROW_205_2"/>
+                    <xs:element type="xs:float" name="ROW_205_3"/>
+                    <xs:element type="xs:float" name="ROW_205_4"/>
+                    <xs:element type="xs:float" name="ROW_205_5"/>
+                    <xs:element type="xs:float" name="ROW_205_6"/>
+                    <xs:element type="xs:float" name="ROW_205_7"/>
+                    <xs:element type="xs:float" name="ROW_205_8"/>
+                    <xs:element type="xs:float" name="ROW_205_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_399_1"/>
+                    <xs:element type="xs:float" name="ROW_399_2"/>
+                    <xs:element type="xs:float" name="ROW_399_3"/>
+                    <xs:element type="xs:float" name="ROW_399_4"/>
+                    <xs:element type="xs:float" name="ROW_399_5"/>
+                    <xs:element type="xs:float" name="ROW_399_6"/>
+                    <xs:element type="xs:float" name="ROW_399_7"/>
+                    <xs:element type="xs:float" name="ROW_399_8"/>
+                    <xs:element type="xs:float" name="ROW_399_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_301_1"/>
+                    <xs:element type="xs:float" name="ROW_301_2"/>
+                    <xs:element type="xs:float" name="ROW_301_3"/>
+                    <xs:element type="xs:float" name="ROW_301_4"/>
+                    <xs:element type="xs:float" name="ROW_301_5"/>
+                    <xs:element type="xs:float" name="ROW_301_6"/>
+                    <xs:element type="xs:float" name="ROW_301_7"/>
+                    <xs:element type="xs:float" name="ROW_301_8"/>
+                    <xs:element type="xs:float" name="ROW_301_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_302_1"/>
+                    <xs:element type="xs:float" name="ROW_302_2"/>
+                    <xs:element type="xs:float" name="ROW_302_3"/>
+                    <xs:element type="xs:float" name="ROW_302_4"/>
+                    <xs:element type="xs:float" name="ROW_302_5"/>
+                    <xs:element type="xs:float" name="ROW_302_6"/>
+                    <xs:element type="xs:float" name="ROW_302_7"/>
+                    <xs:element type="xs:float" name="ROW_302_8"/>
+                    <xs:element type="xs:float" name="ROW_302_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_303_1"/>
+                    <xs:element type="xs:float" name="ROW_303_2"/>
+                    <xs:element type="xs:float" name="ROW_303_3"/>
+                    <xs:element type="xs:float" name="ROW_303_4"/>
+                    <xs:element type="xs:float" name="ROW_303_5"/>
+                    <xs:element type="xs:float" name="ROW_303_6"/>
+                    <xs:element type="xs:float" name="ROW_303_7"/>
+                    <xs:element type="xs:float" name="ROW_303_8"/>
+                    <xs:element type="xs:float" name="ROW_303_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_304_1"/>
+                    <xs:element type="xs:float" name="ROW_304_2"/>
+                    <xs:element type="xs:float" name="ROW_304_3"/>
+                    <xs:element type="xs:float" name="ROW_304_4"/>
+                    <xs:element type="xs:float" name="ROW_304_5"/>
+                    <xs:element type="xs:float" name="ROW_304_6"/>
+                    <xs:element type="xs:float" name="ROW_304_7"/>
+                    <xs:element type="xs:float" name="ROW_304_8"/>
+                    <xs:element type="xs:float" name="ROW_304_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW_305_1"/>
+                    <xs:element type="xs:float" name="ROW_305_2"/>
+                    <xs:element type="xs:float" name="ROW_305_3"/>
+                    <xs:element type="xs:float" name="ROW_305_4"/>
+                    <xs:element type="xs:float" name="ROW_305_5"/>
+                    <xs:element type="xs:float" name="ROW_305_6"/>
+                    <xs:element type="xs:float" name="ROW_305_7"/>
+                    <xs:element type="xs:float" name="ROW_305_8"/>
+                    <xs:element type="xs:float" name="ROW_305_9"/>
+                    
+                    <xs:element type="xs:float" name="ROW3_0"/>
+                    <xs:element type="xs:float" name="ROW3_1"/>
+                    <xs:element type="xs:float" name="ROW3_2"/>
+                    <xs:element type="xs:float" name="ROW3_3"/>
+                    <xs:element type="xs:float" name="ROW3_4"/>
+                    <xs:element type="xs:float" name="ROW3_5"/>
+                    <xs:element type="xs:float" name="ROW3_6"/>
+                    <xs:element type="xs:float" name="ROW3_7"/>
+                    <xs:element type="xs:float" name="ROW3_8"/>
+                    <xs:element type="xs:float" name="ROW3_9"/>
+                    <xs:element type="xs:float" name="ROW3_10"/>
+                    <xs:element type="xs:float" name="ROW3_11"/>
+                    <xs:element type="xs:float" name="ROW3_12"/>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        
+        
+        <xs:element name="ATTACHMENT_15_ARTELY">
+          <xs:complexType>
+            <xs:sequence>
+                <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                        <xs:complexType>
+                          <xs:sequence>
+                           <xs:element type="xs:long" name="COL1"/>
+                           <xs:element type="xs:string" name="COL2"/>
+                           <xs:element type="xs:string" name="COL3"/>
+                           <xs:element type="xs:string" name="COL4"/>
+                           <xs:element type="xs:long" name="COL5"/>
+                           <xs:element type="xs:float" name="COL6"/>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                </xs:sequence>
+             </xs:complexType>
+        </xs:element>
+        
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

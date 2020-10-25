@@ -1,0 +1,198 @@
+'----
+'	модуль импорта данных по продажам из ТСД в Акцент
+'	Запускается из меню Все задачи для папки документов
+'	использует шаблон документа, привязанную к папке
+'----
+Option Explicit
+
+'#include "Cipher_class.avb"
+'#include "Cipher_common.avb"
+'#include "Cipher_const.avb"
+'#include "ST74_ADO.avb"
+
+Dim C8400
+
+Cipher_CreateOperation 1, 1, True
+
+'---
+'
+'---
+Function AddEntRow(Tr, ByRef DictEnt)
+	Dim LineNo
+
+	AddEntRow = True
+		
+	If Tr.EntID <> 0 Then
+		LineNo = Tr.Params("Long3").Value2
+		If Not DictEnt.Exists(LineNo) And LineNo <> 0 Then
+			DictEnt.Add CStr(LineNo), Tr.RowNo2
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetOperation(WA, DocTag, TmlID, ByRef DictEnt, ByRef RowNo)
+	Dim Rs, Op
+
+	Set Rs = GetRS("select top 1 doc_id from documents where doc_done < 100 and mc_id = " & workarea.mycompany.id & " and doc_ps3=""" & DocTag & """")
+
+	If Not Rs.eof Then
+		Set Op = WA.Operation(Rs.Fields(0).Value)
+	Else
+		Set Op = WA.CreateOperation
+	End If
+
+	DictEnt.RemoveAll
+
+	If Op.IsNew Then
+		Op.DocNo = Token(DocTag, 2, "|")
+		Op.TemplateID = TmlID
+		Op.String3 = DocTag
+		RowNo = 0
+	Else
+		With Op.TransList(1)
+			RowNo = .Rows
+			.EnumTrans GetRef("AddEntRow"), DictEnt
+		End With
+	End If
+
+	Set GetOperation = Op
+End Function
+'---
+'
+'---
+Sub SetDataTr(Op, CurRowNo, EntID, aFields)
+
+	With Op.Trans(1, CurRowNo)
+		If IsNumeric(aFields(4)) And aFields(4) <> "0" Then
+			.Params("Long3").Value = aFields(4)
+		End If
+
+		.Params("String3").Value = aFields(2)
+		.EntID = EntID
+		.Price = str2dbl(aFields(5))
+		.FQty = .FQty + str2dbl(aFields(6))
+		.Sum = Round2(.Sum, 2)
+	End With
+End Sub
+'---
+'
+'---
+Function GetEntID(EntBar, EntName, DocNo, LineNo)
+	Dim NewEntName, NewEnt, NewEntID
+
+	'If EntName = "" Then EntName = EntBar
+	NewEntName = EntBar
+
+	If EntBar = "" Then
+		'	для товара без ШК ОУ не создаем
+		GetEntID = CIPHER_NO_ENT
+	Else
+		NewEntID = FindEntByBarCode(EntBar)
+
+		If NewEntID = 0 Then
+			Set NewEnt = C8400.EntRoot.Create(1004, NewEntName)
+			AddEntBarCode NewEnt.ID, EntBar
+			NewEnt.Bar = EntBar
+			NewEnt.Save
+			GetEntID = NewEnt.ID
+		Else
+			GetEntID = NewEntID
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Sub AddEntBarCode(EntID, ByRef EntBar)
+	Dim aQueryPrm, aData
+
+	aQueryPrm = Array(Array(EntID, 3, 10), Array(EntBar, 201, 13))
+
+	If ADO_Query("cipher_add_ent_bar_code", aQueryPrm, aData) Then
+		If aData(0, 0) = 1 Then
+			MsgBox "Повторение штрих-кода", vbExclamation, "Ошибка !"
+			EntBar = ""
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Function FindEntByBarCode(EntBar)
+	Dim aQueryPrm, aData
+
+	aQueryPrm = Array(Array(EntBar, 201, 13))
+
+	If ADO_Query("cipher_find_ent_by_bar_code", aQueryPrm, aData) Then
+		FindEntByBarCode = aData(0, 0)
+	Else
+		FindEntByBarCode = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function GetAgID(AgCode, AgRoot, DocNo)
+	Dim AgFinder, NewAg
+	
+	If AgCode = "" Then 
+		GetAgID = 0
+	Else
+		Set AgFinder = Workarea.ElementFinder(acAgent)
+		AgFinder.AddCriteria "Code", "=", AgCode
+		
+		If Not AgFinder.Find Then
+			Set NewAg = AgRoot.Create(1, "< Новый корреспондент ОКПО: " & AgCode)
+			NewAg.Code = AgCode
+			NewAg.Contact = NewAg.Name
+	
+			With NewAg.Params
+				If .Exists(AG_FULL_NAME) Then
+					.Item(AG_FULL_NAME).Value = NewAg.Name
+				End If
+			End With
+	
+			NewAg.Save
+			GetAgID = NewAg.ID
+		Else
+			GetAgID = AgFinder.Elems.Item(1).ID
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function OpBeforeSave(Op)
+	Dim prm
+
+	Op.Done = False
+	Op.Sum3 = -1
+
+	'With Op.TransList(1)
+	'	.EnumTrans GetRef("DelZeroQtyRow"), prm
+	'	.Pack
+	'End With
+
+	OpBeforeSave = True
+
+End Function
+'---
+'
+'---
+Function DelZeroQtyRow(Tr, ByRef prm)
+	DelZeroQtyRow	= True
+
+	If Tr.FQty = 0 Then
+		Tr.EntID = 0
+	End If
+
+End Function 
+'---
+'
+'---

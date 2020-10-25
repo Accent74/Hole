@@ -1,0 +1,114 @@
+'Модуль поддержки печати этикетки на принтере, поддерживающем ZPL
+'Принтер должен быть назначен на порт LPT1:
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Акцент. Печать этикеток"
+
+Const DEF_LABEL_NAME = "Label.zpl"
+Const ZebraEPL = "d:\Zebra.epl"
+
+'---
+'
+'---
+Sub PrintLabels(TrList)
+	Dim prm
+
+	prm = False
+	TrList.EnumTrans GetRef("PrintLabelRow"), prm
+
+	If prm Then
+		MsgBox "В процессе печати этикеток возникли ошибки", vbExclamation, MSG_BOX_CAPTION
+	End If
+
+End Sub
+'---
+'
+'---
+Function PrintLabelRow(Tr, ByRef prm)
+	Dim Text2Print, Expr, EntName
+	Dim i, nPaperType, PaperTemplate, OneCommand
+	Dim PaperTemplateFileName
+
+	If Tr.Entity Is Nothing Or Tr.Params(prmTrQty).Value2 = 0 Then Exit Function
+
+	Text2Print = ""
+
+	PaperTemplateFileName = com_getparamvalue(Tr.entity, prmEntLabelTemplate, DEF_LABEL_NAME)
+	LoadTemplate PaperTemplateFileName, PaperTemplate
+
+	If UBound(PaperTemplate) <> - 1 Then
+		For i = 0 To UBound(PaperTemplate)
+			OneCommand = PaperTemplate(i)
+	
+			If OneCommand <> "" Then
+				If InStr(OneCommand, "@") <> 0 Then
+					Expr = Eval(Mid(OneCommand, InStr(OneCommand, "@") + 1))
+					Expr = Replace(Expr, Chr(34), "`")
+					Text2Print = Text2Print & Left(OneCommand, InStr(OneCommand, "@") - 1) & Chr(34) & Expr & Chr(34) & vbCrLf 
+				Else
+					Text2Print = Text2Print & OneCommand & vbCrLf 
+				End If
+			End If
+		Next
+	
+		PrintData Text2Print, prm
+	Else
+		prm = True
+		MsgBox "Не найден файл шаблона этикетки" & vbNewLine & PaperTemplateFileName, vbExclamation, Op.Name
+ 	End If
+
+	PrintLabelRow = Not prm	
+End Function
+'---
+'
+'---
+Sub PrintData(Text2Print, IsError)
+	Dim TextFile, FSO, RD, System
+	Dim TextFileName
+
+	Set RD = CreateLibObject("Redirect")
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+
+	TextFileName = ZebraEPL
+	Set TextFile = FSO.OpenTextFile(TextFileName, 2, True)
+
+	If TextFile Is Nothing Then
+		IsError = True
+		MsgBox "Невозможно создать файл " & FileName & " для передачи на принтер.", vbCritical, MSG_BOX_CAPTION
+		Exit Sub
+	End If
+
+	TextFile.Write Text2Print
+	TextFile.Close
+
+	Set System = CreateLibObject("System")
+	System.Run "cmd /c print " & Chr(34) & TextFileName & Chr(34), 0, True
+
+	'System.DeleteFile FileName
+
+End Sub
+'---
+'
+'---
+Sub LoadTemplate(TemplateFileName, ByRef PaperTemplate)
+	Dim tmlText, tmlFile, tmlFilePath, FSO, RD
+
+	Set RD = CreateLibObject("Redirect")
+	tmlFilePath = RD.GetFullPath(TemplateFileName)
+
+	If tmlFilePath <> "" Then
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		Set tmlFile = FSO.OpenTextFile(tmlFilePath)
+		tmlText = tmlFile.readAll
+		tmlFile.Close
+	
+		PaperTemplate = Split(tmlText, vbCrLf)
+	Else
+		PaperTemplate = Array()
+	End If
+
+End Sub
+'---
+'
+'---

@@ -1,0 +1,930 @@
+﻿<AccentExportData><AccentOperations/><AccentFolders><folder ID="550" GUID="{guid {E444903A-DDE1-4830-AAAA-5714C3AC79A2}}" Name="Магазин" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="562" GUID="{guid {565B4552-A089-4FB4-AF7E-0A2C3D7E76EE}}" Name="04. Магазин. Списание товара" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"/><folder ID="561" GUID="{guid {7682E3B4-B387-4610-8A6E-CA367A7E3132}}" Name="01. Магазин. Поступление товара" FormID="0" FormGUID="" Tag="" TID="1860" TGUID="{guid {E1615040-73C0-44DD-8711-FCE139BE2BC8}}" Type="0"/><folder ID="551" GUID="{guid {57C7A3F8-3441-4DD2-BC56-01B39B68BDE8}}" Name="05. Магазин. Акт переоценки товара" FormID="0" FormGUID="" Tag="" TID="1868" TGUID="{guid {5915817A-CFB4-444E-A59B-671A01BF4918}}" Type="0"/><folder ID="555" GUID="{guid {C963C924-ED0B-4948-ABAD-E946EA67404F}}" Name="03. Магазин. Реализация товара" FormID="0" FormGUID="" Tag="" TID="1862" TGUID="{guid {1C540293-51A0-48DE-92C7-6D8351891456}}" Type="0"/><folder ID="553" GUID="{guid {5FEB07B6-31BB-4D5B-8438-5F0EB3876B8E}}" Name="06. Магазин. Возврат от покупателя" FormID="0" FormGUID="" Tag="" TID="1863" TGUID="{guid {50344DF5-5A26-46AD-B8FF-23F47102612C}}" Type="0"/><folder ID="554" GUID="{guid {7A1DD19A-0D95-440B-923C-49EEB600DA84}}" Name="07. Магазин. Возврат поставщику" FormID="0" FormGUID="" Tag="" TID="1864" TGUID="{guid {B433E27C-B6E0-4D85-92B7-B72239754019}}" Type="0"/><folder ID="556" GUID="{guid {493F9F16-25D7-4ACE-91AD-F89E5BC045FF}}" Name="02. Магазин. Перемещения товара" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="557" GUID="{guid {21A5258C-4401-4A8D-AE71-BEB30BD63C90}}" Name="Магазин. Перемещения товара. Опт-&gt;Розница" FormID="0" FormGUID="" Tag="" TID="1865" TGUID="{guid {F52FECB6-6EDE-4690-98F1-E4CA44B8B0A2}}" Type="0"/><folder ID="558" GUID="{guid {058ED9A5-26D7-4A86-8CA1-74E9168AD6AE}}" Name="Магазин. Перемещения товара. Розница-&gt;Опт" FormID="0" FormGUID="" Tag="" TID="1866" TGUID="{guid {D31C4E36-C095-49F5-B495-B6D3DDB129F3}}" Type="0"/><folder ID="559" GUID="{guid {EB52BA67-6A46-4F8E-BFFF-A1880F74D5D1}}" Name="Магазин. Перемещения товара. Розница-&gt;Розница" FormID="0" FormGUID="" Tag="" TID="1867" TGUID="{guid {BB94CCC1-EDAE-41E0-8451-C76AF51C6E34}}" Type="0"/></folder></folder><folder ID="539" GUID="{guid {60BF1967-915B-41F5-AD10-59339ADFB649}}" Name="Вступительный баланс" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="560" GUID="{guid {0E5D61B1-A49D-431D-9D3B-7F9C07907B77}}" Name="Вступительный баланс. Магазин. " FormID="0" FormGUID="" Tag="" TID="1869" TGUID="{guid {F736CE4F-5030-44E8-9B2C-7356FA1169ED}}" Type="0"/></folder></AccentFolders><AccentTemplates><template GUID="{guid {A5FF70C2-C61E-4FC8-9C9D-74F9B81EB01E}}" ID="1836" Memo="" Name="Вступительный баланс" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {F736CE4F-5030-44E8-9B2C-7356FA1169ED}}" ID="1869" Memo="" Name="Вступительный баланс. Магазин" Tag="" Type="1" FormID="825" FormGUID="{guid {C1F79DC1-DA3F-4CC2-B16A-36C9B8B7702D}}" Script="'#include &quot;HL74_MakeSeriesRetailDAO.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeriesRetail(Op, 1, 2)
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 825
+  op.SetFolder 560
+  op.Name = &quot;Вступительный баланс. Магазин&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 195
+  op.TransList(1).SetAccCr 69
+  op.TransList(2).SetAccDb 195
+  op.TransList(2).SetAccCr 199
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+">'#include "HL74_MakeSeriesRetailDAO.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeriesRetail(Op, 1, 2)
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {C1F79DC1-DA3F-4CC2-B16A-36C9B8B7702D}}
+  op.SetFolder {guid {0E5D61B1-A49D-431D-9D3B-7F9C07907B77}}
+  op.Name = "Вступительный баланс. Магазин"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(1).SetAccCr {guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}
+  op.TransList(2).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/11/2015 3:50:09 PM"/></parameters></template></template><template GUID="{guid {34BB6A37-533F-4FA2-8260-2F041795F2EA}}" ID="1853" Memo="" Name="Магазин" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {F0F16571-7093-4DC4-93CC-1CEABFCD767E}}" ID="1858" Memo="" Name="Магазин. Акт переоценки товара" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {5915817A-CFB4-444E-A59B-671A01BF4918}}" ID="1868" Memo="" Name="Магазин. Акт переоценки товара" Tag="" Type="1" FormID="831" FormGUID="{guid {73A81AC5-A51D-49FB-AE50-5DF7768051BE}}" Script="'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:59:19
+'= Автор  : admin
+'==============================================
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 4
+  '--Общие--
+  op.FormID = 831
+  op.Name = &quot;Магазин. Акт переоценки товара&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 69
+  op.TransList(1).SetAccCr 69
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 199
+  op.TransList(3).SetAccDb 415
+  op.TransList(3).SetAccCr 196
+  op.TransList(4).SetAccDb 368
+  op.TransList(4).SetAccCr 415
+  '}} END_APPLY
+End Sub
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 4
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H19
+  '}} END_EDIT
+End Sub
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 1, False
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 4, False, 1, False
+  op.CopyAgents 4, True, 1, False
+  op.CopyAgents 2, True, 1, True, True
+  op.CopyAgents 3, True, 1, True
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  op.TransList(4).CalcSum &quot;=T3&quot;
+  '}} END_RECALC
+End Sub
+">'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:59:19
+'= Автор  : admin
+'==============================================
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 4
+  '--Общие--
+  op.FormID = {guid {73A81AC5-A51D-49FB-AE50-5DF7768051BE}}
+  op.Name = "Магазин. Акт переоценки товара"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}
+  op.TransList(1).SetAccCr {guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  op.TransList(3).SetAccDb {guid {710C344D-58DB-4048-8461-6446B2B40B60}}
+  op.TransList(3).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(4).SetAccDb {guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}
+  op.TransList(4).SetAccCr {guid {710C344D-58DB-4048-8461-6446B2B40B60}}
+  '}} END_APPLY
+End Sub
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 4
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H19
+  '}} END_EDIT
+End Sub
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 1, False
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 1, False
+  op.CopyAgents 4, False, 1, False
+  op.CopyAgents 4, True, 1, False
+  op.CopyAgents 2, True, 1, True, True
+  op.CopyAgents 3, True, 1, True
+  '--Суммы--
+  op.CalcSum "=T1"
+  op.TransList(4).CalcSum "=T3"
+  '}} END_RECALC
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/5/2015 3:43:12 PM"/></parameters></template></template><template GUID="{guid {3455822D-1D38-4720-A4D6-D81662EC9829}}" ID="1856" Memo="" Name="Магазин. Возврат товара от покупателя" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {50344DF5-5A26-46AD-B8FF-23F47102612C}}" ID="1863" Memo="" Name="Магазин. Возврат товара от покупателя" Tag="" Type="1" FormID="838" FormGUID="{guid {188DD830-0746-49FB-8109-B87A5757AFAC}}" Script="'#include &quot;HL74_ReturnToRetailDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:47:39
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 5
+  '--Общие--
+  op.FormID = 838
+  op.SetFolder 553
+  op.Name = &quot;Магазин. Возврат товара от покупателя&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 337
+  op.TransList(1).SetAccCr 220
+  op.TransList(2).SetAccDb 402
+  op.TransList(2).SetAccCr 196
+  op.TransList(3).SetAccDb 199
+  op.TransList(3).SetAccCr 196
+  op.TransList(4).SetAccDb 368
+  op.TransList(4).SetAccCr 337
+  op.TransList(5).SetAccDb 368
+  op.TransList(5).SetAccCr 402
+  '--Корреспонденты--
+  op.TransList(4).SetAgMCTo
+  op.TransList(5).SetAgMCTo
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 5
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H8
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H11
+  op.TransList(5).LockUI &amp;H11
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, False, 2, True
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 1, False, True
+  op.CopyAgents 3, True, 1, False, True
+  op.CopyAgents 4, True, 1, False
+  op.CopyAgents 5, True, 1, False
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  op.TransList(4).CalcSum &quot;=T1&quot;
+  op.TransList(5).CalcSum &quot;=T2&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ReturnToRetail(Op, 2, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 3)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_ReturnToRetailDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:47:39
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 5
+  '--Общие--
+  op.FormID = {guid {188DD830-0746-49FB-8109-B87A5757AFAC}}
+  op.SetFolder {guid {5FEB07B6-31BB-4D5B-8438-5F0EB3876B8E}}
+  op.Name = "Магазин. Возврат товара от покупателя"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {0076B3AB-58A6-47F8-9CCC-A12ACBC30808}}
+  op.TransList(1).SetAccCr {guid {6EC9A0F1-F594-4F49-B4B5-4D6D6165249E}}
+  op.TransList(2).SetAccDb {guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}
+  op.TransList(2).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(3).SetAccDb {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  op.TransList(3).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(4).SetAccDb {guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}
+  op.TransList(4).SetAccCr {guid {0076B3AB-58A6-47F8-9CCC-A12ACBC30808}}
+  op.TransList(5).SetAccDb {guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}
+  op.TransList(5).SetAccCr {guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}
+  '--Корреспонденты--
+  op.TransList(4).SetAgMCTo
+  op.TransList(5).SetAgMCTo
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 5
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H8
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H11
+  op.TransList(5).LockUI &amp;H11
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, False, 2, True
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 1, False, True
+  op.CopyAgents 3, True, 1, False, True
+  op.CopyAgents 4, True, 1, False
+  op.CopyAgents 5, True, 1, False
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  op.TransList(4).CalcSum "=T1"
+  op.TransList(5).CalcSum "=T2"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ReturnToRetail(Op, 2, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1, 3)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/12/2015 8:18:41 AM"/></parameters></template></template><template GUID="{guid {9340FEA2-01C1-48C2-B1AB-BF194EDD9A1D}}" ID="1857" Memo="" Name="Магазин. Возврат товара поставщику" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {B433E27C-B6E0-4D85-92B7-B72239754019}}" ID="1864" Memo="" Name="Магазин. Возврат товара поставщику" Tag="" Type="1" FormID="832" FormGUID="{guid {BC642D70-9FE5-42BF-9B05-4C0ABEBD4620}}" Script="'#include &quot;HL74_ReturnFromRetailDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:49:52
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 832
+  op.SetFolder 554
+  op.Name = &quot;Магазин. Возврат товара поставщику&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 196
+  op.TransList(1).SetAccCr 299
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 199
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ReturnFromRetail(Op, 1, 1, 3, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_ReturnFromRetailDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:49:52
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {BC642D70-9FE5-42BF-9B05-4C0ABEBD4620}}
+  op.SetFolder {guid {7A1DD19A-0D95-440B-923C-49EEB600DA84}}
+  op.Name = "Магазин. Возврат товара поставщику"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(1).SetAccCr {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, False
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ReturnFromRetail(Op, 1, 1, 3, FALSE, TRUE, FALSE, FALSE, "", 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/7/2015 10:22:29 AM"/></parameters></template></template><template GUID="{guid {758E5CFF-8738-4B36-A675-0C199CED48D5}}" ID="1859" Memo="" Name="Магазин. Перемещения товара" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {F52FECB6-6EDE-4690-98F1-E4CA44B8B0A2}}" ID="1865" Memo="" Name="Магазин. Перемещения товара. Опт-&gt;Розница" Tag="" Type="1" FormID="824" FormGUID="{guid {E27BF6A8-4664-41CB-97B8-C79F7C15B05A}}" Script="'#include &quot;HL74_RemoveToRetailDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:52:13
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 824
+  op.SetFolder 557
+  op.Name = &quot;Магазин. Перемещения товара. Перемещение из опта в розницу&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 196
+  op.TransList(1).SetAccCr 195
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 199
+  op.TransList(3).SetAccDb 196
+  op.TransList(3).SetAccCr 404
+  '--Объекты учета--
+  op.TransList(3).SetEnt 978
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 2, True, 1, False, True
+  op.CopyAgents 3, False, 1, False, True
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = RemoveToRetail(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_RemoveToRetailDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:52:13
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {E27BF6A8-4664-41CB-97B8-C79F7C15B05A}}
+  op.SetFolder {guid {21A5258C-4401-4A8D-AE71-BEB30BD63C90}}
+  op.Name = "Магазин. Перемещения товара. Перемещение из опта в розницу"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(1).SetAccCr {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  op.TransList(3).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(3).SetAccCr {guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}
+  '--Объекты учета--
+  op.TransList(3).SetEnt {guid {AE42A48B-2A0F-4AE6-A007-C380045ED537}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 2, True, 1, False, True
+  op.CopyAgents 3, False, 1, False, True
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = RemoveToRetail(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/4/2015 11:51:52 AM"/></parameters></template><template GUID="{guid {D31C4E36-C095-49F5-B495-B6D3DDB129F3}}" ID="1866" Memo="" Name="Магазин. Перемещения товара. Розница-&gt;Опт" Tag="" Type="1" FormID="844" FormGUID="{guid {1D6EACDB-62BD-4429-80E0-1B1085D97FB7}}" Script="'#include &quot;HL74_RemoveToWholesaleDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:55:34
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 844
+  op.SetFolder 558
+  op.Name = &quot;Магазин. Перемещения товара. Розница-&gt;Опт&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 195
+  op.TransList(1).SetAccCr 196
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 199
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, True, True
+  op.CopyAgents 2, True, 1, True, True
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = RemoveToWholesale(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_RemoveToWholesaleDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:55:34
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {1D6EACDB-62BD-4429-80E0-1B1085D97FB7}}
+  op.SetFolder {guid {058ED9A5-26D7-4A86-8CA1-74E9168AD6AE}}
+  op.Name = "Магазин. Перемещения товара. Розница-&gt;Опт"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(1).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, True, True
+  op.CopyAgents 2, True, 1, True, True
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = RemoveToWholesale(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/11/2015 10:05:49 AM"/></parameters></template><template GUID="{guid {BB94CCC1-EDAE-41E0-8451-C76AF51C6E34}}" ID="1867" Memo="" Name="Магазин. Перемещения товара. Розница-&gt;Розница" Tag="" Type="1" FormID="841" FormGUID="{guid {C0763A14-1EB5-4E62-9B11-E7E738B6CB97}}" Script="'#include &quot;HL74_InternalMovingRetailDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:56:22
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 841
+  op.SetFolder 559
+  op.Name = &quot;Магазин. Перемещения товара. Розница-&gt;Розница&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 196
+  op.TransList(1).SetAccCr 196
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 199
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = InternalMovingRetail(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_InternalMovingRetailDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:56:22
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {C0763A14-1EB5-4E62-9B11-E7E738B6CB97}}
+  op.SetFolder {guid {EB52BA67-6A46-4F8E-BFFF-A1880F74D5D1}}
+  op.Name = "Магазин. Перемещения товара. Розница-&gt;Розница"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(1).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = InternalMovingRetail(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/11/2015 8:56:29 PM"/></parameters></template></template><template GUID="{guid {D5A8450B-6330-4813-8F4E-3D19548A3514}}" ID="1854" Memo="" Name="Магазин. Поступление товара" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {E1615040-73C0-44DD-8711-FCE139BE2BC8}}" ID="1860" Memo="" Name="Магазин. Поступление товара. Поступление товара от поставщика" Tag="" Type="1" FormID="825" FormGUID="{guid {C1F79DC1-DA3F-4CC2-B16A-36C9B8B7702D}}" Script="'#include &quot;HL74_MakeSeriesRetailDAO.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:34:40
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 825
+  op.Name = &quot;Магазин. Поступление товара. Поступление товара от поставщика&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 196
+  op.TransList(1).SetAccCr 299
+  op.TransList(2).SetAccDb 196
+  op.TransList(2).SetAccCr 299
+  op.TransList(3).SetAccDb 196
+  op.TransList(3).SetAccCr 199
+  '--Объекты учета--
+  op.TransList(2).SetEnt 978
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, False, 1, False, True
+  op.CopyAgents 3, True, 1, False, True
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeriesRetail(Op, 1, 3)
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_MakeSeriesRetailDAO.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:34:40
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {C1F79DC1-DA3F-4CC2-B16A-36C9B8B7702D}}
+  op.Name = "Магазин. Поступление товара. Поступление товара от поставщика"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(1).SetAccCr {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  op.TransList(2).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(2).SetAccCr {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  op.TransList(3).SetAccDb {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(3).SetAccCr {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  '--Объекты учета--
+  op.TransList(2).SetEnt {guid {AE42A48B-2A0F-4AE6-A007-C380045ED537}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H18
+  op.TransList(3).LockUI &amp;H18
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, False, 1, False, True
+  op.CopyAgents 3, True, 1, False, True
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeriesRetail(Op, 1, 3)
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="9/19/2015 1:53:14 PM"/></parameters></template></template><template GUID="{guid {1175B9CF-5473-4134-B3C0-6C64A7E744CF}}" ID="1855" Memo="" Name="Магазин. Реализация товара" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {1C540293-51A0-48DE-92C7-6D8351891456}}" ID="1862" Memo="" Name="Магазин. Реализация товара. Реализация товаар за наличный расчет" Tag="" Type="1" FormID="826" FormGUID="{guid {7094D5C1-1AB2-48E5-8D34-C4CDEFF85B1D}}" Script="'#include &quot;HL74_ChargeRetailDAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:42:22
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 5
+  '--Общие--
+  op.FormID = 826
+  op.SetFolder 555
+  op.Name = &quot;Магазин. Реализация товара. Реализация товаар за наличный расчет&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 201
+  op.TransList(1).SetAccCr 335
+  op.TransList(2).SetAccDb 402
+  op.TransList(2).SetAccCr 196
+  op.TransList(3).SetAccDb 199
+  op.TransList(3).SetAccCr 196
+  op.TransList(4).SetAccDb 368
+  op.TransList(4).SetAccCr 402
+  op.TransList(5).SetAccDb 335
+  op.TransList(5).SetAccCr 368
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 5
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H19
+  op.TransList(5).LockUI &amp;H19
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 2, True
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 2, True, True
+  op.CopyAgents 3, True, 2, True, True
+  op.CopyAgents 4, False, 1, True
+  op.CopyAgents 4, True, 1, True
+  op.CopyAgents 5, False, 1, True
+  op.CopyAgents 5, True, 1, True
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  op.TransList(4).CalcSum &quot;=T2&quot;
+  op.TransList(5).CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOffRetail(Op, 2, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1, 3)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+">'#include "HL74_ChargeRetailDAO.avb"
+'#include "HL74_Errors.avb"
+'==============================================
+'= Акцент 7.4 
+'= Создан : 12/09/2015 19:42:22
+'= Автор  : admin
+'==============================================
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 5
+  '--Общие--
+  op.FormID = {guid {7094D5C1-1AB2-48E5-8D34-C4CDEFF85B1D}}
+  op.SetFolder {guid {C963C924-ED0B-4948-ABAD-E946EA67404F}}
+  op.Name = "Магазин. Реализация товара. Реализация товаар за наличный расчет"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {CCEBE0A5-5FD6-4E6B-82EC-D3BA9E55E2D9}}
+  op.TransList(1).SetAccCr {guid {24DC5D32-C2AB-474B-BFC6-921D372BEF73}}
+  op.TransList(2).SetAccDb {guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}
+  op.TransList(2).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(3).SetAccDb {guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}
+  op.TransList(3).SetAccCr {guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}
+  op.TransList(4).SetAccDb {guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}
+  op.TransList(4).SetAccCr {guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}
+  op.TransList(5).SetAccDb {guid {24DC5D32-C2AB-474B-BFC6-921D372BEF73}}
+  op.TransList(5).SetAccCr {guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 5
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(1).LockUI &amp;H10
+  op.TransList(2).LockUI &amp;H8
+  op.TransList(3).LockUI &amp;H18
+  op.TransList(4).LockUI &amp;H19
+  op.TransList(5).LockUI &amp;H19
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 1, True, 2, True
+  op.CopyAgents 2, False, 1, False, True
+  op.CopyAgents 3, False, 2, True, True
+  op.CopyAgents 3, True, 2, True, True
+  op.CopyAgents 4, False, 1, True
+  op.CopyAgents 4, True, 1, True
+  op.CopyAgents 5, False, 1, True
+  op.CopyAgents 5, True, 1, True
+  '--Суммы--
+  op.CalcSum "=T1"
+  op.TransList(4).CalcSum "=T2"
+  op.TransList(5).CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOffRetail(Op, 2, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1, 3)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="10/4/2015 10:42:07 AM"/></parameters></template></template></template></AccentTemplates><AccentEntities><entity ID="385" GUID="{guid {5217F0F5-D1D0-11D5-8141-0002440B6A16}}" Art="" Bar="" Cat="" Name="Товары" Nom="" Tag="SYS385" Type="0" Memo="" UnSelf="True" UnitID="1"><entity ID="977" GUID="{guid {3B3CD85D-D40E-4498-9573-9F6086B0E60F}}" Art="" Bar="" Cat="" Name="ТЗР" Nom="" Tag="" Type="0" Memo="" UnSelf="False" UnitID="0"><entity ID="978" GUID="{guid {AE42A48B-2A0F-4AE6-A007-C380045ED537}}" Art="" Bar="" Cat="" Name="Товар-транспортные затраты" Nom="" Tag="" Type="1001" Memo="" UnSelf="False" UnitID="0"/></entity></entity></AccentEntities><AccentMiscs/><AccentAgents/><AccentBanks/><AccentAccounts><account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo=""><account ID="404" GUID="{guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}" Code="91" Name="Общепроизводственные расходы" PlanID="70" SaldoType="0" Tag="SYS404" Type="0" Memo=""/><account ID="69" GUID="{guid {D7ACAED9-296D-11D3-A02D-0080480180F7}}" Code="00" Name="&lt;&lt;Вступительный баланс&gt;&gt;" PlanID="70" SaldoType="0" Tag="SYS69" Type="-2" Memo=""/><account ID="194" GUID="{guid {BB96D902-589B-43FA-807E-AA98A421C219}}" Code="28" Name="Товары" PlanID="70" SaldoType="0" Tag="SYS194" Type="0" Memo=""><account ID="195" GUID="{guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}" Code="281" Name="Товары на складе" PlanID="70" SaldoType="0" Tag="SYS195" Type="0" Memo=""/><account ID="199" GUID="{guid {60529DE0-EF3A-40AF-B454-76CCE389439F}}" Code="285" Name="Торговая наценка" PlanID="70" SaldoType="0" Tag="SYS199" Type="0" Memo=""/><account ID="196" GUID="{guid {35C43AB9-E7C7-4A36-8356-7B6521D73F37}}" Code="282" Name="Товары в торговле" PlanID="70" SaldoType="0" Tag="SYS196" Type="0" Memo=""/></account><account ID="409" GUID="{guid {ED397C54-0A7A-438F-99A8-DEA0CB2FAE8E}}" Code="94" Name="Другие  расходы операционной деятельности" PlanID="70" SaldoType="0" Tag="SYS409" Type="1" Memo=""><account ID="415" GUID="{guid {710C344D-58DB-4048-8461-6446B2B40B60}}" Code="946" Name="Потери от обесценивания запасов" PlanID="70" SaldoType="0" Tag="SYS415" Type="1" Memo=""/></account><account ID="367" GUID="{guid {FB97F106-65B3-4213-A412-397828764683}}" Code="79" Name="Финансовые результаты" PlanID="70" SaldoType="0" Tag="SYS367" Type="2" Memo=""><account ID="368" GUID="{guid {41258AFE-1943-4498-A5EA-7FDA78E35836}}" Code="791" Name="Результат операционной деятельности" PlanID="70" SaldoType="0" Tag="SYS368" Type="0" Memo=""/></account><account ID="333" GUID="{guid {3E42980E-F227-4FFB-A33D-9067C82B9FB8}}" Code="70" Name="Доходы от реализации" PlanID="70" SaldoType="0" Tag="SYS333" Type="2" Memo=""><account ID="337" GUID="{guid {0076B3AB-58A6-47F8-9CCC-A12ACBC30808}}" Code="704" Name="Вычеты из дохода" PlanID="70" SaldoType="0" Tag="SYS337" Type="0" Memo=""/><account ID="335" GUID="{guid {24DC5D32-C2AB-474B-BFC6-921D372BEF73}}" Code="702" Name="Доход от реализации товаров" PlanID="70" SaldoType="0" Tag="SYS335" Type="1" Memo=""/></account><account ID="400" GUID="{guid {1CE24D86-EC12-41AB-A839-484D38C59709}}" Code="90" Name="Себестоимость реализации" PlanID="70" SaldoType="0" Tag="SYS400" Type="1" Memo=""><account ID="402" GUID="{guid {5541E636-2BDB-49D0-BE9E-2B2459A670F2}}" Code="902" Name="Себестоимость реализованных товаров" PlanID="70" SaldoType="0" Tag="SYS402" Type="1" Memo=""/></account><account ID="219" GUID="{guid {F9DF1002-FEF6-4CC4-A413-589731495FB5}}" Code="36" Name="Расчеты с покупателями и заказчиками" PlanID="70" SaldoType="0" Tag="SYS219" Type="0" Memo=""><account ID="220" GUID="{guid {6EC9A0F1-F594-4F49-B4B5-4D6D6165249E}}" Code="361" Name="Расчёты с отечественными покупателями" PlanID="70" SaldoType="0" Tag="SYS220" Type="1" Memo=""/></account><account ID="298" GUID="{guid {63451D75-B109-46E6-BF95-16E0C984C96B}}" Code="63" Name="Расчеты с поставщиками и подрядчиками" PlanID="70" SaldoType="0" Tag="SYS298" Type="2" Memo=""><account ID="299" GUID="{guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}" Code="631" Name="Расчеты с отечественными поставщиками" PlanID="70" SaldoType="0" Tag="SYS299" Type="2" Memo=""/></account><account ID="200" GUID="{guid {1F72141A-35A6-4109-A5C6-9D1F97649964}}" Code="30" Name="Наличность" PlanID="70" SaldoType="0" Tag="SYS200" Type="0" Memo=""><account ID="201" GUID="{guid {CCEBE0A5-5FD6-4E6B-82EC-D3BA9E55E2D9}}" Code="301" Name="Касса в национальной валюте" PlanID="70" SaldoType="0" Tag="SYS201" Type="0" Memo=""/></account></account></AccentAccounts><AccentUnits><unit ID="1" GUID="{guid {11844C8B-7339-11D4-A311-E209799B0A26}}" Name="Штуки" ShortName="шт" Memo="" Tag="2009" TypeName="Unit"/></AccentUnits><AccentCurs/><AccentForms><form ANID="84" FileName="HL74_ArrivalOrder (RT).afm" ID="825" Name="Магазин. Приходная накладная" ShortName="МПН" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {C1F79DC1-DA3F-4CC2-B16A-36C9B8B7702D}}"/><form ANID="91" FileName="HL74_PriceChanging (RT).afm" ID="831" Name="Магазин. Акт переоценки товара" ShortName="МАП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {73A81AC5-A51D-49FB-AE50-5DF7768051BE}}"/><form ANID="89" FileName="HL74_BuyerReturn (RT).afm" ID="838" Name="Магазин. Возврат товара от покупателя" ShortName="МВК" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {188DD830-0746-49FB-8109-B87A5757AFAC}}"/><form ANID="90" FileName="HL74_SupplierReturn (RT).afm" ID="832" Name="Магазин. Возврат товара поставщику" ShortName="МВС" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {BC642D70-9FE5-42BF-9B05-4C0ABEBD4620}}"/><form ANID="86" FileName="HL74_MoveWT2RT.afm" ID="824" Name="Магазин. Пемещение товара . Опт-&gt;Розница" ShortName="МПР" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {E27BF6A8-4664-41CB-97B8-C79F7C15B05A}}"/><form ANID="87" FileName="HL74_RemoveToWT.afm" ID="844" Name="Магазин. Перемещение товара. Розница -&gt; Опт" ShortName="МПО" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {1D6EACDB-62BD-4429-80E0-1B1085D97FB7}}"/><form ANID="88" FileName="HL74_InternalMoving (RT).afm" ID="841" Name="Магазин. Внутреннее перемещение" ShortName="МПТ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {C0763A14-1EB5-4E62-9B11-E7E738B6CB97}}"/><form ANID="85" FileName="HL74_SellingOrder (RT).afm" ID="826" Name="Магазин. Реализация товара" ShortName="МРТ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {7094D5C1-1AB2-48E5-8D34-C4CDEFF85B1D}}"/></AccentForms><AccentAutoNum><AutoNum ID="84" PR="" SF="" NAME="Магазин. Приходная накладная"/><AutoNum ID="85" PR="" SF="" NAME="Магазин. Реализация товара"/><AutoNum ID="86" PR="" SF="" NAME="Магазин. Перемещение (опт.-&gt;розн.)"/><AutoNum ID="87" PR="" SF="" NAME="Магазин. Перемещение (розн.-&gt;опт.)"/><AutoNum ID="88" PR="" SF="" NAME="Магазин. Перемещение (розн.-&gt;розн.)"/><AutoNum ID="89" PR="" SF="" NAME="Магазин. Возврат от покупателя"/><AutoNum ID="90" PR="" SF="" NAME="Магазин. Возврат поставщику"/><AutoNum ID="91" PR="" SF="" NAME="Магазин. Акт переоценки товара"/></AccentAutoNum>
+<AccentWorkarea>
+	<OnProperties>
+		<HL74 cmd="add" kind = "5" type = "1" module = "HL74_TradeEqProps.avb" proc = "HL74_CashPrintProps" />
+	</OnProperties>
+</AccentWorkarea>
+<AccentAllTaskMenu>
+</AccentAllTaskMenu>
+
+</AccentExportData>

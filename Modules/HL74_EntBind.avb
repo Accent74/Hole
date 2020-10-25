@@ -1,0 +1,250 @@
+Option Explicit
+
+'Private EntName, EntID, frmSelector
+'Public FolderID, EntType
+
+'Public Property Set 	Selector(frmSel)								устанавливает селектор для работы объекта
+'Public Property Get 	Name													возвращает имя ОУ
+'Public Property Let 	Name(NameValue)								осуществляет поиск ОУ по имени. Поиск типа like имя%
+'Public Property Get 	ID														возвращает имя ОУ
+'Public Property Let 	ID(IdValue)										поиск ОУ по его ID
+'public Property Get	Asset
+
+'Private Sub 				Clear												очищает значения внутренних переменных и селектора
+'Public Sub 				OnClick()											обработка нажатия на кнопку выбора ОУ
+'Private Sub 				BrowseFoundEnt(Elems, EntType)		отображение диалога для выбора корреспондентов, если поиск нашел их несколько
+
+Class EntBind
+	Private EntName, EntID, frmSelector
+	Public FolderID, EntType
+	Public prmFullName, fctFullName, fctDate
+
+	Private Sub Class_initialize
+		prmFullName = ""
+		fctFullName = ""
+		fctDate = Date
+		EntName = ""
+		EntID = 0
+		Set frmSelector = Nothing
+		FolderID = Empty
+		EntType = Empty
+
+		Clear
+	End Sub
+
+	Private Sub Class_terminate
+	End Sub
+
+	Public Property Get Facts(fctName, OnDate, DefValue)
+		Dim EntFacts
+
+		Facts = DefValue
+
+		If EntID <> 0 Then 
+			Set EntFacts = Workarea.Entity(EntID).Facts(OnDate)
+
+			If EntFacts.Exists(fctName) Then
+				Facts = EntFacts.Item(fctName).Value2
+			End If
+		End If
+
+	End Property
+
+	Public Property Get params(prmName, DefValue)
+		Dim EntParams
+
+		params = DefValue
+
+		If EntID <> 0 Then 
+			Set EntParams = Workarea.Entity(EntID).Params
+
+			If EntParams.Exists(prmName) Then
+				With EntParams.Item(prmName)
+					If Not IsNull(.Value) Then
+						Select Case .RefKind
+							Case 0
+								params = .Value2
+							Case 18
+								params = workarea.enum(.RefID).ItemNameID(.Value2)
+						End Select
+					End If
+				End With
+			End If
+		End If
+	End Property
+
+	Public Property Get AssetManufacturer
+		Dim Asset
+
+		AssetManufacturer = ""
+
+		If EntID <> 0 Then
+			Set Asset = Workarea.Entity(EntID).Asset
+			If Not Asset Is Nothing Then
+				AssetManufacturer = Asset.Manufacturer
+			End If
+		End If
+	End Property
+
+	Public Property Get AssetPassport
+		Dim Asset
+
+		AssetPassport = ""
+
+		If EntID <> 0 Then
+			Set Asset = Workarea.Entity(EntID).Asset
+			If Not Asset Is Nothing Then			
+				AssetPassport = Asset.Passport
+			End If
+		End If
+	End Property
+
+	Public Property Let AssetPassport(LetValue)
+		Dim SQL, aData
+
+		SQL = "Select top 1 Ent_ID from Ent_assets where ast_passport like '" & LetValue & "'"
+
+		If GetRs2(SQL, aData) Then
+			Me.id = aData(0, 0)
+		Else
+			Clear
+		End If
+
+	End Property
+
+
+	Public Property Set Selector(frmSel)
+		Set frmSelector = frmSel
+		frmSelector.disablebindclick True
+		frmSelector.text = ""
+	End Property
+
+	Public Property Get Name
+		Name = EntName
+	End Property
+
+	Public Property Get ID
+		ID = EntID
+	End Property
+
+	Public Property Let ID(IdValue)
+		Dim Ent
+
+		Clear
+
+		IdValue = str2long(IdValue)
+
+		If IdValue <> 0 Then
+			Set Ent = Workarea.Entity(IDValue)
+
+			If Not Ent Is Nothing Then
+				EntID = Ent.ID
+					
+				If prmFullName <> "" Then
+					EntName = Ent.Params(prmFullName).Value2
+				ElseIf  fctFullName <> "" Then
+					EntName = Ent.Facts(fctDate).Item(fctFullName).Value2
+				Else
+					EntName = Ent.Name
+				End If
+
+			End If
+		End If
+	End Property
+
+	Public Property Get AlterName
+		Dim Ent
+
+		AlterName = ""
+
+		If EntID <> 0 Then
+			Set Ent = Workarea.Entity(EntID)
+
+			If Not Ent Is Nothing Then
+				If prmFullName <> "" Then
+					AlterName = Ent.Params(prmFullName).Value2
+				ElseIf  fctFullName <> "" Then
+					AlterName = Ent.Facts(fctDate).Item(fctFullName).Value2
+				End If
+			End If
+		End If
+
+		If AlterName = "" Then AlterName = Ent.Name
+
+	End Property
+
+	Public Property Let Name(NameValue)
+		SetName NameValue, "Like*"
+	End Property
+
+	Public Property Let Name2(NameValue)
+		SetName NameValue, "="
+	End Property
+
+	Public Property Let FullName(NameValue)
+		SetName NameValue, "Like*"
+	End Property
+
+	Private Sub SetName(NameValue, eLike)
+		Dim elFind
+
+		If NameValue = "" Then 
+			Clear
+		Else
+			Set elFind = workarea.ElementFinder(acEntity)
+			elFind.AddCriteria "Name", eLike, NameValue
+			
+			If elFind.Find Then
+				If elFind.Elems.Count > 1 Then
+					BrowseFoundEnt elFind.Elems, Empty
+				Else
+					With elFind.Elems.Item(1)
+						EntID = .ID
+						EntName = .Name
+					End With
+				End If
+			Else
+				EntID = 0
+				EntName = NameValue
+			End If
+		End If
+	End Sub
+
+	Private Sub Clear
+		EntID = 0
+		EntName = ""
+	End Sub
+
+	Public Sub OnClick()
+		Dim NewEntID, Flags
+
+		Flags = 0
+		If Not IsEmpty(FolderID) And FolderID <> 0 Then Flags = Flags + 1
+
+		NewEntID = Workarea.Browse(acEntity, EntID, FolderID, Flags, "Выберите объект учета")
+
+		If NewEntID <> 0 Then
+			EntID = NewEntID
+			EntName = Workarea.Entity(EntID).Name
+		End If 
+	End Sub
+
+	Private Sub BrowseFoundEnt(Elems, EntType)
+		Dim Dlg
+
+		Set Dlg = App.CreateDialog("HL74_ElementFinderList.adg")
+
+		With Dlg.Map
+			Set .Item("Elems") = Elems
+			.Item("kind") = acEntity
+			.item("type") = EntType
+			
+			If Dlg.DoModal = vbOK Then
+				EntID = Dlg.Map("id")
+				EntName = Workarea.Entity(EntID).Name
+			End If
+		End With
+	End Sub
+
+End Class
+

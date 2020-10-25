@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<imports version="1">
+	<import	name="Экспорт данных по товару с группами (ДНР, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="9" 
+			id="2" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=YES; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="9" kind="price" prkindid="2" />
+	</import>
+
+	<import	name="Экспорт данных по товару с группами (ЛНР, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="9" 
+			id="2" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=YES; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="8" kind="price" prkindid="2" />
+	</import>
+
+	<import	name="Экспорт данных Приход (Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="2" 
+			id="3" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=YES; IMEX=1;&#034;">
+		<field name="cat" fieldno="0" kind="prop"/>
+		<field name="name" fieldno="1" kind="prop"/>
+		<field name="Вес" fieldno="12" kind="prop"/>
+		<field name="Вес брутто" fieldno="13" kind="prop"/>
+		<field name="Объем" fieldno="14" kind="param"/>
+		<field name="bar" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="Группа ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Подгруппа ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Код ТН ВЭД" fieldno="14" kind="param"/>
+		<field name="Ставка пошлины" fieldno="14" kind="param"/>
+ 		<field name="Страна" fieldno="5" kind="paramref" node="misc" nodename="Страны"/>
+	</import>
+<import	name="Экспорт данных по товару с группами (3 вида цен, Excel)" 
+			kind="4"
+			index="cat" 
+			startrow="9" 
+			id="2" 
+			codepage="" 
+			type="xls" 
+			typedesc="Файлы Excel 97-2000 (*.xls)"
+			defnodetype="1004"
+			exelsheetno="1"
+			connectionstring="Provider=Microsoft.Jet.OLEDB.4.0;Data Source=&#034;@Path&#034;;Extended Properties=&#034;Excel 8.0;HDR=YES; IMEX=1;&#034;">
+		<field name="folder1" fieldno="1" kind="folder"/>
+		<field name="folder2" fieldno="2" kind="folder"/>
+		<field name="folder3" fieldno="3" kind="folder"/>
+		<field name="name" fieldno="4" kind="prop"/>
+		<field name="memo" fieldno="12" kind="prop"/>
+		<field name="bar" fieldno="13" kind="prop"/>
+		<field name="Ссылка на фото" fieldno="14" kind="param"/>
+		<field name="cat" fieldno="0" kind="prop"/>
+ 		<field name="Бренд" fieldno="5" kind="paramref" node="misc" nodename="Бренды"/>
+		<field name="price1" fieldno="7" kind="price" prkindid="1" />
+		<field name="price2" fieldno="8" kind="price" prkindid="2" />
+		<field name="price3" fieldno="9" kind="price" prkindid="3" />
+</import>
+	
+</imports>

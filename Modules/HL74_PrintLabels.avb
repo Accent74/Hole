@@ -1,0 +1,23 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Акцент. Печать этикеток"
+
+Sub DoPrintLabels(Op, TrNo) 
+	Dim MscNo, TrList, ModuleName
+
+	MscNo = Com_GetMscNoByDBPrm(prmDBZebraPrint)
+
+	If MscNo <> 0 Then
+		With Op.Trans(TrNo)
+			ModuleName = .MiscBind(MscNo).String1
+
+			If ModuleName <> "" Then
+				Set TrList = Op.TransList(TrNo)
+				App.RunModule ModuleName, "PrintLabels", TrList
+			Else
+				MsgBox "Не указан модуль для обработки", vbExclamation, MSG_BOX_CAPTION
+			End If
+		End With
+	End If
+
+End Sub

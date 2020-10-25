@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<meta content="True" name="vs_showGrid">
+		<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+		<LINK href="default.css" type="text/css" rel="stylesheet">
+			<SCRIPT language="vbScript">
+			
+Dim wa
+Dim NavMode
+Dim NavID
+Dim HTMLPages
+
+HTMLPages = Array("folders.htm", "accounts.htm", "agents.htm", "entities.htm", "miscs.htm", "binders.htm", "templates.htm")
+
+function window_onload()
+	Dim Name
+	Dim i
+	
+	set wa = window.external.Application.Workarea
+	If wa.site is nothing then exit function
+	
+	IF Not wa.map.exists("tblPropsVisible") then wa.map("tblPropsVisible") = 11
+	IF Not wa.map.exists("tblActionVisible") then wa.map("tblActionVisible") = 21
+		
+	showtable(wa.map("tblPropsVisible"))
+	showtable(wa.map("tblActionVisible"))
+
+	If wa.site is Nothing then exit function
+		
+	With wa.site
+
+		If .Kind <> 1 then window.document.location.assign HTMLPages(.Kind - 1)
+		
+		NavMode = 0
+		NavID = 0
+		
+		If .ID = 0 then 
+			Name = "Корень папки документов или специализированная папка"
+		Else
+			Name = .Name
+			If .IsShortCut then Name = Name & " (ярлык)"
+			With wa.Folder(.ID)
+				If .FormID <> 0 then
+					DocCreateMode.InnerHTML = wa.projectitem(.FormID).Name
+					NavMode = 1
+				Elseif .TemplateID <> 0 then
+					DocCreateMode.InnerHTML = "<a onclick = VBScript:PropsNavigate() href='Template.htm'>" & wa.Template(.TemplateID).Name & "</a>"
+					NavMode = 2
+					NavID = .TemplateID
+				Else
+					DocCreateMode.InnerHTML = "Не предусмотрен"
+				end if
+			end With
+		end if
+	end With
+	
+	FolderName.InnerHTML = Name
+	
+End function
+
+function PropsNavigate()
+	With wa.application.global.Hyperlink
+		Select Case NavMode
+			Case 1
+				.Navigate "", "Main!Template="
+			Case 2 
+				.Navigate "", "Main!Template=" & NavID
+		end Select
+	end With
+end function
+
+function showtable(Mode)
+	Dim TableNo, OnOff
+	
+	TableNo = Int(Mode / 10)
+	OnOff = Mode - TableNo * 10
+	
+	select Case TableNo
+		Case 1
+			If OnOff = 0 then
+				tblProps.style.display = "none"
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(11)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				tblProps.style.display = ""
+				propspicture.innerhtml = "<a onclick='vbscript:showtable(10)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblPropsVisible") = TableNo * 10 + OnOff
+			
+		Case 2
+			If OnOff = 0 then
+				tblActions.style.display = "none"
+				actionspicture.innerhtml = "<a onclick='vbscript:showtable(21)'><IMG alt='' src='images\down-arrow-green.GIF'>"
+			else
+				tblActions.style.display = ""
+				actionspicture.innerhtml = "<a onclick='vbscript:showtable(20)'><IMG alt='' src='images\up-arrow-green.GIF'>"
+			end if
+			wa.map("tblActionVisible") = TableNo * 10 + OnOff
+		
+	end select
+end function
+
+function PrintAll()
+	Dim Ops
+	Dim OpsType	
+
+	With wa.site
+		Set Ops = .Selected
+			
+		If Ops.Count = 0 then 
+			Set Ops = .Operations
+			OpsType = "все"
+		Else
+			OpsType = "выделенные"
+		end If
+
+		msgbox "Печатать " & OpsType & " документы (" & cStr(Ops.Count) & ") из папки ?", vbQuestion + vbOkCancel, "Акцент 7.0"
+	end With
+end function
+
+			</SCRIPT>
+	</head>
+	<body onload="window_onload()">
+		<TABLE id="Table2" cellSpacing="1" cellPadding="1" width="224" border="0" height="138">
+			<TR>
+				<TD>
+					<H3 align="center"><IMG alt="" src="images\Documents.bmp" DESIGNTIMEDRAGDROP="397"></H3>
+				</TD>
+				<TD>
+					<H3 align="left">Документы</H3>
+				</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2">
+					<HR width="100%" SIZE="1">
+					В этом режиме работы документы в <STRONG>Информационном окне</STRONG> отображаются 
+					в разрезе папок.</TD>
+			</TR>
+			<TR>
+				<TD align="left" colSpan="2">
+					<HR width="100%" SIZE="1">
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="Table3" cellSpacing="3" cellPadding="0" width="224" bgColor="#009900" border="0"
+			height="21">
+			<TR>
+				<TD width="20" id="propspicture"><a onclick="vbscript:showtable(11)"><IMG alt="" src="images\up-arrow-green.GIF" id="tblPropsShow"></a></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Свойства</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="tblProps" height="99" cellSpacing="0" cellPadding="3" width="224" border="0">
+			<TR>
+				<TD colSpan="2" height="21">Текущая папка:
+				</TD>
+			</TR>
+			<TR>
+				<TD colSpan="2" height="21">
+					<H4 id="FolderName">наименование папки документов
+					</H4>
+				</TD>
+			</TR>
+			<TR>
+				<TD width="6" height="47">Режим
+				</TD>
+				<TD id="DocCreateMode" height="47">Не предусмотрен</TD>
+			</TR>
+		</TABLE>
+		<HR width="224" SIZE="1" align="left">
+		<TABLE id="Table1" height="21" cellSpacing="3" cellPadding="0" width="224" bgColor="#009900"
+			border="0">
+			<TR>
+				<TD id="actionspicture" width="20"><A onclick="vbscript:showtable(21)"><IMG id="tblActionsShow" alt="" src="images\up-arrow-green.GIF"></A></TD>
+				<TD width="100%">
+					<P><FONT color="#ffffff" size="2"><STRONG>Действия</STRONG></FONT></P>
+				</TD>
+			</TR>
+		</TABLE>
+		<TABLE id="tblActions" height="32" cellSpacing="0" cellPadding="0" width="224">
+			<TR>
+				<TD width="50"><a onclick = "vbscript:printall()"><IMG alt="" src="images\printall.bmp"></a></TD>
+				<TD>Печатать всё</TD>
+			</TR>
+		</TABLE>
+	</body>
+</html>

@@ -1,0 +1,653 @@
+Option Explicit
+'---------
+'		size				= размер окна
+'		GetDataRef  = ссылка на функцию, возвращающую данные для отображения
+'		MaxRows			= макс. кол-ко строк для отображения
+'		Query			= текст SQL-запроса
+'		Params			= массив параметров для запроса. Формат см. ADO_Query
+'		Op					= хозяйственная операция
+'
+'
+'
+'---------
+
+Class CustomBind
+	Private IsAppTypeDAO, QueryType, Columns
+	Public size, GetDataRef, MaxRows, Query, Params, Op
+	Private pKindID, pListID
+
+	Private Sub Class_Initialize
+		IsAppTypeDAO = (App.AppType = "DAO")
+		size = "900;500"
+		MaxRows = 20
+		Set Op = Nothing
+		Params = Array()
+
+		Set Columns = CreatelibObject("Map")
+		Set GetDataRef = Nothing
+
+		pListID = Workarea.DefPriceList
+		pKindID = 0
+
+		If pListID <> 0 Then
+			With workarea.PriceList(pListID).PriceKinds
+				If .Count > 0 Then
+					pKindID = .Item(1).ID
+				End If
+			End With
+		End If
+
+		Me.TypeQuery = 1
+	End Sub
+
+	Public Property Get PriceKindID
+		PriceKindID = pKindID
+	End Property 
+
+	Public Property Get PriceListID
+		PriceListID = pListID
+	End Property 
+
+	Public Property Let PriceKindID(pKID)
+		If Not workarea.pricekind(pKID) Is Nothing Then
+			pKindID = pKID
+		Else
+			pKindID = 0
+		End If
+	End Property
+
+	Public Property Let PriceListID(pLID)
+		If Not workarea.PriceList(pLID) Is Nothing Then
+			pListID = pLID
+		Else
+			pListID = Workarea.DefPriceList
+		End If
+	End Property
+
+	Public Sub AddColumn(ColName, ColWidth, ColAlign, ColFormat)
+		If ColWidth = 0 Then ColWidth = 100
+		If ColAlign = "" Then ColAlign = "Left"
+		
+		Columns(Columns.Count + 1) = Array(ColName, ColWidth, ColAlign, ColFormat)
+	End Sub
+
+	Public Property Let TypeQuery(QueryTypeValue)
+		QueryType = QueryTypeValue
+		Columns.RemoveAll
+
+		Select Case QueryTypeValue
+			Case 1
+				Me.AddColumn "Наименование", 800, 0, ""
+
+			Case 101
+				Me.AddColumn "ID", -1, 0, ""
+				Me.AddColumn "Наименование", 800, 0, ""
+
+			Case 2
+				Me.Size = "1550;900"
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Себест", 200, "Right", ""
+				params = Array("Op.Trans(1).AgFromID",  "Op.Trans(1).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 102
+				Me.Size = "1550;900"
+				Me.AddColumn "ID", -1, 0, ""
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Себест", 200, "Right", ""
+				params = Array("Op.Trans(1).AgFromID",  "Op.Trans(1).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 3
+				Me.Size = "1550;900"
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Прайс", 200, "Right", ""
+				params = Array("Op.Trans(2).AgFromID",  "Op.Trans(2).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 103
+				Me.Size = "1550;900"
+				Me.AddColumn "ID", -1, 0, ""
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Прайс", 200, "Right", ""
+				params = Array("Op.Trans(2).AgFromID",  "Op.Trans(2).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 4
+				Me.Size = "1550;900"
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Себест", 200, "Right", ""
+				Me.AddColumn "Прайс", 200, "Right", ""
+				params = Array("Op.Trans(2).AgFromID",  "Op.Trans(2).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 104
+				Me.Size = "1550;900"
+				Me.AddColumn "ID", -1, 0, ""
+				Me.AddColumn "Наименование", 900, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", ""
+				Me.AddColumn "Себест", 200, "Right", ""
+				Me.AddColumn "Прайс", 200, "Right", ""
+				params = Array("Op.Trans(2).AgFromID",  "Op.Trans(2).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+
+			Case 105
+				Me.Size = "1650;900"
+				Me.AddColumn "ID", -1, 0, ""
+				Me.AddColumn "Наименование", 1000, "Left", ""
+				Me.AddColumn "Остаток", 200, "Right", "#.000"
+				Me.AddColumn "Себест", 200, "Right", "#.00"
+				Me.AddColumn "Прайс", 200, "Right", "#.00"
+				params = Array("Op.Trans(2).AgFromID",  "Op.Trans(2).AccCrID", "Op.ID", "Op.Date + 1", "workarea.mycompany.id")
+				
+		End Select
+
+		If IsAppTypeDAO Then
+			Query = GetQueryTextDAO()
+		Else
+			Query = GetQueryTextOLEDB()
+		End If
+
+	End Property
+
+	Public Sub OnCustomBind(Command, Param, ByRef RetValue)
+		Select Case LCase(Command)
+			Case "size"
+	       RetValue = size
+			Case "columns"
+	       RetValue = JoinMap()
+
+			Case "data"
+				If Right(Param, 1) = " " Then
+					Param = Trim(Param)
+
+					If GetDataRef Is Nothing Then
+						If IsAppTypeDAO Then
+							RetValue = GetDataStdDAO(Param)
+						Else
+							RetValue = GetDataStdOLEDB(Param)
+						End If
+					Else
+		  				RetValue = GetDataRef(Param)
+					End If
+				End If
+		End Select
+	End Sub
+	
+	Private Function JoinMap()
+		Dim i, keys, RetValue
+
+		keys = Columns.Keys
+		RetValue = ""
+
+		For i = 1 To Columns.Count
+			If RetValue <> "" Then RetValue = RetValue & ";"
+			RetValue = RetValue & Join(Columns(i), ":")
+			If Right(RetValue, 1) = ":" Then RetValue = Left(RetValue, Len(RetValue) - 1)
+		Next
+
+		JoinMap = RetValue
+
+	End Function
+
+	Private Function GetQueryTextDAO()
+		Select Case QueryType
+			Case 1			' наименование
+				GetQueryTextDAO	= "PARAMETERS EntName Text ( 255 );" & _
+										"Select TOP 20 ENTITIES.ENT_NAME AS EntityName " &_
+										"FROM ENTITIES " &_
+										"WHERE (((ENTITIES.ENT_NAME) Like '*' & [EntName] & '*')) " &_
+										"ORDER BY ENTITIES.ENT_NAME;"
+			Case 2			' наименование, остатки, цена хранения
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntityName, ST7_oddments_of_the_goods.Qty, ST7_oddments_of_the_goods.Sum " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE (((ST7_oddments_of_the_goods.EntityName) Like '*' & [EntName] & '*')) "
+
+			Case 3			' наименование, остатки, цена из прайса
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntityName, " & _
+												"ST7_oddments_of_the_goods.Qty, " & _
+												"(select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID and p.prl_id = [pID] and p.prc_id = [pKindID] and p.prc_date <= [DocDate] order by p.prc_date desc) " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE (((ST7_oddments_of_the_goods.EntityName) Like '*' & [EntName] & '*')) "
+
+			Case 4			' наименование, остатки, цена хранения, цена из прайса
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntityName, " & _
+												"ST7_oddments_of_the_goods.Qty, " & _
+												"ST7_oddments_of_the_goods.Sum / ST7_oddments_of_the_goods.Qty, " & _
+												"iif(IsNull((Select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID And p.prl_id = [pID] And p.prc_id = [pKindID] And p.prc_date <= [DocDate] order by p.prc_date desc)) , " & _
+												"0, (Select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID And p.prl_id = [pID] And p.prc_id = [pKindID] And p.prc_date <= [DocDate] order by p.prc_date desc)) " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE ST7_oddments_of_the_goods.EntityName Like '*' & [EntName] & '*'  " & _
+														"And ST7_oddments_of_the_goods.Qty > 0 "
+			Case 101			' наименование, но идентификация по ID
+				GetQueryTextDAO	= "PARAMETERS EntName Text ( 255 );" & _
+										"Select TOP 20 ent_id, ENTITIES.ENT_NAME AS EntityName " &_
+										"FROM ENTITIES " &_
+										"WHERE (((ENTITIES.ENT_NAME) Like '*' & [EntName] & '*')) " &_
+										"ORDER BY ENTITIES.ENT_NAME;"
+			Case 102			' наименование, остатки, цена хранения
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntID, ST7_oddments_of_the_goods.EntityName, ST7_oddments_of_the_goods.Qty, ST7_oddments_of_the_goods.Sum " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE (((ST7_oddments_of_the_goods.EntityName) Like '*' & [EntName] & '*')) "
+
+			Case 103			' наименование, остатки, цена из прайса
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntID, ST7_oddments_of_the_goods.EntityName, " & _
+												"ST7_oddments_of_the_goods.Qty, " & _
+												"(select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID and p.prl_id = [pID] and p.prc_id = [pKindID] and p.prc_date <= [DocDate] order by p.prc_date desc) " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE (((ST7_oddments_of_the_goods.EntityName) Like '*' & [EntName] & '*')) "
+			Case 104			' наименование, остатки, цена хранения, цена из прайса
+				GetQueryTextDAO	=	"PARAMETERS EntName Text, AgID Long, AccID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+												"Select TOP 20 ST7_oddments_of_the_goods.EntID, ST7_oddments_of_the_goods.EntityName, " & _
+												"ST7_oddments_of_the_goods.Qty, " & _
+												"ST7_oddments_of_the_goods.Sum / ST7_oddments_of_the_goods.Qty, " & _
+												"iif(IsNull((Select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID And p.prl_id = [pID] And p.prc_id = [pKindID] And p.prc_date <= [DocDate] order by p.prc_date desc)) , " & _
+												"0, (Select top 1 p.prc_value from prc_contents as p where p.ent_id = EntID And p.prl_id = [pID] And p.prc_id = [pKindID] And p.prc_date <= [DocDate] order by p.prc_date desc)) " & _
+												"FROM ST7_oddments_of_the_goods " & _
+												"WHERE ST7_oddments_of_the_goods.EntityName Like '*' & [EntName] & '*'  " & _
+														"And ST7_oddments_of_the_goods.Qty > 0 "
+			Case 105		' наименование ОУ + наименование партии, остатки, себестоимость, цена из прайса
+				GetQueryTextDAO	= "PARAMETERS EntName Text, AgStorageID Long, AccStorageID Long, DocID Long, DocDate DateTime, MC Long, pID long, pKindID long; " & _
+										"SELECT SERIES.SER_ID, " & _
+										"	Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30) AS EntSerName, " & _
+										"	Sum(ST7_oddments_of_the_goods_basic.Qty), " & _
+										"	Sum([Sum])/Sum([Qty]) AS EntPrice, " & _
+										"	FIRST((Select top 1 p.prc_value " & _
+										"		from prc_contents as p " & _
+										"		where p.ent_id = EntID " & _
+										"				And p.prl_id = [pID]" & _
+										"				And p.prc_id = [pKindID] " & _
+										"				And p.prc_date <= [DocDate] " & _
+										"		order by p.prc_date desc)) AS EntityPrice, " & _
+										"	Sum([Sum]) AS eSum, " & _
+										"	ST7_oddments_of_the_goods_basic.EntID AS EntID " & _
+										"FROM ENTITIES " & _
+										"	Right Join (ST7_oddments_of_the_goods_basic " & _
+										"	Left Join SERIES On ST7_oddments_of_the_goods_basic.SER_ID = SERIES.SER_ID) On ENTITIES.ENT_ID = SERIES.ENT_ID " & _
+										"WHERE (((Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30)) Like '*' & [EntName] & '*')) " &_
+										"GROUP BY " & _
+										"	SERIES.SER_ID, " & _
+										"	Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30)," & _
+										"	ST7_oddments_of_the_goods_basic.EntID " & _
+										"HAVING " & _
+										"Sum([Sum]) > 0 And Sum([Qty])> 0 " & _
+										"ORDER BY Left([ENTITIES].[ENT_NAME],30)+Left([ser_name],30) "
+			Case Else
+				GetQueryTextDAO = Query
+
+		End Select
+	End Function
+
+	Private Function GetQueryTextOLEDB()
+		Select Case QueryType
+			Case 1			' наименование
+				GetQueryTextOLEDB	= "st7_FindEntityByFirstChar"
+			Case 2			' наименование, остатки, цена хранения
+				GetQueryTextOLEDB	= "ST7_oddments_of_the_goods"
+			Case 3			' наименование, остатки, цена из прайса
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_price"
+			Case 4			' наименование, остатки, цена хранения и цена из прайса
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_twice_price"
+			Case 101		' наименование. но идентификация по ID
+				GetQueryTextOLEDB	= "HL74_CustomBind_FindEntityByFirstCharID"			
+			Case 102			' наименование, остатки, цена хранения
+				GetQueryTextOLEDB	= "ST7_oddments_of_the_goods_id"
+			Case 103			' наименование, остатки, цена из прайса
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_price_id"
+			Case 104			' наименование, остатки, цена хранения и цена из прайса
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_twice_price_id"
+			Case 105		' наименование+серия, остатки, цена хранения, цена из прайса. но идентификация по ID
+				GetQueryTextOLEDB	= "HL74_custombind_goods_oddments_twice_price_series_id"			
+			Case Else
+				GetQueryTextOLEDB = Query
+		End Select
+	End Function
+
+	Private Function GetDataStdDAO(Text)
+		Dim QD, Rs, MaxRec, aData, i, nQueryType
+
+		Set QD = WorkArea.DAODataBase.CreateQuerydef("")
+		QD.SQL = GetQueryTextDAO()
+		QD.Parameters(0).Value = Text
+
+		If QueryType > 100 Then 
+			nQueryType = QueryType - 100
+		Else
+			nQueryType = QueryType
+		End If
+
+		If nQueryType > 1 Then
+			For i = 0 To UBound(Params)
+				QD.Parameters(i + 1).Value = Eval(Params(i))
+			Next
+			
+			If nQueryType > 2 Then
+				QD.Parameters(i + 1).Value = pListID		'Workarea.DefPriceList
+
+				If pKindID <> 0 Then
+					QD.Parameters(i + 2).Value = pKindID
+				Else
+					' DefPrice - глобальная переменная для формы
+					If DefPrice Is Nothing Then
+						QD.Parameters(i + 2).Value = 0
+					Else
+						QD.Parameters(i + 2).Value = DefPrice.ID
+					End If
+				End If
+			End If
+		End If
+
+		Set Rs = QD.OpenRecordSet
+
+		If Not Rs.EOF Then
+			Rs.MoveLast
+			MaxRec = Rs.RecordCount
+			Rs.MoveFirst
+			aData = Rs.GetRows(MaxRec)
+		Else
+			aData = Array()
+		End If
+
+		If UBound(aData) <> -1 Then
+			If UBound(aData, 2) = MaxRows  Then aData(0, MaxRows) = "..."
+		End If
+
+		GetDataStdDAO = aData
+	End Function
+
+	Private Sub SetPrmProps(prmValue, ByRef prmType, ByRef prmLen)
+		prmType = VarType(prmValue)
+
+		Select Case prmType
+			Case vbInteger, vbLong
+				prmLen = 10
+
+			Case vbDate
+				prmLen = 20
+
+			Case vbString
+				prmLen = 255
+
+			Case vbCurrency
+				prmLen = Null
+		End Select
+	End Sub
+
+	Private Function GetDataStdOLEDB(Text)
+		Dim aData, aPrm(), SQL, prmValue, prmType, prmLen
+		Dim i
+
+		SQL = GetQueryTextOLEDB()
+		ReDim aPrm(0)
+		aPrm(0) = Array(Text, 200, 255)
+
+		Select Case QueryType	
+			Case 1
+
+			Case 2	' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				ReDim Preserve aPrm(UBound(Params) + 1)
+				
+				For i = 0 To UBound(Params)
+					prmValue = Eval(Params(i))
+					SetPrmProps prmValue, prmType, prmLen
+					aPrm(i + 1) = Array(prmValue, prmType, prmLen)
+				Next
+
+			Case 3, 4, 104, 105	' счет  ID документа  дата расчета  текст для поиска  MyCoID 
+				ReDim Preserve aPrm(UBound(Params) + 3)
+				
+				For i = 0 To UBound(Params)
+					prmValue = Eval(Params(i))
+					SetPrmProps prmValue, prmType, prmLen
+					aPrm(i + 1) = Array(prmValue, prmType, prmLen)
+				Next
+
+				If pKindID <> 0 Then
+					aPrm(i + 2) = Array(pKindID, 3, 10)
+				Else
+					If DefPrice Is Nothing Then
+						aPrm(i + 2) = Array(0, 3, 10)
+					Else
+						aPrm(i + 2) = Array(DefPrice.ID, 3, 10)
+					End If
+				End If
+				
+				aPrm(i + 1) = Array(pListID, 3, 10)
+		End Select
+
+		If Not ADO_Query(SQL, aPrm, aData) Then
+			aData = Array()
+		ElseIf UBound(aData, 2) = MaxRows  Then 
+			aData(0, MaxRows) = "..."
+		End If
+
+		GetDataStdOLEDB = aData
+	End Function
+
+	Private Sub Class_Terminate
+		
+	End Sub
+End Class
+'---
+'
+'---
+Class TrBind
+	Private Tr
+	Private SearchMode		
+
+	Public Property Set Trans(OneTr)
+		Set Tr = OneTr
+	End Property
+
+	Public Property Get Name
+		If Tr Is Nothing Then
+			Name = ""
+		Else
+			Name = Tr.EntBind.Name
+		End If
+	End Property
+
+	Public Property Let Name(NameToSearch)
+		If Not Tr Is Nothing Then
+			If IsNumeric(NameToSearch) Then
+				' если число, то считаем, что это ID ОУ
+				Tr.EntID = Str2Long(NameToSearch)
+			Else
+				' ищем по стандартной схеме поиска
+				Tr.EntBind.Name = NameToSearch
+			End If
+		End If
+	End Property
+
+	Public Property Get SerName
+		If Tr Is Nothing Then
+			SerName = ""
+		Else
+			SerName = Tr.SeriesBind.Name
+		End If
+	End Property
+
+	Public Property Get NameSer
+		If Tr Is Nothing Then
+			NameSer = ""
+		Else
+			NameSer = Tr.EntBind.Name
+		End If
+	End Property
+
+	Private Sub ClearEnt
+		If Not Tr Is Nothing Then
+			Tr.EntID = 0
+			Tr.SeriesID = 0
+			Tr.UnitID = 0
+			Tr.FQty = 0 
+			Tr.Qty = 0
+		End If
+	End Sub
+
+	Public Property Let NameSer(NameToSearch)
+		If NameToSearch = "" Then
+			ClearEnt
+		Else
+			FindSeries NameToSearch, 1
+		End If
+	End Property
+
+	Private Sub FindSeries(NameToSearch, Mode)
+		Dim SQL, aData
+	
+		If Not Tr Is Nothing Then
+			If IsNumeric(NameToSearch) Then
+				' если число, то считаем, что это ID серии
+				NameToSearch = str2long(NameToSearch)
+				SQL = "select ent_id from series where ser_id = " & NameToSearch
+	
+				If GetRs2(SQL, aData) Then
+					Tr.EntID = aData(0, 0)
+					Tr.SeriesID = NameToSearch
+				Else
+					ClearEnt
+				End If
+	
+			Else
+				' ищем по стандартной схеме поиска
+				If Tr.EntID = 0 Then
+					Tr.EntBind.Name = NameToSearch
+				Else
+					Select Case Mode
+						Case 1
+							Tr.SeriesBind.Name = NameToSearch
+						Case 2
+							Tr.SeriesBind.Code = NameToSearch
+						Case 3
+							Tr.SeriesBind.Number = NameToSearch
+					End Select
+				End If
+			End If
+		End If
+	End Sub
+
+	Public Property Let SerName(NameToSearch)
+		If NameToSearch = "" Then
+			ClearEnt
+		Else
+			FindSeries NameToSearch, 1
+		End If
+	End Property
+
+	Public Property Get SerCode
+		If Tr Is Nothing Then
+			SerCode = ""
+		Else
+			SerCode = Tr.SeriesBind.Code
+		End If
+	End Property
+
+	Public Property Let SerCode(NameToSearch)
+		If NameToSearch = "" Then
+			ClearEnt
+		Else
+			FindSeries NameToSearch, 2
+		End If
+	End Property
+
+	Public Property Get SerNum
+		If Tr Is Nothing Then
+			SerNum = ""
+		Else
+			SerNum = Tr.SeriesBind.Number
+		End If
+	End Property
+
+	Public Property Get SerTag
+		If Tr Is Nothing Then
+			SerTag = ""
+		Else
+			SerTag = Tr.SeriesBind.Tag
+		End If
+	End Property
+
+	Public Property Let SerNum(NameToSearch)
+		If NameToSearch = "" Then
+			ClearEnt
+		Else
+			FindSeries NameToSearch, 3
+		End If
+	End Property
+
+	Public Property Get SerDateIn()
+		Dim Ser
+
+		SerDateIn = 0
+
+		If Not Tr Is Nothing And Tr.EntID <> 0 Then
+			If Tr.SeriesID <> 0 Then
+				Set Ser = Tr.Entity.SeriesBind.ItemID(Tr.SeriesID)
+				SerDateIn = Ser.DateIn
+			End If
+		End If
+	End Property
+
+	Public Property Get SerDateOut()
+		Dim Ser
+
+		SerDateOut = 0
+
+		If Not Tr Is Nothing And Tr.EntID <> 0 Then
+			If Tr.SeriesID <> 0 Then
+				Set Ser = Tr.Entity.SeriesBind.ItemID(Tr.SeriesID)
+				SerDateOut = Ser.DateOut
+			End If
+		End If
+	End Property
+
+	Public Sub Browse(RootID)
+		Dim EntID
+
+		EntID = workarea.Browse(acEntity, Tr.EntID, RootID, 1, "Выберите объект учета")
+		If EntID <> 0 Then Tr.EntID = EntID
+	End Sub
+
+	Public Sub BrowseSeries
+		MsgBox "Not supported yet", vbExclamation, "Выбор партии"
+	End Sub
+
+	Private Sub Class_Initialize
+		Set Trans = Nothing
+		SearchMode = 0
+	End Sub
+
+	Private Sub Class_Terminate		
+	End Sub
+End Class
+'---
+'
+'---
+Class TrBindList
+	Private TrList, Tr
+
+	Public Sub SetTrList(NewTrList)
+		Set TrList = NewTrList
+	End Sub
+
+	Public Property Get Item(ItemNo)		
+		Set Tr.Trans = TrList.Item(ItemNo)
+		Set Item = Tr
+	End Property
+		
+	Private Sub Class_Initialize
+		Set Tr = New TrBind
+		Set TrList = Nothing
+	End Sub
+
+	Private Sub Class_Terminate
+	End Sub
+End Class
+'---
+'
+'---
+

@@ -1,0 +1,286 @@
+Option Explicit
+
+Class Form_Agree
+
+	Public sgrdPayList
+	Public AccID
+	Public slAgree
+	Public lbAgree
+	Public lbAgreeList
+	Public AgreeMscNo
+	Public chkAllAgree
+	Public RefVisibleCheck
+	Public Op
+	Public AgFrom
+	Public TrNo
+
+	Private IsNegative
+
+	Public Property Let NegativeSum(LetValue)
+		IsNegative = LetValue
+	End Property
+
+	Private Sub Class_initialize
+		AccID = 0
+
+		Set sgrdPayList = Nothing
+		Set slAgree = Nothing
+		Set lbAgree = Nothing
+		Set chkAllAgree = Nothing 
+		Set RefVisibleCheck = Nothing
+		Set lbAgreeList = Nothing
+		Set Op = Nothing
+		IsNegative = False
+		
+		AgFrom = True ' From - True To - False
+		TrNo = 1
+
+	End Sub
+
+	Public Property Let ID(AgreeID)
+		Op.Trans(TrNo).MiscID(AgreeMscNo) = AgreeID
+	End Property
+
+	Public Property Get ID()
+		ID = Op.Trans(TrNo).MiscID(AgreeMscNo)
+	End Property
+
+	Public Property Get AgID
+		If ID = 0 Then
+			AgID = 0
+		Else
+			AgID = Op.Trans(TrNo).Misc(AgreeMscNo).Long1
+		End If
+	End Property
+
+	Public Property Get Ag()
+		Set Ag = GetAgreeAgent()
+	End Property
+
+	Public Sub SetAgree(aTransNo)
+		Dim i, MscID
+
+		MscID = Me.ID
+
+		For i = 0 To UBound(aTransNo)
+			Op.TransList(aTransNo(i)).SetMisc AgreeMscNo, MscID
+		Next
+
+	End Sub
+
+	Public Property Get CurrencyName
+		Dim CurID, Cur
+
+		CurID = Op.Trans(TrNo).MiscBind(AgreeMscNo).Long2
+
+		If CurID = 0 Then CurID = 1
+
+		Set Cur = Workarea.Cur(CurID)
+		If Not Cur Is Nothing Then
+			CurrencyName = Cur.ShortName
+		Else
+			CurrencyName = "”кажите валюту договора"
+		End If
+
+	End Property
+
+	Public Property Get No
+		No = Op.Trans(TrNo).MiscBind(AgreeMscNo).String1
+	End Property
+
+	Private Function GetAgreeAgent()
+		With Op.Trans(TrNo)
+			If AgFrom Then 
+				Set GetAgreeAgent = .AgFromBind
+			Else
+				Set GetAgreeAgent = .AgToBind
+			End If
+		End With
+
+	End Function
+
+	Public Sub AfterRecalc(ColNo)
+		Dim IsDisableBindClick, Ag
+
+		Set Ag = GetAgreeAgent()
+
+		IsDisableBindClick = (Ag.ID <> 0 And Not chkAllAgree.Checked)
+
+		slAgree.Enabled = CheckAgreeVisible()
+		slAgree.DisableBindClick IsDisableBindClick
+		chkAllAgree.Enabled = slAgree.Enabled
+
+		'lbAgree.Enabled = (AgreeMscNo <> 0)
+		If Not lbAgreeList Is Nothing Then lbAgreeList.Visible = Not slAgree.Enabled
+
+		If Not sgrdPayList Is Nothing Then
+			If ColNo <> 0 Then
+	 			sgrdPayList.Column(ColNo).DisableBindClick IsDisableBindClick
+			End If
+
+			sgrdPayList_pack
+			sgrdPayList.CalcAutoHeight
+			sgrdPayList.PackAutoGrow
+		End If
+	End Sub
+
+	Public Sub Init
+		If Not sgrdPayList Is Nothing Then
+			sgrdPayList.Column(3).DisableBindClick True
+			sgrdPayList.column(3).customBind False
+		End If
+	End Sub
+
+	Private Function CheckAgreeVisible()
+		Dim Count
+
+		Count = 0
+		Op.TransList(TrNo).EnumTrans RefVisibleCheck, Count
+		CheckAgreeVisible = Not (Count > 1)
+
+	End Function
+
+	Private Sub sgrdPayList_pack
+		Dim i
+
+		i = 1
+
+		While i <= Op.Translist(TrNo).Rows
+			With Op.Trans(TrNo, i)
+				If .Sum = 0 And .MiscID(AgreeMscNo) = 0 Then
+					If i > 1 Then
+						Op.Translist(TrNo).DeleteRow i
+					Else
+						i = i + 1				
+					End If
+				Else
+					i = i + 1				
+				End If
+			End With
+		Wend 
+
+	End Sub
+
+	Private Sub SetAgID(AgID)
+		Dim Ag
+
+		Set Ag = GetAgreeAgent()
+		Ag.ID = AgID
+	
+	End Sub
+
+	' помен€ли корреспондента
+	Public Sub AgBound(ByRef lock)
+		Dim Ag
+
+		Set Ag = GetAgreeAgent()
+
+		If Ag.ID = 0 Then
+			Me.ID = 0
+		ElseIf Me.AgID <> Ag.ID Then
+			Me.ID = Me.FindAgreeByAg(Ag.ID)
+		End If
+	End Sub 
+
+	' помен€ли договор
+	Public Sub AgreeBound(ByRef lock)
+		If Me.ID <> 0 Then SetAgID Me.AgID
+	End Sub 
+
+	Private Function AllAgreeCheck()
+		If Me.chkAllAgree Is Nothing Then
+			AllAgreeCheck = True
+		Else
+			AllAgreeCheck = Me.chkAllAgree.Checked
+		End If
+	End Function
+
+	Public Property Get Sum
+
+		Sum = 0
+
+		With Op.Trans(TrNo)
+			If .MiscID(AgreeMscNo) <> 0 Then
+				Sum = .Misc(AgreeMscNo).Sum1
+			End If
+		End With
+	End Property
+
+	Public Property Get Qty
+
+		Qty = 0
+
+		With Op.Trans(TrNo)
+			If .MiscID(AgreeMscNo) <> 0 Then
+				Qty = .Misc(AgreeMscNo).Sum3
+			End If
+		End With
+	End Property
+
+	Public Sub CheckAgree
+		With Op.Trans(TrNo)
+			If Me.ID <> 0 Then
+				If .Sum = 0 Then .Sum = Me.Sum * iif(IsNegative, -1, 1)
+				If .Qty = 0 Then .Qty = Me.Qty * iif(IsNegative, -1, 1)
+			End If
+		End With
+	End Sub
+
+	Public Function FindAgreeByAg(AgID)
+		Dim SQL, aData
+
+		SQL = "select top 1 msc_id from misc where msc_lng1=" & AgID & " order by msc_dt1 desc"
+
+		If GetRs2(SQL, aData) Then
+			FindAgreeByAg = aData(0, 0)
+		Else
+			FindAgreeByAg = 0
+		End If
+	End Function
+
+	Public Sub ShowDlgAgree(Row)
+		Dim Dlg, Ag
+	
+		Set Ag = GetAgreeAgent()
+		Set Dlg = App.CreateDialog("HL74_AgreeList.adg")
+		Set Dlg.Map.Item("Ag") = Ag
+		Dlg.Map("AgreeMscNo") = AgreeMscNo
+	
+		If Dlg.DoModal = vbOK Then
+			If Row = 0 Then
+				Op.TransList(TrNo).SetMisc AgreeMscNo, Dlg.Map("MscID")
+			Else
+				Op.Trans(TrNo, Row).MiscID(AgreeMscNo) = Dlg.Map("MscID")
+			End If
+
+			CheckAgree
+		End If
+	End Sub
+
+	Public Sub ShowDlgInvoice(Row, Column, AccPayID, MyCoID)
+		Dim Dlg
+	
+		Set Dlg = App.CreateDialog("HL74_InvList.adg")
+		Dlg.Map("OnDate") = Op.Date
+		Dlg.Map("MC") = MyCoID
+		Dlg.Map("AccInvoiceID") = AccID
+		Dlg.Map("AccPayID") = AccPayID
+		Dlg.Map("AgreeMscNo") = AgreeMscNo
+		Dlg.Map("DocID") = Op.ID
+		Set Dlg.Map.Item("Msc") = Op.TRans(TrNo, Row).Misc(AgreeMscNo)
+			
+		If Dlg.DoModal = vbOK Then
+			With Op.Trans(TrNo, Row)
+				.MiscID(AgreeMscNo) = Dlg.Map("MscID")
+				.ParentDocID = Dlg.Map("DocID")
+				.Params(prmTrMemo).Value = GetParentDocName(.ParentDocID)
+				.Params(prmTrSum).Value = Dlg.Map("DocSum")
+				.Sum = Dlg.Map("RestSum")
+			End With
+		End If
+	End Sub
+
+	Private Sub Class_terminate
+	End Sub
+
+End Class

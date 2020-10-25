@@ -1,0 +1,796 @@
+<AccentExportData>
+<AccentOperations/>
+	<AccentFolders>
+		<folder ID="501" GUID="{guid {0A89B988-DAF8-4993-8341-219D4ADC2185}}" Name="Банк" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="503" GUID="{guid {9364FE79-4C63-4F06-BB95-153FEAA1C36E}}" Name="1. Банк. Платежи" FormID="297" FormGUID="{guid {5E6E0F5C-CEAE-11D5-8141-0002440B6A16}}" Tag="" TID="0" TGUID="" Type="0"/>
+		</folder>
+		<folder ID="499" GUID="{guid {FC4C20EE-A498-4364-9C2C-382A1EFBC19E}}" Name="Товары" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="526" GUID="{guid {964CF668-E84E-4E32-A38E-64AC6BDE1C08}}" Name="03. Товары. Счета исходящие" FormID="0" FormGUID="" Tag="" TID="1813" TGUID="{guid {D8E488D9-6F74-4D40-B35F-90C974E3C9FD}}" Type="0"/>
+			<folder ID="567" GUID="{guid {CF6AE135-D711-4841-A068-4F2A987EAC19}}" Name="08. Товары. Товаро-транспортные накладные" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+				<folder ID="566" GUID="{guid {9957DA78-3654-4D52-BB24-0F230F071605}}" Name="08.02. Товары. Товаро-транспортная накладная (ГТД)" FormID="907" FormGUID="{guid {D144A241-1ADE-4461-A952-914F0BBEA9A6}}" Tag="" TID="0" TGUID="" Type="0"/>
+				<folder ID="529" GUID="{guid {A0709152-B716-411B-B0D4-2C5EB48E975D}}" Name="08.01. Товары. Товарно транспортная накладная" FormID="775" FormGUID="{guid {B9964DBF-B3A8-4150-B8C8-ED651A823F3E}}" Tag="" TID="0" TGUID="" Type="0"/>
+			</folder>
+		</folder>
+		<folder ID="532" GUID="{guid {D8C9F333-2A48-4F63-A315-AC2242C086D8}}" Name="Производство" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0">
+			<folder ID="533" GUID="{guid {DF6CE0E2-2296-476A-AA06-C3C6566D1813}}" Name="1. Производство. Акт производство готовой продукции" FormID="0" FormGUID="" Tag="" TID="1815" TGUID="{guid {FB120B4C-4C6D-4095-8F6E-42B729253305}}" Type="0"/>
+				<folder ID="534" GUID="{guid {BF1A9512-6986-48C6-80F2-AB4684D16DCD}}" Name="3. Производство. Акт разборки" FormID="0" FormGUID="" Tag="" TID="1829" TGUID="{guid {DE97B17D-D4BE-4450-86B4-F5655A65169D}}" Type="0"/>
+			</folder>
+	</AccentFolders>
+<AccentTemplates>
+	<template GUID="{guid {314B0155-9035-4137-8B4E-C007C00ABEA7}}" ID="1739" Memo="" Name="Товары" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+		<template GUID="{guid {46D581B3-0527-48BD-9EA6-513FFCC5E443}}" ID="1751" Memo="" Name="Товары. Реализация" Tag="" Type="0" FormID="0" FormGUID="" Script="">
+			<template GUID="{guid {47EBEE31-3D36-4F9E-9C54-59D247A75CAF}}" ID="1821" Memo="" Name="Товары. Товарно-транспортная накладная" Tag="" Type="1" FormID="775" FormGUID="{guid {B9964DBF-B3A8-4150-B8C8-ED651A823F3E}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 775
+  op.SetFolder 529
+  op.Name2 = &quot;Товары. Товарно-транспортная накладная&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 570
+  op.TransList(1).SetAccCr 570
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {B9964DBF-B3A8-4150-B8C8-ED651A823F3E}}
+  op.SetFolder {guid {A0709152-B716-411B-B0D4-2C5EB48E975D}}
+  op.Name2 = "Товары. Товарно-транспортная накладная"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {B2B29ABE-47B4-4F15-A50E-A959E4F46D7E}}
+  op.TransList(1).SetAccCr {guid {B2B29ABE-47B4-4F15-A50E-A959E4F46D7E}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+	<parameters>
+		<parameter Name="Изменен" Type="7" RefKind="0" Value2="6/1/2015 10:38:58 AM"/>
+	</parameters>
+	</template>
+	<template GUID="{guid {A22F0667-9DB7-4904-8465-084E7F2997B9}}" ID="1872" Memo="" Name="Товары. Товарно-транспортная накладная (ГТД)" Tag="" Type="1" FormID="907" FormGUID="{guid {D144A241-1ADE-4461-A952-914F0BBEA9A6}}" Script="Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 907
+  op.SetFolder 566
+  op.Name = &quot;Товары. Товарно-транспортная накладная&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 572
+  op.TransList(1).SetAccCr 572
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {D144A241-1ADE-4461-A952-914F0BBEA9A6}}
+  op.SetFolder {guid {9957DA78-3654-4D52-BB24-0F230F071605}}
+  op.Name = "Товары. Товарно-транспортная накладная"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {1D4F8450-AACB-409F-A654-9B36B9C35623}}
+  op.TransList(1).SetAccCr {guid {1D4F8450-AACB-409F-A654-9B36B9C35623}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/29/2016 12:08:20 PM"/></parameters></template></template><template GUID="{guid {D8EF82F1-540B-4873-B270-E8C8C1000F7E}}" ID="1812" Memo="" Name="Товары. Счета исходящие" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {D8E488D9-6F74-4D40-B35F-90C974E3C9FD}}" ID="1813" Memo="" Name="Товары. Счета исходящие" Tag="" Type="1" FormID="307" FormGUID="{guid {13CB23B7-CFA9-11D5-8141-0002440B6A16}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 307
+  op.SetFolder 526
+  op.Name = &quot;Товары. Счета исходящие&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 547
+  op.TransList(1).SetAccCr 564
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {13CB23B7-CFA9-11D5-8141-0002440B6A16}}
+  op.SetFolder {guid {964CF668-E84E-4E32-A38E-64AC6BDE1C08}}
+  op.Name = "Товары. Счета исходящие"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {033A50B7-CCE8-4EB2-BE69-D2A2411D3622}}
+  op.TransList(1).SetAccCr {guid {7B780BAF-5A42-444C-8B32-3A934B5CC22F}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/29/2016 2:27:46 PM"/></parameters></template></template><template GUID="{guid {0301F93B-6209-46B0-AEEF-34F18E9C8EF7}}" ID="1750" Memo="" Name="Товары. Поступление" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {BC0B8065-33E3-4787-B585-1DB72A8414EC}}" ID="1809" Memo="" Name="Товары. Поступление. Поступление товара от поставщика" Tag="" Type="1" FormID="319" FormGUID="{guid {87905062-D1EE-11D5-8141-0002440B6A16}}" Script="'#include &quot;HL74_MakeSeries2DAO.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeries2(Op, 1)
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = 319
+  op.Name = &quot;Товары. Поступление. Поступление товара от поставщика&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 195
+  op.TransList(1).SetAccCr 299
+  op.TransList(2).SetAccDb 195
+  op.TransList(2).SetAccCr 299
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  '}} END_RECALC
+End Sub
+">'#include "HL74_MakeSeries2DAO.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	Call MakeSeries2(Op, 1)
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 2
+  '--Общие--
+  op.FormID = {guid {87905062-D1EE-11D5-8141-0002440B6A16}}
+  op.Name = "Товары. Поступление. Поступление товара от поставщика"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(1).SetAccCr {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  op.TransList(2).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(2).SetAccCr {guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 2
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H8
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, False, 1, False
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  '}} END_RECALC
+End Sub
+<lnk_tt id="1872"/><lnk_tt id="1821"/><parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/31/2016 7:24:58 PM"/></parameters></template></template><template GUID="{guid {7A456518-538F-4036-9675-BA064D163B9C}}" ID="1753" Memo="" Name="Товары. Внутреннее перемещение" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {F6BDB794-0D62-4B4B-AA93-3B41185C6849}}" ID="1806" Memo="" Name="Товары. Внутреннее перемещение. Внутреннее перемещение товара" Tag="" Type="1" FormID="326" FormGUID="{guid {8790557C-D1EE-11D5-8141-0002440B6A16}}" Script="'#include &quot;HL74_Charge2DAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 326
+  op.Name = &quot;Товары. Внутреннее перемещение. Внутреннее перемещение товара&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 195
+  op.TransList(1).SetAccCr 195
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+">'#include "HL74_Charge2DAO.avb"
+'#include "HL74_Errors.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {8790557C-D1EE-11D5-8141-0002440B6A16}}
+  op.Name = "Товары. Внутреннее перемещение. Внутреннее перемещение товара"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  op.TransList(1).SetAccCr {guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/29/2016 2:27:28 PM"/></parameters></template></template></template><template GUID="{guid {CE059B59-4AEC-4AD5-B0A2-17703E1A8F35}}" ID="1763" Memo="" Name="Производство" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {F96BE2BB-0858-4251-A3DF-E4533E6788CB}}" ID="1828" Memo="" Name="Производство. Производство готовой продукции" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {DE97B17D-D4BE-4450-86B4-F5655A65169D}}" ID="1829" Memo="" Name="Производство. Акт разборки" Tag="" Type="1" FormID="777" FormGUID="{guid {9350382E-5FE1-4586-B698-27D7198B49B9}}" Script="'#include &quot;HL74_Charge2DAO.avb&quot;
+'#include &quot;HL74_MakeSeries2DAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, &quot;&quot;, 1)
+	Call MakeSeries2(Op, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If Not Workarea.Map(&quot;OpTagEval&quot;) Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 777
+  op.SetFolder 534
+  op.Name = &quot;Производство. Акт разборки&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 189
+  op.TransList(1).SetAccCr 192
+  op.TransList(2).SetAccDb 168
+  op.TransList(2).SetAccCr 189
+  op.TransList(3).SetAccDb 189
+  op.TransList(3).SetAccCr 404
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H10
+  op.TransList(3).LockUI &amp;H10
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, True, 1, True
+  '--Суммы--
+  op.CalcSum &quot;=T1+T3&quot;
+  '}} END_RECALC
+End Sub
+">'#include "HL74_Charge2DAO.avb"
+'#include "HL74_MakeSeries2DAO.avb"
+'#include "HL74_Errors.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 1, 1, 1, FALSE, TRUE, FALSE, FALSE, "", 1)
+	Call MakeSeries2(Op, 2)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If Not Workarea.Map("OpTagEval") Then Exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {9350382E-5FE1-4586-B698-27D7198B49B9}}
+  op.SetFolder {guid {BF1A9512-6986-48C6-80F2-AB4684D16DCD}}
+  op.Name = "Производство. Акт разборки"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(1).SetAccCr {guid {6F558117-38C2-4F73-9DB0-554F8390D576}}
+  op.TransList(2).SetAccDb {guid {4D330E66-9F63-48D3-9557-5F1353A1287A}}
+  op.TransList(2).SetAccCr {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(3).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(3).SetAccCr {guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H9
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H10
+  op.TransList(3).LockUI &amp;H10
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, True, 1, True
+  '--Суммы--
+  op.CalcSum "=T1+T3"
+  '}} END_RECALC
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/31/2016 7:00:31 PM"/></parameters></template><template GUID="{guid {FB120B4C-4C6D-4095-8F6E-42B729253305}}" ID="1815" Memo="" Name="Производство. Акт производства готовой продукции" Tag="" Type="1" FormID="375" FormGUID="{guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}" Script="'#include &quot;HL74_Charge2DAO.avb&quot;
+'#include &quot;HL74_MakeSeries2DAO.avb&quot;
+'#include &quot;HL74_Errors.avb&quot;
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 2, 1, 1, FALSE, TRUE, TRUE, FALSE, &quot;&quot;, 1)
+	Call MakeSeries2(Op, 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = 375
+  op.SetFolder 533
+  op.Name = &quot;Материалы. Акт производства готовой продукции&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 192
+  op.TransList(1).SetAccCr 189
+  op.TransList(2).SetAccDb 189
+  op.TransList(2).SetAccCr 168
+  op.TransList(3).SetAccDb 189
+  op.TransList(3).SetAccCr 404
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H8
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H10
+  op.TransList(3).LockUI &amp;H10
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, True, 1, True
+  '}} END_RECALC
+End Sub
+">'#include "HL74_Charge2DAO.avb"
+'#include "HL74_MakeSeries2DAO.avb"
+'#include "HL74_Errors.avb"
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+	If Op.Done then Op.Done = ChargeOff3(Op, 2, 1, 1, FALSE, TRUE, TRUE, FALSE, "", 1)
+	Call MakeSeries2(Op, 1)
+	Op.TemplateInvoker.FireOnRecalc
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 3
+  '--Общие--
+  op.FormID = {guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}
+  op.SetFolder {guid {DF6CE0E2-2296-476A-AA06-C3C6566D1813}}
+  op.Name = "Материалы. Акт производства готовой продукции"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {6F558117-38C2-4F73-9DB0-554F8390D576}}
+  op.TransList(1).SetAccCr {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(2).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(2).SetAccCr {guid {4D330E66-9F63-48D3-9557-5F1353A1287A}}
+  op.TransList(3).SetAccDb {guid {748EF13B-563F-4672-963B-5E2472ED578C}}
+  op.TransList(3).SetAccCr {guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}
+  '}} END_APPLY
+End Sub
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 3
+  op.LockUI &amp;H8
+  '--Блокировки--
+  op.TransList(2).LockUI &amp;H10
+  op.TransList(3).LockUI &amp;H10
+  '}} END_EDIT
+End Sub
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Корреспонденты--
+  op.CopyAgents 2, True, 1, True
+  op.CopyAgents 3, True, 1, True
+  '}} END_RECALC
+End Sub
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="1/28/2016 4:08:35 PM"/></parameters></template></template></template><template GUID="{guid {BFE45BCD-FAFB-4004-8BEC-C91AF7239D60}}" ID="1738" Memo="" Name="Банк" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {63748F7A-48E5-4D14-9EBE-75FF35E2F42D}}" ID="1756" Memo="" Name="Банк. Платежи" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {7044CFEC-869B-4A77-B179-39C476141888}}" ID="1779" Memo="" Name="Банк. Платежи, включаемые в ВР" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {856B2F7D-F5F3-4B80-9BC4-9A61A886CA49}}" ID="1790" Memo="" Name="Банк. Платежи. Возврат денег покупателю" Tag="" Type="1" FormID="297" FormGUID="{guid {5E6E0F5C-CEAE-11D5-8141-0002440B6A16}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 297
+  op.SetFolder 503
+  op.Name = &quot;Банк. Платежи. Возврат денег покупателю&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 220
+  op.TransList(1).SetAccCr 204
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {5E6E0F5C-CEAE-11D5-8141-0002440B6A16}}
+  op.SetFolder {guid {9364FE79-4C63-4F06-BB95-153FEAA1C36E}}
+  op.Name = "Банк. Платежи. Возврат денег покупателю"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {6EC9A0F1-F594-4F49-B4B5-4D6D6165249E}}
+  op.TransList(1).SetAccCr {guid {7BB2E6A3-79A8-4088-BAA2-8BD91E22DE4B}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+						<parameters>
+							<parameter Name="Изменен" Type="7" RefKind="0" Value2="1/26/2016 4:53:29 PM"/>
+						</parameters>
+					</template>
+				</template>
+			</template>
+		</template>
+	</AccentTemplates>
+	<AccentEntities>
+		<entity ID="1203" GUID="{guid {C6F3B0A6-F14A-466C-A87F-F314BEE08DD9}}" Art="" Bar="" Cat="" Name="Грузовик бортовой тентованый" Nom="" Tag="" Type="1008" Memo="" UnSelf="False" UnitID="" Temp="True">
+			<parameters>
+				<parameter Name="Тип автотранспорта" Type="3" RefKind="18" RefGUID="Типы автотранспорта" RefID="9"/>
+				<parameter Name="Цвет" Type="3" RefKind="18" RefGUID="Цвета" RefID="8"/>
+			</parameters>
+		</entity>
+	</AccentEntities>
+	<AccentEnums>
+		<enum Name="Цвета" ID="8" Tag="">
+			<enum Name="Белый" ID="88" Tag=""/>
+			<enum Name="Красный" ID="87" Tag=""/>
+		</enum>
+		<enum Name="Типы автотранспорта" ID="9" Tag ="">
+			<enum Name="Грузовин бортовой тентованый" ID="89" Tag=""/>
+			<enum Name="Легковой седан" ID="90" Tag=""/>
+		</enum>
+	</AccentEnums>
+	<AccentMiscs>
+		<misc ID="151" GUID="{guid {38008C32-1565-4AC5-84D1-676CA777597D}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="11" Name="Вид перевозок" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="161" GUID="{guid {F09DFDE9-1EF4-4845-A4E0-2E9FB027EC33}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="14" Name="Признаки документа" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+		<misc ID="168" GUID="{guid {78DAE15E-B01F-40C8-ADED-F00A6AFFA629}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="14" Name="Форма оплаты" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"/>
+	</AccentMiscs>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts>
+		<account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo="">
+			<account ID="563" GUID="{guid {66C31ABD-10C3-4395-80E4-FA7DA46516B3}}" Code="ТХ" Name="Технические забалансовые счета" PlanID="70" SaldoType="0" Tag="" Type="3" Memo="">
+				<account ID="570" GUID="{guid {B2B29ABE-47B4-4F15-A50E-A959E4F46D7E}}" Code="ТТН" Name="Товаро транспортная накладная" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""/>
+				<account ID="572" GUID="{guid {1D4F8450-AACB-409F-A654-9B36B9C35623}}" Code="ГТД" Name="Товаро транспортная наклданая (ГТД)" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""/>
+				<account ID="480" GUID="{guid {98085AA5-0A64-11D6-8142-0002440B6A16}}" Code="СФ" Name="Счета-фактуры" PlanID="70" SaldoType="0" Tag="" Type="3" Memo="">
+					<account ID="547" GUID="{guid {033A50B7-CCE8-4EB2-BE69-D2A2411D3622}}" Code="СФИ-Т" Name="Счета-фактуры исходящие за товар" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""/>
+					<account ID="564" GUID="{guid {7B780BAF-5A42-444C-8B32-3A934B5CC22F}}" Code="СФБ" Name="Счета балансовый счет" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""/>
+				</account>
+			</account>
+			<account ID="404" GUID="{guid {7743B5E5-D91A-4B47-B335-65711CD1F1D3}}" Code="91" Name="Общепроизводственные расходы" PlanID="70" SaldoType="0" Tag="SYS404" Type="0" Memo=""/>
+			<account ID="167" GUID="{guid {2D3B1D29-D5E4-4ED3-9689-AAEF9EF0607E}}" Code="20" Name="Производственные запасы" PlanID="70" SaldoType="0" Tag="SYS167" Type="0" Memo="">
+				<account ID="168" GUID="{guid {4D330E66-9F63-48D3-9557-5F1353A1287A}}" Code="201" Name="Сырье и материалы" PlanID="70" SaldoType="0" Tag="SYS168" Type="0" Memo=""/>
+			</account>
+			<account ID="189" GUID="{guid {748EF13B-563F-4672-963B-5E2472ED578C}}" Code="23" Name="Производство" PlanID="70" SaldoType="0" Tag="SYS189" Type="0" Memo=""/>
+			<account ID="192" GUID="{guid {6F558117-38C2-4F73-9DB0-554F8390D576}}" Code="26" Name="Готовая продукция" PlanID="70" SaldoType="0" Tag="SYS192" Type="0" Memo=""/>
+			<account ID="219" GUID="{guid {F9DF1002-FEF6-4CC4-A413-589731495FB5}}" Code="36" Name="Расчеты с покупателями и заказчиками" PlanID="70" SaldoType="0" Tag="SYS219" Type="0" Memo="">
+				<account ID="220" GUID="{guid {6EC9A0F1-F594-4F49-B4B5-4D6D6165249E}}" Code="361" Name="Расчёты с отечественными покупателями" PlanID="70" SaldoType="0" Tag="SYS220" Type="1" Memo=""/>
+			</account>
+			<account ID="203" GUID="{guid {E486FF24-37F5-4E0D-8A49-A48C03875EAF}}" Code="31" Name="Счета в банках" PlanID="70" SaldoType="0" Tag="SYS203" Type="0" Memo="">
+				<account ID="204" GUID="{guid {7BB2E6A3-79A8-4088-BAA2-8BD91E22DE4B}}" Code="311" Name="Текущие счета в национальной валюте" PlanID="70" SaldoType="0" Tag="SYS204" Type="0" Memo=""/>
+			</account>
+			<account ID="194" GUID="{guid {BB96D902-589B-43FA-807E-AA98A421C219}}" Code="28" Name="Товары" PlanID="70" SaldoType="0" Tag="SYS194" Type="0" Memo="">
+				<account ID="195" GUID="{guid {62FDA4D0-52B0-4951-A300-FB4EF8FD9A9E}}" Code="281" Name="Товары на складе" PlanID="70" SaldoType="0" Tag="SYS195" Type="0" Memo=""/>
+			</account>
+			<account ID="298" GUID="{guid {63451D75-B109-46E6-BF95-16E0C984C96B}}" Code="63" Name="Расчеты с поставщиками и подрядчиками" PlanID="70" SaldoType="1" Tag="SYS298" Type="2" Memo="">
+				<account ID="299" GUID="{guid {28810B79-220B-4ADA-99AD-E459956EF7C2}}" Code="631" Name="Расчеты с отечественными поставщиками" PlanID="70" SaldoType="0" Tag="SYS299" Type="2" Memo=""/>
+			</account>
+		</account>
+	</AccentAccounts>
+	<AccentUnits/>
+	<AccentCurs/>
+	
+	<AccentWorkarea>
+		<parameters>
+			<parameter Name="Папка для новых корреспондентов" Type="3" RefKind="3" RefGUID="" Value2="0"/>
+			<parameter Name="Папка для новых объектов учета" Type="3" RefKind = "4" RefGUID="" Value2="0"/>
+			<parameter Name="Форма оплаты" Type="3" RefKind="5" RefValueGUID="{78DAE15E-B01F-40C8-ADED-F00A6AFFA629}"/>
+		</parameters>
+	</AccentWorkarea>
+		
+	<AccentForms>
+		<form ANID="41" FileName="HL74_PaymentOrder.afm" ID="297" Name="Банк. Платежное поручение" ShortName="ПП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {5E6E0F5C-CEAE-11D5-8141-0002440B6A16}}"/>
+		<form ANID="62" FileName="HL74_InternalMoving (WT).afm" ID="326" Name="Товары. Накладная на внутреннее перемещение" ShortName="ТНВ" Tag="SYS326" Type="0" TypeName="ProjectItem" GUID="{guid {8790557C-D1EE-11D5-8141-0002440B6A16}}"/>
+		<form ANID="68" FileName="HL74_ArrivalOrder (WT).afm" ID="319" Name="Товары. Приходная накладная" ShortName="ТПН" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {87905062-D1EE-11D5-8141-0002440B6A16}}"/>
+		<form ANID="50" FileName="HL74_Invoice (WT).afm" ID="307" Name="Прочие документы. Счет на оплату исходящий" ShortName="ПСИ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {13CB23B7-CFA9-11D5-8141-0002440B6A16}}"/>
+		<form ANID="72" FileName="HL74_ActProcessing.afm" ID="375" Name="Производство. Акт переработки" ShortName="ПАП" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {E60EAB65-81F5-11D6-8142-0002440B6A16}}"/>
+		<form ANID="77" FileName="HL74_Dismantling_act.afm" ID="777" Name="Производство. Акт разборки" ShortName="ПАР" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {9350382E-5FE1-4586-B698-27D7198B49B9}}"/>
+		<form ANID="94" FileName="HL74_TTN_Hole.afm" ID="907" Name="Товары. Товаро-транспортная накладная (ГТД)" ShortName="ГТД" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {D144A241-1ADE-4461-A952-914F0BBEA9A6}}"/>
+		<form ANID="79" FileName="HL74_TTN_2014.afm" ID="775" Name="Товары. Товаро транспортная накладная" ShortName="ТТН" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {B9964DBF-B3A8-4150-B8C8-ED651A823F3E}}"/>
+	</AccentForms>
+	<AccentAutoNum>
+		<AutoNum ID="41" PR="" SF="" NAME="Банк. Платежное поручение"/>
+		<AutoNum ID="50" PR="" SF="" NAME="Прочие документы. Счет"/>
+		<AutoNum ID="62" PR="" SF="" NAME="Товары. Накладная на внутренее перемещение"/>
+		<AutoNum ID="68" PR="" SF="" NAME="Товары. Приходная накладная"/>
+		<AutoNum ID="72" PR="" SF="" NAME="Производство. Акт переработки"/>
+		<AutoNum ID="77" PR="" SF="" NAME="Производство. Акт разборки"/>
+		<AutoNum ID="79" PR="" SF="" NAME="Товары. Товаро-транспортная накладная"/>
+		<AutoNum ID="94" PR="" SF="" NAME="Товары. (ГТД) Товаро-транспортная накладная"/>
+		</AccentAutoNum>
+	</AccentExportData>

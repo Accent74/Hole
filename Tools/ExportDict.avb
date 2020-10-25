@@ -1,0 +1,1635 @@
+'#include "HL74_XML.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_EnumClass.avb"
+'#include "HL74_FileDlg.avb"
+
+' доделать
+'		добавить нормы
+'		добавить прайсы
+
+
+Option Explicit
+
+Const VERSION = "2.0000"
+
+Const acEnum		= 18
+Const acAN			= 20
+Const acPKind	 	= 27
+Const acUnit		= 28
+Const acCurs		= 29
+Const acPrList		= 30
+Const acNorm		= 46
+Const acSeries		= 50
+Const acTaxRep		= 51
+Const acFUnit		= 52
+Const acBank		= 53
+
+Const prmFldFolderForExport = "Файл для экспорта"
+'---
+'
+'---
+Function AddItem(Elem, Kind, dElems)
+	Dim dElem, i, NextElem
+
+	If Elem Is Nothing Then
+		AddItem = False
+	Else
+
+		If Elem.ID = 0 Then
+			' нарушение структуры данных
+			AddItem = False			
+		Else
+			If Not dElems.Exists(Kind) Then
+				Set dElem = CreateLibObject("Map")
+				Set dElems.Item(Kind) = dElem
+			Else
+				Set dElem = dElems(Kind)
+			End If
+		
+			If Not dElem.Exists(Elem.ID) Then
+				AddItem = True
+				dElem(Elem.ID) = "new"
+			ElseIf (dElem(Elem.ID) <> "new") Then
+				dElem(Elem.ID) = "new"
+				AddItem = False
+			Else
+				AddItem = False
+				Exit Function		
+			End If
+		
+			If HasParent(CLng(Kind), Elem) Then
+				If Not Elem.Parent Is Nothing Then If AddItem(Elem.Parent, Kind, dElems) Then AddItem = True
+			End If
+		
+			If HasParams(CLng(Kind), Elem) Then If CheckParams(Elem.Params, dElems) Then AddItem = True
+			If HasFacts(CLng(Kind), Elem) Then If CheckParams(Elem.Facts, dElems) Then AddItem = True
+	
+			SpecialCheck Kind, Elem, dElems, AddItem 
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Sub ParseTMLScript(Tml, dElems, ByRef IsAddItem)
+	Dim Op, i, Tr
+
+	Set Op = Workarea.CreateOperation
+	Op.TemplateID = Tml.ID
+	Op.TemplateInvoker2.FireAll
+
+	If AddItem(Op.Folder, acFolder, dElems) Then IsAddItem = True		
+		
+	If Op.FormID <> 0 Then
+		If AddItem(GetElem(Op.FormID, acFolder, 0), acFolder, dElems) Then IsAddItem = True		
+	End If
+
+	For i = 1 To Op.TransCount
+		Set Tr = Op.Trans(1)
+		If AddItem(Tr.AccDb, acAccount, dElems) Then IsAddItem = True
+		If AddItem(Tr.AccCr, acAccount, dElems) Then IsAddItem = True
+		If AddItem(Tr.AgTo, acAgent, dElems) Then IsAddItem = True
+		If AddItem(Tr.AgFrom, acAgent, dElems) Then IsAddItem = True
+		If AddItem(Tr.Entity, acEntity, dElems) Then IsAddItem = True
+
+		CheckMisc Tr, dElems, IsAddItem
+	Next
+End Sub
+'---
+'
+'---
+Sub CheckMisc(Tr, dElems, ByRef IsAddItem)
+	Dim i
+
+	With Workarea.Miscs
+		For i = 1 To .Count
+			If Tr.MiscID(i) <> 0 Then
+				If AddItem(Tr.Misc(i), acMisc, dElems) Then IsAddItem = True
+			End If
+		Next
+	End With
+End Sub
+'---
+'
+'---
+Sub SpecialCheck(Kind, Elem, dElems, AddItem)
+	Select Case Kind
+		Case acTemplate
+			If Elem.Type = 1 Then
+				ParseTMLScript Elem, dElems, AddItem
+				CheckElemRelation Elem.Linked(True), acTemplate, dElems
+				CheckElemRelation Elem.Linked(False), acTemplate, dElems
+			End If
+		Case acAgent
+			If Elem.Type = 1 Or Elem.Type = 4 Or Elem.Type = 5 Then 
+				AddBankAccs Elem.BankAccounts, dElems(acBank)
+			End If
+
+		Case acEntity
+			If Not Elem.EntUnits Is Nothing Then 
+				CheckFUnits Elem.EntUnits, dElems.Item(acUnit)
+			End If
+
+		Case acPrList
+			CheckPKinds Elem, dElems
+
+		Case acPKind
+			CheckPLists Elem, dElems
+
+		Case acForm
+			CheckProjItem Elem, dElems
+
+	End Select
+End Sub
+'---
+'
+'---
+Sub CheckProjItem(Elem, dElems)
+	If Elem.AutoNum.ID <> 0 Then
+		AddItem Elem.AutoNum, acAN, dElems
+	End If
+
+	If Elem.FolderID <> 0 Then
+		AddItem Workarea.Folder(Elem.FolderID), acFolder, dElems
+	End If
+
+	CheckElemRelation Elem.Linked(True), acForm, dElems
+	CheckElemRelation Elem.Linked(False), acForm, dElems
+
+End Sub
+'---
+'
+'---
+Sub CheckPLists(Elem, dElems)
+	Dim SQL, aData, i, ElPrl
+
+	SQL = "Select prl_id from prl_prices where prc_id=" & Elem.ID
+
+	If GetRs2(SQL, aData) Then
+		For i = 0 To UBound(aData, 2)
+			Set ElPrl = Workarea.PriceList(aData(0, i))
+			AddItem ElPrl, acPrList, dElems
+		Next
+	End If
+
+End Sub
+'---
+'
+'---
+Sub CheckPKinds(pList, dItems)
+	Dim i
+
+	With pList.PriceKinds
+		For i = 1 To .Count
+			AddItem .Item(i), acPKind, dElems
+		Next
+	End With
+End Sub
+'---
+'
+'---
+Function CheckFUnits(EntUnits, dElem)
+	Dim i, UnitID
+
+	For i = 1 To EntUnits.Count
+		UnitID = EntUnits.Item(i).ID
+
+		If Not dElem.Exists(UnitID) Then
+			dElem(UnitID) = "new"
+		End If
+	Next
+
+End Function
+'---
+'
+'---
+Sub AddBankAccs(BAccs, dElem)
+	Dim i
+
+	For i = 1 To BAccs.Count
+		With BAccs.Item(i)
+			If Not dElem.Exists(CStr(.BankID)) Then
+				dElem.Item(CStr(.BankID)) = "new"
+			End If
+		End With
+	Next
+
+End Sub
+
+'---
+'
+'---
+Sub CheckElemRelation(Elems, Kind, dElems)
+	Dim i
+
+	For i = 1 To Elems.Count
+		AddItem Elems.Item(i), Kind, dElems
+	Next
+
+End Sub
+'---
+'
+'---
+Function CheckParams(ElPrms, dElems)
+	Dim NextElem, i, ElRoot, RootID
+
+	CheckParams = False
+
+	For i = 1 To ElPrms.Count
+		With ElPrms.Item(i)
+			If .RefKind <> 0 Then
+				If .value2 <> 0 Then
+					Set NextElem = GetElem(.Value2, CLng(.RefKind), 0)
+					If Not NextElem Is Nothing Then 
+						If AddItem(NextElem, .RefKind, dElems) Then CheckParams = True
+					End If
+				End If
+			End If
+		End With
+	Next
+End Function
+'---
+'
+'---
+Function GetElem(ID, Kind, RootID)
+	Dim Root
+
+	Set GetElem = Nothing
+
+	If ID <> 0 Then
+		Select Case Kind
+			Case acFolder
+				Set GetElem = Workarea.Folder(ID)
+			Case acAccount
+				Set GetElem = Workarea.Account(ID)
+			Case acAgent
+				Set GetElem = Workarea.Agent(ID)
+			Case acEntity
+				Set GetElem = Workarea.Entity(ID)
+			Case acMisc
+				Set GetElem = Workarea.Misc(ID)
+			Case acTemplate
+				Set GetElem = Workarea.Template(ID)
+			Case acBinder
+				Set GetElem = Workarea.Binder(ID)
+			Case acEnum
+				If ID < 0 Then
+					Set GetElem = GetEnumByID(-ID)
+				Else
+					Set GetElem = GetEnumItemByID(ID)
+				End If
+			Case acPKind
+				Set GetElem = Workarea.PriceKind(ID)
+			Case acPrList	
+				Set GetElem = Workarea.PriceList(ID)
+			Case acCurs
+				Set GetElem = Workarea.Cur(ID)
+			Case acAN			
+				Set GetElem = Workarea.Autonum(ID)
+			Case acNorm		
+				Set GetElem = Workarea.Norm(ID)
+			Case acUnit		
+				Set GetElem = Workarea.Unit(ID)
+			Case acSeries 
+				Set GetElem = GetSeriesByID(ID)
+			Case acTaxRep
+				Set GetElem = workarea.TaxReport(ID)
+			Case acForm 
+				Set GetElem = Workarea.ProjectItem(ID)
+			Case acBank
+				Set GetElem = Workarea.Bank(ID)
+		End Select
+	End If
+End Function
+'---
+'
+'---
+Function GetSeriesByID(ID)
+	Dim Ent, aData, SQL
+
+	SQL = "select ent_id from series where ser_id=" & ID
+
+	If GetRs2(SQL, aData) Then
+		Set Ent = Workarea.Entity(aData(0, 0))
+		Set GetSeriesByID = Ent.SeriesColl.ItemID(ID)
+	Else
+		Set GetSeriesByID = Nothing
+	End If
+
+End Function
+'---
+'
+'---
+Function GetEnumByID(ID)
+	Dim En, i, EnItem
+
+	Set En = New Enums
+	En.ID = ID
+	Set GetEnumByID = En
+
+End Function
+'---
+'
+'---
+Function GetEnumItemByID(ID)
+	Dim En, i, EnItem
+
+	Set En = New Enums
+	Set EnItem = New EnumItem
+	Set EnItem.Parent = En
+	EnItem.ID = ID
+
+	For i = 1 To En.Count
+		If En.Item(i).ID = ID Then
+			Set GetEnumItemByID = En.Item(i)
+			Exit Function
+		End If
+	Next
+
+	Set GetEnumItemByID = Nothing
+
+End Function
+'---
+'
+'---
+Sub DoExport(dElems)
+	Dim Flag
+
+	Do
+		Flag = LookAllElems(dElems)
+		If Not Flag Then Exit Do
+	Loop 
+End Sub
+'---
+'
+'---
+Function LookAllElems(dElems)
+	Dim keysElem, keys, dElem, i, j, Elem 
+
+	LookAllElems = False
+	keys = dElems.Keys
+
+	For i = 0 To UBound(keys)
+		If dElems.exists(keys(i)) Then
+			Set dElem = dElems(keys(i))
+			keysElem = dElem.keys
+
+			For j = 0 To UBound(keysElem)
+				Set Elem = GetElem(CLng(keysElem(j)), CLng(Keys(i)), 0)
+
+				If AddItem(Elem, CLng(Keys(i)), dElems) Then	
+					LookAllElems = True
+				End If
+			Next
+		End If
+	Next
+End Function
+'---
+'
+'---
+Function HasParent(Kind, Elem)
+	Select Case Kind
+		Case acFolder, acAccount, acAgent, acEntity, acTemplate, acBinder, acMisc, acEnum
+			HasParent = True
+		Case Else
+			HasParent = False
+	End Select
+End Function 
+'---
+'
+'---
+Function HasParams(Kind, Elem)
+	Select Case Kind
+		Case acFolder, acAccount, acAgent, acEntity, acTemplate, acBinder, acMisc, acForm, acSeries
+			HasParams = True
+		Case Else
+			HasParams = False
+	End Select
+End Function 
+'---
+'
+'---
+Function HasFacts(Kind, Elem)
+	Select Case Kind
+		Case acAgent, acMisc
+			HasFacts = (Elem.Type <> 0)
+
+		Case acEntity
+			HasFacts = (Elem.Type > 1000)
+
+		Case Else
+			HasFacts = False
+	End Select
+End Function 
+'---
+'
+'---
+Function ParseOps(xml, OpsID, dElems)
+	Dim Root, i, Op
+
+	Set Root = xml.CreateElement("AccentOperations")
+
+	If UBound(OpsID) <> -1 Then
+
+		Meter_Init "Экспорт операций ...", 0, UBound(OpsID, 2), 1
+
+		For i = 0 To UBound(OpsID, 2)
+			Meter_StepIt
+			Set Op = Workarea.Operation(OpsID(0, i))
+			Root.AppendChild AppendOperation(xml, Op, dElems)
+		Next
+	End If
+
+	Set ParseOps = Root
+End Function 
+'---
+'
+'---
+Function AppendOperation(xml, Op, dElems)
+	Dim OpXML, Elem
+
+	Set OpXML = xml.CreateElement("operation")
+	SetStdAttributes OpXML, Op
+
+	OpXML.setAttribute "FormID", CStr(op.FormID) ' идентификатор формы
+	Set Elem = GetElem(Op.FormID, acForm, 0)
+	AddItem Elem, acForm, dElems
+
+	OpXML.setAttribute "TID", CStr(Op.TemplateID)
+	Set Elem = GetElem(Op.TemplateID, acTemplate, 0)
+
+	If Not Elem Is Nothing Then
+		AddItem Elem, acTemplate, dElems
+		OpXML.setAttribute "TGUID", Elem.Guid
+	End If
+
+	If Not Elem Is Nothing Then OpXML.setAttribute "TGUID", Elem.Guid
+
+	If Not Op.Folder Is Nothing Then
+		OpXML.setAttribute "foldrId", Op.Folder.ID
+		AddItem Op.Folder, acFolder, dElems
+	End If
+
+	If Op.Binders.Count > 0 Then
+		OpXML.AppendChild GetOpBindes(xml, Op.Binders, dElems)
+	End If
+
+	OpXML.AppendChild GetExtraDataOp(xml, Op.GetExtraData, dElems)
+	AddTransactions xml, OpXML, Op, dElems
+	OpXML.AppendChild AddParams(xml, Op.Params, dElems, False)
+
+	Set AppendOperation = OpXML
+End Function
+'---
+'
+'---
+Function GetOpBindes(xml, Bnds, dElems)
+	Dim dBnds, i, ElRoot, El, bnd
+
+	Set dBnds = dElems(acBinder)
+	Set ElRoot = xml.CreateElement("binders")
+
+	For i = 1 To Bnds.Count	
+		Set bnd = Bnds.Item(i)
+		AddItem bnd, acBinder, dElems
+		Set el = xml.CreateElement("binder")
+		el.setattribute "guid", bnd.guid
+		ElRoot.AppendChild El
+	Next
+
+	Set GetOpBindes = ElRoot
+
+End Function
+
+'---
+'
+'---
+Sub SetStdAttributes(OpXML, Op)
+	OpXML.setAttribute "ID",     op.ID
+	OpXML.setAttribute "GUID",   op.GUID
+	OpXML.setAttribute "Name",   op.Name
+	OpXML.setAttribute "Tag",   op.Tag
+	OpXML.setAttribute "State",   op.State
+
+	OpXML.setAttribute "Date",   CStr(op.Date) ' дата документа
+	OpXML.setAttribute "Date1",  CStr(op.Date1)
+	OpXML.setAttribute "Date2",  CStr(op.Date2)
+	OpXML.setAttribute "Date3",  CStr(op.Date3)
+
+	OpXML.setAttribute "Sum",   Op.Sum
+	OpXML.setAttribute "Sum1",  Op.Sum1
+	OpXML.setAttribute "Sum2",  Op.Sum2
+	OpXML.setAttribute "Sum3",  Op.Sum3
+
+	OpXML.setAttribute "Memo",   Op.Memo
+	OpXML.setAttribute "String1",  Op.String1
+	OpXML.setAttribute "String2",  Op.String2
+	OpXML.setAttribute "String3",  Op.String3
+
+	OpXML.setAttribute "Long1",  Op.Long1
+	OpXML.setAttribute "Long2",  Op.Long2
+	OpXML.setAttribute "Long3",  Op.Long3
+
+	OpXML.setAttribute "DocNo",  op.DocNo ' номер документа
+	OpXML.setAttribute "Done",   Iif( op.Done, "True", "False" ) ' Проведена ли операция
+End Sub
+'---
+'
+'---
+Function GetExtraDataOp(xml, ExData, dElems)
+	Dim exDataXML, ExDataMap, Keys, Key, i, Kind, ID
+
+	Set exDataXML = xml.CreateElement("extradata")
+	exDataXML.Text = ExData
+
+	If ExData <> "" Then
+		Set ExDataMap = CreateLibObject("Map")
+		ExDataMap.xml = ExData
+
+		If ExDataMap.Count > 0 Then
+			Keys = ExDataMap.Keys
+
+			For i = 0 To UBound(Keys)
+				Key = keys(i)
+
+				If Left(key, 2) = "Ag" And Right(key, 2) = "ID" Then
+					Kind = acAgent
+				ElseIf Left(key, 3) = "Ent" And Right(key, 2) = "ID" Then
+					Kind = acEntity
+				ElseIf Left(key, 3) = "Msc" And Right(key, 2) = "ID" Then
+					Kind = acMisc
+				End If
+				
+				ID = Str2Long(ExDataMap(Key))
+
+				If ID <> 0 Then
+					Set Elem = GetElem(ID, Kind, 0)
+
+					If Not Elem Is Nothing Then
+						AddItem Elem, Kind, dElems
+					End If
+				End If				
+
+			Next
+		End If
+	End If
+
+	Set GetExtraDataOp = exDataXML
+
+End Function
+'---
+'
+'---
+Function AddTransactions(xml, OpXML, Op, dElems)
+	Dim TrListXML, i, n, TrList, aPrm
+
+	n = Op.TransCount
+
+	For i = 1 To n
+		Set TrList = Op.TransList(i)
+		Set TrListXML = xml.CreateElement("transList")
+
+		TrListXML.SEtAttribute("Rows") = TrList.Rows
+		aPrm = Array(xml, TrListXML, dElems)
+		TrList.EnumTrans GetRef("AddOneTrans"), aPrm
+		OpXML.AppendChild TrListXML
+	Next
+
+	Set AddTransactions = TrListXML
+
+End Function
+'---
+'
+'---
+Function	AddOneTrans(Tr, ByRef aPrm)
+	Dim TrXML, dElems, xmlTrListRoot, Elem
+
+	Set xmlTrListRoot = aPrm(1)
+	Set dElems = aPrm(2)
+
+	AddOneTrans = True
+	Set TrXML = aPrm(0).CreateElement("transaction")
+
+	TrXML.setAttribute "Date", CStr(Tr.Date)
+
+	TrXML.setAttribute "AccCrID", CStr(tr.AccCrID) ' счет по кредиту
+	If Not Tr.AccCr Is Nothing Then AddItem Tr.AccCr, acAccount, dElems	
+
+	TrXML.setAttribute "AccDbID", CStr(tr.AccDbID) ' счет по дебету
+	If Not Tr.AccDb Is Nothing Then AddItem Tr.AccDb, acAccount, dElems	
+
+	TrXML.setAttribute "AgFromID", CStr(tr.AgFromID) 
+	If Not Tr.AgFrom Is Nothing Then AddItem Tr.AgFrom, acAgent, dElems	
+
+	TrXML.setAttribute "AgToID", CStr(tr.AgToID) 
+	If Not Tr.AgTo Is Nothing Then AddItem Tr.AgTo, acAgent, dElems	
+
+	TrXML.setAttribute "EntID", CStr(tr.EntID) 
+	If Not Tr.Entity Is Nothing Then 
+		AddItem Tr.Entity, acEntity, dElems	
+
+		TrXML.setAttribute "SeriesID", CStr(tr.SeriesID) 
+		If Tr.SeriesID <> 0 Then
+			Set Elem = Tr.Entity.SeriesColl.ItemID(tr.SeriesID)
+			If Not Elem Is Nothing Then AddItem Elem, acSeries, dElems	
+		End If
+	End If
+
+	TrXML.setAttribute "UnitID", CStr(tr.UnitID) 
+	If Not Tr.Unit Is Nothing Then AddItem Tr.Unit, acUnit, dElems	
+	
+	TrXML.setAttribute "FUnitID", CStr(tr.FUnitID) 
+	If Not Tr.FUnit Is Nothing Then AddItem Tr.FUnit, acUnit, dElems	
+
+	TrXML.setAttribute "Price", CStr(tr.Price) ' цена для проводки
+	TrXML.setAttribute "Qty",   CStr(tr.Qty)   ' кол-во в базовой ед.изм. для проводки
+	TrXML.setAttribute "FQty",  CStr(tr.FQty)  ' кол-во в производной ед.изм
+	TrXML.setAttribute "Sum",   CStr(tr.Sum)   ' сумма для проводки
+
+	TrXML.AppendChild AddTrMiscs(aPrm(0), Tr, dElems)
+	TrXML.AppendChild AddTrCurs(aPrm(0), Tr.TransCurs, dElems)
+
+	TrXML.AppendChild AddTaxReps(aPrm(0), Tr, dElems)
+	TrXML.AppendChild AddParams(aPrm(0), Tr.Params, dElems, False)
+
+	xmlTrListRoot.AppendChild TrXML
+	
+End Function
+'---
+'
+'---
+Function AddTrMiscs(xml, Tr, dElems)
+	Dim i, n, TrMiscs, TrMisc, Elem, Msc
+
+	Set TrMiscs = xml.CreateElement("transaction_miscs")
+
+	With Workarea.Miscs
+		For i = 1 To .Count
+			Set Msc = .Item(i)
+			If Tr.MiscID(Msc.MscNo) <> 0 Then
+				Set TrMisc = xml.CreateElement("misc")
+				TrMisc.setAttribute "MiscId", CStr(tr.MiscID(Msc.MscNo)) 
+				TrMisc.setAttribute "MiscNo", CStr(Msc.MscNo) 
+
+				' добавлено для совместимости с предущей версией
+				TrMisc.SetAttribute "MiscType", CStr(Msc.Type)
+
+				If Msc.Type <> 0 And Not Msc.Parent Is Nothing Then 
+					TrMisc.SetAttribute "MiscParentID", Msc.Parent.ID
+				Else
+					TrMisc.SetAttribute "MiscParentID", "0"
+				End If
+				' ---------
+
+				TrMiscs.AppendChild TrMisc
+
+				If Not Tr.Misc(Msc.MscNo) Is Nothing Then
+					AddItem Tr.Misc(Msc.MscNo), acMisc, dElems	
+				Else
+					AddItem Msc, acMisc, dElems
+					Set Elem = GetElem(Tr.MiscID(Msc.MscNo), Msc.RefKind, 0)
+					AddItem Elem, Msc.RefKind, dElems
+				End If
+
+			End If
+		Next
+	End With
+
+	Set AddTrMiscs = TrMiscs
+End Function
+'---
+'
+'---
+Function AddTrCurs(xml, TrCurs, dElems)
+	Dim i, TrCursXML, TrCurXML, TrCur
+
+	Set TrCursXML = xml.CreateElement("transaction_curs")
+
+	For i = 1 To TrCurs.Count
+		Set TrCur = TrCurs.Item(i)
+		Set TrCurXML = xml.CreateElement("transCur")
+
+		TrCurXML.SetAttribute "CurID", CLng(TrCur.CurID)
+		TrCurXML.SetAttribute "LockRate", Iif( TrCur.LockRate, "True", "False" )
+		TrCurXML.SetAttribute "No", CLng(TrCur.No)
+		TrCurXML.SetAttribute "Price", 	CStr(TrCur.Price)
+		TrCurXML.SetAttribute "Rate", CStr(TrCur.Rate)
+		TrCurXML.SetAttribute "Sum", CStr(TrCur.Sum)
+
+		AddItem TrCur.Cur, acCurs, dElems	
+		TrCursXML.AppendChild TrCurXML
+	Next
+
+	Set AddTrCurs = TrCursXML
+End Function
+'---
+'
+'---
+Function AddTaxReps(xml, Tr, dElems)
+	Dim SQL, aData, xmlTaxData, i, xmlTaxElem, TaxRep
+
+	Set xmlTaxData = xml.createelement("taxrep")
+
+	SQL = "select TX_ID, JT_ADDR1 from jrn_tax where j_id=" & Tr.ID
+	
+	If GetRs2(SQL, aData) Then
+		For i = 0 To UBound(aData, 2)
+			Set xmlTaxElem = xml.createelement("taxrepelem")
+			xmlTaxElem.SetAttribute "taxid", aData(0, i)
+			xmlTaxElem.SetAttribute "taxaddr", aData(1, i)
+			xmlTaxData.AppendChild xmlTaxElem
+
+			Set TaxRep = Workarea.TaxReport(aData(0, i))
+			AddItem TaxRep, acTaxRep, dElems	
+		Next
+	End If
+
+	Set AddTaxReps = xmlTaxData
+	
+End Function
+'---
+'
+'---
+Function AddParams(xml, ElPrms, dElems, CheckOnly)
+	Dim PrmsXML, i, PrmXML, Prm, El
+
+	Set PrmsXML = xml.CreateElement("parameters")
+	ElPrms.REfresh
+
+	For i = 1 To ElPrms.Count
+		Set Prm = ElPrms.Item(i)
+
+		If Not prm.IsNull Then
+			If Not CheckOnly Then
+				Set PrmXML = xml.CreateElement("parameter")
+	
+				PrmXML.SetAttribute "Name", prm.Name
+				PrmXML.SetAttribute "Type", CStr(prm.Type)
+				PrmXML.SetAttribute "RefKind", CStr(prm.RefKind)
+				PrmXML.SetAttribute "RefID", CStr(prm.RefID)
+				PrmXML.SetAttribute "Value2", CStr(prm.Value2)
+
+				If prm.RefKind <> 0 Then
+					If prm.Value2 <> 0 Then 
+						Set El = GetElem(prm.Value2, prm.RefKind, prm.RefID)
+
+						If Not El Is Nothing Then
+							PrmXML.SetAttribute "RefGUID", GetKindGuid(prm.RefKind, El, prm.Value2)
+						End If
+					End If
+				End If
+
+				PrmsXML.AppendChild PrmXML
+			Else
+				CheckParamRef prm.RefKind, prm.RefID, prm.Value2, dElems
+			End If
+		End If
+	Next
+
+	Set AddParams = PrmsXML	
+End Function
+'---
+'
+'---
+Function AddFacts(xml, ElFcts, dElems, CheckOnly)
+	Dim FctsXML, i, FctXML, Fct, j, fctHistory, fctHisXML, El
+
+	Set FctsXML = xml.CreateElement("facts")
+
+	For i = 1 To ElFcts.Count
+		Set Fct = ElFcts.Item(i)
+
+		If Not Fct.IsNull Then
+			If Not CheckOnly Then
+				Set FctXML = xml.CreateElement("fact")
+	
+				FctXML.SetAttribute "Name", 		Fct.Name
+				FctXML.SetAttribute "Type", 		CStr(Fct.Type)
+				FctXML.SetAttribute "RefKind", 	CStr(Fct.RefKind)
+				FctXML.SetAttribute "RefID", 	CStr(Fct.RefID)
+
+				fctHistory = fct.History
+
+				For j = 0 To UBound(fctHistory, 2)
+					Set fctHisXML = xml.CreateElement("factvalue")
+					fctHisXML.SetAttribute "date", CStr(fctHistory(0, j))
+					fctHisXML.SetAttribute "value2", CStr(fctHistory(1, j))
+
+					FctXML.AppendChild fctHisXML
+				Next
+
+				If Fct.RefKind <> 0 Then 
+					If fct.Value2 <> 0 Then 
+						Set El = GetElem(fct.Value2, fct.RefKind, fct.RefID)
+						If Not El Is Nothing Then
+							FctXML.SetAttribute "RefGUID", GetKindGuid(fct.RefKind, El, fct.Value2)
+						End If
+					End If
+				End If
+
+				FctsXML.AppendChild FctXML
+			Else
+				CheckParamRef fct.RefKind, fct.RefID, fct.Value2, dElems
+			End If
+		End If
+	Next
+
+	Set AddFacts = FctsXML
+End Function
+'---
+'
+'---
+Function CheckParamRef(Kind, RootID, ID, dElems)
+	If RootID <> 0 Then CheckKind Kind, RootID, 0, dElems
+
+	If ID <> 0 Then
+		CheckParamRef = CheckKind(Kind, ID, RootID, dElems)
+	Else
+		CheckParamRef = ""
+	End If
+End Function
+'----
+'
+'---
+Function CheckKind(Kind, ID, RootID, dElems)
+	Dim El
+
+	CheckKind = ""
+	Set El = GetElem(ID, Kind, RootID)
+	If El Is Nothing Then Exit Function
+
+	AddItem El, Kind, dElems
+	CheckKind = GetKindGuid(Kind, El, ID)
+End Function 
+'----
+'
+'---
+Function GetKindGuid(Kind, El, ID)
+	Dim SQL, aData
+
+	Select Case Kind
+		Case acForm	'15	Форма или диалог
+			SQL = "select frm_guid from forms where frm_id = " & ID
+			If GetRs2(SQL, aData) Then 
+				GetKindGuid = NormilizeGuid(aData(0, 0))
+			Else
+				GetKindGuid = ""
+			End If
+
+		Case acEnum			'	Перечисление
+			GetKindGuid = El.Name
+
+		Case acAN			'	Элемент автонумерации
+			GetKindGuid = El.Name
+
+		Case acPKind		'	Вид цены
+			GetKindGuid = El.Name
+
+		Case acCurs			'	Валюта
+			GetKindGuid = El.Code
+
+		Case acPrList		'	Прайс-лист
+			GetKindGuid = El.Name
+
+		Case Else
+			GetKindGuid = El.GUID
+	End Select
+
+End Function
+'----
+'
+'---
+Sub ParseDict(xml, XmlRoot, dElems)
+	Dim i, j, KeysD, dElem, AppDictXML
+
+	KeysD = dElems.Keys
+
+	Meter_init "Экспорт справочников ...", 0, UBound(KeysD), 1
+
+	For i = 0 To UBound(KeysD)
+		Meter_StepIt
+		Set dElem = dElems.Item(KeysD(i))
+		Set AppDictXML = AddDict(xml, Str2Long(KeysD(i)), dElem)
+
+		If Not AppDictXML Is Nothing Then
+			XmlRoot.AppendChild AppDictXML
+		End If
+	Next
+
+End Sub
+
+'----
+'
+'---
+Function AddDict(xml, Kind, dElem)
+	Dim TagName, xmlTagRoot, keys, i, xmlElem, El, Pass, aParent
+	Dim ID, xmlParent, aEl
+
+	TagName = GetTagName(Kind)
+
+	If TagName = "" Then 
+		Set AddDict = Nothing 
+		Exit Function
+	End If
+
+	Set xmlTagRoot = xml.CreateElement(TagName)
+
+	keys = dElem.Keys
+	
+	For Pass = 1 To 2
+		For i = 0 To UBound(Keys)
+			If Not IsArray(dElem(Keys(i))) Then
+				Set xmlElem = xml.CreateElement(Left(TagName, Len(TagName) - 1))
+				Set El = GetElem(str2long(Keys(i)), Kind, 0)
+				AddDictProps Kind, El, xmlElem, xml, dElems
+				dElem.Item(Keys(i)) = Array(El, xmlElem)
+			Else
+				aEl = dElem.Item(Keys(i))
+				If HasParams(str2Long(Kind), aEl(0)) Then
+					aEl(1).AppendChild AddParams(xml, aEl(0).Params, dElems, False)
+				End If
+
+				If HasFacts(str2Long(Kind), aEl(0)) Then
+					aEl(1).AppendChild AddFacts(xml, aEl(0).Facts, dElems, False)
+				End If
+
+				If HasParent(str2Long(Kind), aEl(0)) Then
+					Set xmlParent = xmlTagRoot
+
+					If Not aEl(0).Parent Is Nothing Then
+						If dElem.Exists(CStr(aEl(0).Parent.ID)) Then
+							aParent = dElem.Item(CStr(aEl(0).Parent.ID))
+							Set xmlParent = aParent(1)
+						End If
+					End If
+
+					xmlParent.AppendChild aEl(1)	
+				Else
+					xmlTagRoot.AppendChild aEl(1)	
+				End If
+
+			End If
+		Next
+	Next
+	
+	Set AddDict = xmlTagRoot
+
+End Function
+'----
+'
+'---
+Function AddSeriesProps(El, xml, dElems)
+	Dim xmlSeries, xmlSer, i
+
+	Set xmlSeries = xml.CreateElement("seriescoll")
+
+	With El.SeriesColl
+		For i = 1 To .Count
+			With .Item(i)
+				Set xmlSer = xml.CreateElement("series")
+				xmlSer.SetAttribute "Name", .Name
+				xmlSer.SetAttribute "Tag", .Tag
+				xmlSer.SetAttribute "Code", .Code
+				xmlSer.SetAttribute "DateIn", .DateIn
+				xmlSer.SetAttribute "DateOut", .DateOut
+				xmlSer.SetAttribute "EntID", .EntID
+				xmlSer.SetAttribute "Memo", .Memo
+				xmlSer.SetAttribute "Number", 	.Number
+				xmlSer.SetAttribute "PriceIn", .PriceIn
+				xmlSer.SetAttribute "PriceOut", .PriceOut
+				xmlSer.SetAttribute "AgFromID", iif(.AgFromID = 0, "", .AgFromID)
+				xmlSer.appendchild AddParams(xml, .Params, dElems, False)
+			End With
+
+			xmlSeries.AppendChild xmlSer
+		Next
+	End With
+
+	Set AddSeriesProps = xmlSeries
+End Function
+'---
+'
+'---
+Sub AddUnitProps(El, xmlElem)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "GUID", El.GUID
+	xmlElem.SetAttribute "ShortName", El.ShortName
+	xmlElem.SetAttribute "Memo", El.Memo
+End Sub
+'---
+'
+'---
+Function AddFUnitProps(El, xml)
+	Dim xmlFUnits, i, xmlFUnit
+
+	Set xmlFUnits = xml.CreateElement("EntUnits")
+
+	With El.EntUnits
+		For i = 1 To .Count
+			With .Item(i)
+				Set xmlFUnit = xml.CreateElement("EntUnit")
+				xmlFUnit.SetAttribute "Denom", 	El.Denom
+				xmlFUnit.SetAttribute "Num", 		El.Num
+				xmlFUnit.SetAttribute "UnitID", El.UnitID
+			End With
+
+			xmlFUnits.AppendChild xmlFUnit
+		Next
+	End With
+
+	Set AddFUnitProps = xmlFUnits
+End Function
+'---
+'
+'---
+Sub AddMiscProps(El, xmlElem)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "Memo", El.Memo
+	xmlElem.SetAttribute "MscNo", CStr(El.MscNo)
+	xmlElem.SetAttribute "Type", CStr(El.Type)
+	xmlElem.SetAttribute "GUID", El.GUID
+
+	If El.Type = 1 Then
+		xmlElem.SetAttribute "Date1", CStr(El.Date1)
+		xmlElem.SetAttribute "Date2", CStr(El.Date2)
+		xmlElem.SetAttribute "Date3", CStr(El.Date3)
+		xmlElem.SetAttribute "Long1", CStr(El.Long1)
+		xmlElem.SetAttribute "Long2", CStr(El.Long2)
+		xmlElem.SetAttribute "Long3", CStr(El.Long3)
+		xmlElem.SetAttribute "String1", El.String1
+		xmlElem.SetAttribute "String2", El.String2
+		xmlElem.SetAttribute "String3", El.String3
+		xmlElem.SetAttribute "Sum1", CStr(El.Sum1)
+		xmlElem.SetAttribute "Sum2", CStr(El.Sum2)
+		xmlElem.SetAttribute "Sum3", CStr(El.Sum3)
+	End If
+
+	If El.Type = 1 Or El.Type = -1 Then
+		xmlElem.SetAttribute "RefFolderID", CStr(El.RefFolderID)
+		xmlElem.SetAttribute "RefKind", CStr(El.RefKind)
+	End If
+
+End Sub
+'---
+'
+'---
+Sub AddProjItemProps(El, xmlElem, xml)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "ANID", CStr(El.AutoNumID)
+	xmlElem.SetAttribute "FileName", El.FileName
+	xmlElem.SetAttribute "ShortName", El.ShortName
+	xmlElem.SetAttribute "Type", CStr(El.Type)
+
+	AddLinkedElems xmlElem, El, "projitem", True, xml
+	AddLinkedElems xmlElem, El, "projitem", False, xml
+
+End Sub
+'---
+'
+'---
+Sub AddLinkedElems(xmlElem, El, ItemName, Mode, xml)
+	Dim i, xmlLinked, xmlTML
+
+	Set xmlLinked = xml.CreateElement("linkedon" & iif(Mode, "left", "right"))
+
+	With El.Linked(Mode)
+		For i = 1 To .Count
+			Set xmlTML = xml.CreateElement(ItemName)
+			With .item(i)
+				xmlTML.SetAttribute "ID", .ID
+				xmlLinked.AppendChild xmlTML
+			End With
+		Next
+	End With
+
+	xmlElem.AppendChild xmlLinked
+
+End Sub
+'---
+'
+'---
+Sub AddTmlProps(El, xmlElem, xml)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "Memo", 	El.Memo
+	xmlElem.SetAttribute "Type", 	El.Type
+	xmlElem.SetAttribute "GUID", El.GUID
+
+	If El.Type = 1 Then 
+		xmlElem.Text = El.GetScript
+		AddLinkedElems xmlElem, El, "template", True, xml
+		AddLinkedElems xmlElem, El, "template", False, xml
+	End If
+End Sub
+'---
+'
+'---
+Sub AddPrKinds(El, xmlElem, xml)
+	Dim i, xmlPKinds
+
+	With El.PriceKinds
+		For i  = 1 To .Count
+			With .Item(i)
+				Set xmlPKinds = xml.CreateElement("pricekind")
+				xmlPKinds.SetAttribute "ID", .ID
+				xmlElem.AppendChild xmlPKinds
+			End With
+		Next
+	End With
+End Sub
+'---
+'
+'---
+Sub AddDictProps(Kind, El, xmlElem, xml, dElems)
+	xmlElem.SetAttribute "ID", Abs(El.ID)
+
+	Select Case Kind
+		Case acEnum
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Tag", El.Tag
+
+		Case acUnit
+			AddUnitProps El, xmlElem
+
+		Case acTemplate
+			AddTmlProps El, xmlElem, xml
+
+		Case acTaxRep
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Tag", El.Tag
+			xmlElem.SetAttribute "FileName", El.FileName
+			xmlElem.SetAttribute "Memo", El.Memo
+
+		Case acPrList
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Memo", El.Memo
+			AddPrKinds El, xmlElem, xml
+
+		Case acPKind
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Tag", El.Tag
+			xmlElem.SetAttribute "CurID", 	El.CurID
+			xmlElem.SetAttribute "UnitID", 	El.UnitID
+			xmlElem.SetAttribute "Memo",		El.Memo
+
+		Case acMisc
+			AddMiscProps El, xmlElem
+
+		Case acForm
+			AddProjItemProps El, xmlElem, xml
+
+		Case acCurs
+			AddCursProps El, xmlELem
+
+		Case acEntity
+			AddEntityProps El, xmlElem, xml
+			xmlElem.AppendChild AddFUnitProps(El, xml)
+			xmlElem.AppendChild AddSeriesProps(El, xml, dElems)
+
+		Case acAgent
+			AddAgProps El, xmlElem, xml
+
+		Case acBank
+			AddBankProps El, xmlElem
+
+		Case acAccount
+			AddAccProps El, xmlElem
+
+		Case acBinder
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Tag", El.Tag
+			xmlElem.SetAttribute "Memo", El.Memo
+			xmlElem.SetAttribute "GUID", El.GUID
+
+		Case acFolder
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Tag", El.Tag
+			xmlElem.SetAttribute "Memo", El.Memo
+			xmlElem.SetAttribute "GUID", El.GUID
+
+		Case acAN
+			xmlElem.SetAttribute "Name", El.Name
+			xmlElem.SetAttribute "Number", El.Number
+			xmlElem.SetAttribute "Prefix", El.Prefix
+			xmlElem.SetAttribute "Suffix", El.Suffix
+
+	End Select
+
+End Sub
+'---
+'
+'---
+Sub AddAccProps(El, xmlElem)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "Code", El.Code				' код счета в виде строки
+	xmlElem.SetAttribute "PlanID", CStr(El.PlanID)	' код плана счетов, в который входит счет
+	xmlElem.SetAttribute "SaldoType", CStr(El.SaldoType) ' тип свертки сальдо для счета
+	xmlElem.SetAttribute "Memo", El.Memo 				' примечание 	
+	xmlElem.SetAttribute "GUID", El.GUID
+End Sub
+'---
+'
+'---
+Sub AddAgProps(El, xmlElem, xml)
+	Dim bAcc, i, xmlBAccs, xmlBAcc
+
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "Type", CStr(El.Type)
+	xmlElem.SetAttribute "GUID", El.GUID
+
+	If El.Type > 0 Then
+		xmlElem.SetAttribute "Address", 	El.Address
+		xmlElem.SetAttribute "Code", El.Code
+		xmlElem.SetAttribute "Contact", El.Contact
+		xmlElem.SetAttribute "Country", El.Country
+		xmlElem.SetAttribute "DateIn", CStr(El.DateIn)
+		xmlElem.SetAttribute "DateOut", CStr(El.DateOut)
+		xmlElem.SetAttribute "EMail", El.EMail
+		xmlElem.SetAttribute "Memo", El.Memo
+		xmlElem.SetAttribute "Passport", El.Passport
+		xmlElem.SetAttribute "Phone", El.Phone
+		xmlElem.SetAttribute "RegNo", El.RegNo
+		xmlElem.SetAttribute "TabNo", El.TabNo
+		xmlElem.SetAttribute "VatNo", El.VatNo
+		xmlElem.SetAttribute "WWW", El.WWW
+	End If
+
+	Set bAcc = El.BankAccounts
+
+	If Not bAcc Is Nothing Then
+		Set xmlBAccs = xml.CreateElement("BankAccounts")
+			
+		For i = 1 To BAcc.Count
+			Set xmlBAcc = xml.CreateElement("BankAccount")
+
+			With BAcc.Item(i)
+				xmlBAcc.SetAttribute "AccountNo", .AccountNo
+				xmlBAcc.SetAttribute "BankID", .BankID
+				xmlBAcc.SetAttribute "Memo", .Memo
+			End With
+
+			xmlBAccs.AppendChild xmlBAcc
+		Next
+
+		xmlElem.AppendChild xmlBAccs
+	End If
+
+End Sub
+'---
+'
+'---
+Sub AddCursProps(El, xmlELem)
+	xmlELem.SetAttribute "Code", 			El.Code
+	xmlELem.SetAttribute "Denom", 			CStr(El.Denom)
+	xmlELem.SetAttribute "FullName", 		El.FullName
+	xmlELem.SetAttribute "ReverseRate", Iif( El.ReverseRate, "True", "False" )
+	xmlELem.SetAttribute "ShortName", 	El.ShortName
+	xmlELem.SetAttribute "Spell",			GetCrcSpell(El.ID)
+End Sub
+'---
+'
+'---
+Function GetCrcSpell(CurID)
+	Dim SQL, aData
+
+	SQL = "select crc_spell from currencies where crc_id=" & CurID
+
+	If GetRs2(SQL, aData) Then
+		GetCrcSpell = checknull(aData(0, 0), "")
+	Else
+		GetCrcSpell = ""
+	End If	
+End Function
+'---
+'
+'---
+Sub AddEntityProps(El, xmlElem, xml)
+	Dim AssetXml, EntAsset
+
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "Tag", El.Tag
+	xmlElem.SetAttribute "Type", CStr(El.Type) ' тип
+	xmlElem.SetAttribute "Memo", El.Memo ' примечание 	
+	xmlElem.SetAttribute "UnSelf", Iif(El.UnSelf, "True", "False" ) ' признак собственной ед. изм.
+	xmlElem.SetAttribute "UnitID", CStr(El.UnitID) ' идентификатор собственной ед. изм.
+	xmlElem.SetAttribute "GUID", El.GUID
+
+	If El.Type > 1 Then
+		xmlElem.SetAttribute "Art",  El.Art ' артикул
+		xmlElem.SetAttribute "Bar",  El.Bar ' бар-код
+		xmlElem.SetAttribute "Cat",  El.Cat ' каталожный номер
+		xmlElem.SetAttribute "Nom",  El.Nom ' номенклатурный номер
+		
+		Set EntAsset = El.Asset
+
+		If Not EntAsset Is Nothing Then
+			Set AssetXML = xml.CreateElement("Asset")
+			AssetXML.SetAttribute "Code", EntAsset.Code
+			AssetXML.SetAttribute "DateIn", EntAsset.DateIn
+			AssetXML.SetAttribute "DateOut", EntAsset.DateOut
+			AssetXML.SetAttribute "InActDate", EntAsset.InActDate
+			AssetXML.SetAttribute "InActNo", EntAsset.InActNo
+			AssetXML.SetAttribute "ManufDate", EntAsset.ManufDate
+			AssetXML.SetAttribute "ManufNo", EntAsset.ManufNo
+			AssetXML.SetAttribute "Manufacturer", EntAsset.Manufacturer
+			AssetXML.SetAttribute "Passport", EntAsset.Passport
+			AssetXML.SetAttribute "Percent", EntAsset.Percent
+			AssetXML.SetAttribute "UsefulLife", EntAsset.UsefulLife
+
+			xmlElem.AddChild AssetXML
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Sub AddBankProps(El, xmlElem)
+	xmlElem.SetAttribute "Name", El.Name
+	xmlElem.SetAttribute "City", El.City 				' город
+	xmlElem.SetAttribute "Code", El.Code 				' Код МФО или БИК для банка
+	xmlElem.SetAttribute "CorrAccount", El.CorrAccount 	' номер корр. счета
+	xmlElem.SetAttribute "CorrBankID", CStr(El.CorrBankID) ' код банка-корреспонднта
+	xmlElem.SetAttribute "Country", El.Country 			' страна
+	xmlElem.SetAttribute "Memo", El.Memo 				' Комментарий
+End Sub
+'---
+'
+'---
+Function GetTagName(Kind)
+	Select Case Kind
+		Case acFolder
+			GetTagName = "folders"
+		Case acAccount
+			GetTagName = "accounts"
+		Case acAgent
+			GetTagName = "agents"
+		Case acEntity
+			GetTagName = "entities"
+		Case acMisc
+			GetTagName = "miscs"
+		Case acTemplate
+			GetTagName = "template"
+		Case acBinder
+			GetTagName = "binders"
+		Case acEnum
+			GetTagName = "enums"
+		Case acPKind
+			GetTagName = "pricekinds"
+		Case acPrList	
+			GetTagName = "pricelists"
+		Case acCurs		
+			GetTagName = "currencies"
+		Case acAN			
+			GetTagName = "autonums"
+		Case acNorm		
+			GetTagName = "norms"
+		Case acUnit		
+			GetTagName = "units"
+'		Case acSeries 
+'			GetTagName = "series"
+		Case acTaxRep
+			GetTagName = "taxreports"
+		Case acForm 
+			GetTagName = "projitems"
+		Case acBank
+			GetTagName = "banks"
+		Case Else
+			GetTagName = ""
+	End Select
+End Function
+'---
+'
+'---
+Sub SuppDataEnum(dElems)
+	Dim i, Keys, ID, j, EnItem, dEnum
+
+	Set dEnum = dElems(acEnum)
+	Keys = dEnum.Keys
+
+	For i = 0 To UBound(Keys)
+		id = str2long(Keys(i))
+
+		If id < 0 Then
+			With Workarea.Enum(-id)
+				For j = 1 To .Count
+					If Not dEnum.Exists(.ItemID(j)) Then	
+						Set EnItem = GetEnumItemByID(.ItemID(j))
+						AddItem EnItem, acEnum, dElems
+					End If
+				Next
+			End With
+		End If
+	Next
+	
+End Sub
+'---
+'
+'---
+Dim dElems, dFld, dAcc, dAg, dEnt, dMisc, dBind, dTml, dTaxRep
+Dim dFrm, dPrl, dPrc, dCurs, dEnum, dAN, dNorm, dUnit, dSeries
+Dim dBank, dFUnit
+Dim oXml, OpsID, XmlRoot
+Dim dlgOptions, Dlg, mtrProgress, lbMeter
+'---
+'
+'---
+Sub Meter_Caption(MsgText)
+	If Not mtrProgress Is Nothing Then 
+		lbMeter.Caption = MsgText
+		Dlg.Recalc
+	End If
+End Sub
+'---
+'
+'---
+Sub Meter_init(MsgText, MinPos, MaxPos, StepPos)
+	If Not mtrProgress Is Nothing Then 
+		lbMeter.Caption = MsgText
+		mtrProgress.Min = MinPos
+		mtrProgress.Max = MaxPos
+		mtrProgress.Step = StepPos
+		Dlg.Recalc
+	End If
+End Sub
+'---
+'
+'---
+Sub Meter_StepIt()
+	If Not mtrProgress Is Nothing Then 
+		mtrProgress.StepIt
+		Dlg.Recalc
+	End If
+End Sub
+'---
+'
+'---
+Sub Meter_StepPos(Pos)
+	If Not mtrProgress Is Nothing Then 
+		mtrProgress.StepPos = Pos
+		Dlg.Recalc
+	End If
+End Sub
+'---
+'
+'---
+Sub Main(aPrm)
+	Dim xmlFileName
+
+	Set dlgOptions = aPrm(0)
+	Set Dlg = aPrm(1)
+	Set mtrProgress = aPrm(2)
+	Set lbMeter = aPrm(3)
+
+	Meter_Caption ""
+	Meter_StepPos 0
+
+	CreateMaps
+	
+	Set oXml = New XML
+	
+	If oXml.Create Then
+		oXml.xml.appendChild oXml.xml.createProcessingInstruction("xml", "version='1.0' encoding='windows-1251'")
+	
+		Meter_Caption "Получаю операции для экспорта ..."
+		OpsID = GetOperations()
+
+		Set XmlRoot = oXml.xml.CreateElement("AccentExportData")
+		XmlRoot.SetAttribute "version", VERSION
+		XmlRoot.AppendChild ParseOps(oXml.xml, OpsID, dElems)
+	
+		DoExport dElems
+
+		If dlgOptions("chkPriceList") = 1 Then 
+			'ParsePrice oXml.xml, XmlRoot, dElems
+		End If
+	
+		SuppDataEnum dElems
+		ParseDict oXml.xml, XmlRoot, dElems
+
+		oXml.xml.InsertBefore XmlRoot, Null
+	End If
+	
+	xmlFileName = GetXMLFileName()
+
+	If xmlFileName <> "" Then 
+		oXml.SaveAll xmlFileName
+	End If
+
+End Sub
+'---
+'
+'---
+Function GetXMLFileName()
+	Dim xmlFileName, Fld
+
+	xmlFileName = dlgOptions("slPath")
+
+	If xmlFileName = "" And _
+		dlgOptions("chkUsePrmFileName") = 1 And _
+		dlgOptions("rdFolder") = 1 Then
+
+		Set Fld = Workarea.Folder(dlgOptions("rdFolderID"))
+
+		If Not Fld Is Nothing Then
+			xmlFileName = com_getparamvalue(Fld, prmFldFolderForExport, "")
+		End If
+	End If
+
+	If xmlFileName = "" Then 
+		OpenFileSave xmlFileName, "", "*.xml", "xml файл для обмена", "Выберите файл для сохранения"
+	End If
+
+	If xmlFileName <> "" And dlgOptions("chkUseDT") = 1 Then 
+		xmlFileName = Left(xmlFileName, InStrRev(xmlFileName, ".xml") - 1) & Formatdate2(Now, " dd-mm-yyyy hh-nn.xml") & ".xml"
+	End If
+
+	GetXMLFileName = xmlFileName
+End Function
+'---
+'
+'---
+Function GetOperations()
+	Dim aData, SQL
+
+	If dlgOprtions("rdAllFolders") = 1 Then
+		' all operations
+		SQL = "select doc_id from documents where mc_id = " & Workarea.MyCompany.ID & _
+									" and doc_date >=" & SQLDAte(workarea.period.start) & _
+									" And doc_date < " & SQLDAte(workarea.period.end)
+
+	ElseIf dlgOprtions("rdFolder") = 1 Then
+		' from folder
+		SQL = "select doc_id from documents where fld_id = " & dlgOprtions("rdFolderID") & _
+									" and mc_id = " & Workarea.MyCompany.ID & _
+									" and doc_date >=" & SQLDAte(workarea.period.start) & _
+									" And doc_date < " & SQLDAte(workarea.period.end)
+
+
+	ElseIf dlgOprtions("rdBinder") = 1 Then
+		' from binder
+		SQL = "select doc_id from documents where " & _
+									" and mc_id = " & Workarea.MyCompany.ID & _
+									" and doc_date >=" & SQLDAte(workarea.period.start) & _
+									" And doc_date < " & SQLDAte(workarea.period.end) & _
+									" and doc_id in (select doc_id from bind_docs where bind_id=" & dlgOprtions("rdBinder") & ")"
+	Else
+		SQL = ""
+	End If
+
+	GetRs2 SQL, aData
+	GetOperations = aData
+		
+End Function
+'---
+'
+'---
+Sub CreateMaps
+	Set dFld = CreateLibObject("Map")
+	Set dAcc = CreateLibObject("Map")
+	Set dAg = CreateLibObject("Map")
+	Set dEnt = CreateLibObject("Map")
+	Set dMisc = CreateLibObject("Map")
+	Set dBind = CreateLibObject("Map")
+	Set dTml = CreateLibObject("Map")
+	Set dFrm = CreateLibObject("Map")
+	Set dPrl = CreateLibObject("Map")
+	Set dPrc = CreateLibObject("Map")
+	Set dCurs = CreateLibObject("Map")
+	Set dEnum = CreateLibObject("Map")
+	Set dAN = CreateLibObject("Map")
+	Set dNorm = CreateLibObject("Map")
+	Set dUnit = CreateLibObject("Map")
+	Set dSeries = CreateLibObject("Map")
+	Set dTaxRep = CreateLibObject("Map")
+	Set dBank = CreateLibObject("Map")
+	Set dFUnit = CreateLibObject("Map")
+	
+	Set dElems = CreateLibObject("Map")
+	
+	Set dElems.Item(acFolder) = dFld
+	Set dElems.Item(acAccount) = dAcc
+	Set dElems.Item(acAgent) = dAg
+	Set dElems.Item(acEntity) = dEnt
+	Set dElems.Item(acMisc) = dMisc
+	Set dElems.Item(acBinder) = dBind
+	Set dElems.Item(acTemplate) = dTml
+	Set dElems.Item(acForm) = dFrm
+	Set dElems.Item(acPKind) = dPrl
+	Set dElems.Item(acPrList) = dPrc
+	Set dElems.Item(acCurs) = dCurs
+	Set dElems.Item(acEnum) = dEnum
+	Set dElems.Item(acAN) = dAN
+	Set dElems.Item(acNorm) = dNorm
+	Set dElems.Item(acUnit) = dUnit
+	Set dElems.Item(acSeries) = dSeries
+	Set dElems.Item(acTaxRep) = dTaxRep
+	Set dElems.Item(acBank) = dBank
+	Set dElems.Item(acBank) = dFUnit
+End Sub

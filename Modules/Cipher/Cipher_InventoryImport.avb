@@ -1,0 +1,117 @@
+'----
+'	модуль импорта данных об инвентаризации из ТСД в Акцент
+'----
+Option Explicit
+
+'#include "HL74_Const.avb"
+'#include "HL74_common.avb"
+'#include "HL74_ADO.avb"
+
+'#include "Cipher_class.avb"
+'#include "Cipher_common.avb"
+'#include "HL74_AssistantLog.avb"
+
+'
+'	импорт из ТСД серий товара
+'	
+'
+
+Sub Cipher_ImportDataSeries(aPrm)
+	Dim CLab, nRows, dData, Keys, Prm, Tr, aData, EntID
+	Dim TrList, DbNo, IsDataRemove, i
+
+	Set TrList = aPrm(0)
+	DbNo = aPrm(1)
+	IsDataRemove = aPrm(2)
+
+	Set CLab = New Cipher
+	CLab.SetHLog (New htmlog)
+
+	If CLab Is Nothing Then Exit Sub
+	CLab.ShowError = True
+
+	If CLab.CheckParams(TrList.Item(1).Misc(CLab.MscNo)) Then
+		If CLab.Connect(Empty, Empty, Empty) Then
+			Set dData = CLab.ReadDBMap(DbNo, 6)
+			If Not dData Is Nothing Then
+				' чистим значение для фактического количества
+				TrList.EnumTrans GetRef("ClearFQtyOneRow"), Prm
+	
+				If IsDataRemove Then Com_ClearTrans TrList
+				' 	штрих код серии
+				'	количество
+				' отрабатываем ОУ, которые есть в документе
+				TrList.EnumTrans GetRef("InventoryCheckOneRow"), dData
+	
+				Keys = dData.Keys
+	
+				If UBound(Keys) > -1 Then
+					' остались ОУ, которых нет в документе
+					nRows = TrList.Rows
+	
+					For i = 0 To UBound(Keys)
+						aData = dData(keys(i))
+						EntID = GetEntIDBySeriesTag(aData(0))
+	
+						If EntID <> 0 Then
+							nRows = nRows + 1
+							Set Tr = TrList(nRows)
+	
+							Tr.SeriesID = aData(0)
+							Tr.FQty = aData(5)
+						End If
+					Next
+				
+				End If
+	
+			End If
+		End If
+	End If
+
+	Set CLab = Nothing
+End Sub
+
+'---
+'
+'---
+Function GetEntIDBySeriesTag(SeriesCode)
+	Dim SQL, aData
+
+	SQL = "select top 1 ent_id from series where ser_tag like '" & SeriesCode & "'"
+
+	If GetRs2(SQL, aData) Then
+		GetEntIDBySeriesTag = aData(0, 0)
+	Else
+		GetEntIDBySeriesTag = 0
+	End If
+
+End Function
+'---
+'
+'---
+Function ClearFQtyOneRow(Tr, ByRef Prm)
+	ClearFQtyOneRow = True
+	Tr.FQty = 0
+End Function
+'---
+'
+'---
+Function InventoryCheckOneRow(Tr, ByRef dData)
+	Dim aData, Key
+
+	InventoryCheckOneRow = True
+
+	Key = CStr(tr.SeriesBind.Tag)
+	If dData.Exists(Key) Then
+		'	ОУ есть в документе
+		aData = dData.Item(Key)
+		'	добавляем количество
+		Tr.FQty = aData(5)
+
+		dData.Remove Key
+	End If
+
+End Function
+'---
+'
+'---

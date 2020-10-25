@@ -1,0 +1,34 @@
+Option Explicit
+'------------------
+'
+'------------------
+Sub ActivateHelp(Mode, Command, Control, HelpFileName, FormID)
+	Dim WinAPi
+	Dim FormFileName
+	Dim aCommand
+
+	If VarType(FormID) = vbString Then
+		FormFileName = FormID
+	Else
+		FormFileName = WorkArea.ProjectItem(FormID).FileName
+	End If
+
+	If InStrRev(FormFileName, "\") > 0 Then FormFileName = Mid(FormFileName, InStrRev(FormFileName, "\") + 1)
+	If InStrRev(FormFileName, ".") > 1 Then FormFileName = Left(FormFileName, InStrRev(FormFileName, ".") - 1)
+	FormFileName = FormFileName & ".htm"
+
+	Set WinAPi = CreateLibObject("WinAPI")
+
+	Select Case Mode
+		Case 1, 2
+			FormFileName = FormFileName & "#" & Control
+		Case 3
+			FormFileName = FormFileName & "#btnPrint"
+		Case 4
+			aCommand = Array("btnSaveOperation", "btnPrint", "btnTransProps", "btnClose")
+			FormFileName = FormFileName & "#" & aCommand(Command - 1)
+	End Select
+
+	WinAPi.HTMLHelp HelpFileName, 0, FormFileName
+
+End Sub

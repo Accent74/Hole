@@ -1,0 +1,135 @@
+'	класс для записи протокола в текстовый файл
+'	файл создается по пути для расширения log или указанного
+'	если путь отсутствует, то создается во временной директории Windows
+'
+Option Explicit
+
+'Public LogFilePath
+'Public TextSeparator
+'Public ExtFile
+
+'Public Sub writelog(aMsg)
+'Public Sub writelogline(aMsg)
+'Public Function Open(lFileName, IsNew)
+'Public Sub Close
+
+Class TextLog
+
+	Public LogFilePath
+	Public TextSeparator
+	Public ExtFile
+	
+	Private RD
+	Private ErrCode
+	Private ErrDescription
+	Private LogFile
+
+	Private Sub Class_initialize
+		Set LogFile = Nothing
+		Set RD = CreateLibObject("Redirect")
+
+		ErrCode = 0
+		ErrDescription = ""
+		ExtFile = "log"
+
+		LogFilePath = GetDefaultFileName()
+
+		TextSeparator = vbTab
+	End Sub
+
+	Public Sub writelog(aMsg)
+		If LogFile Is Nothing Then Open "", False
+
+		If ErrCode = 0 Then
+			LogFile.WriteLine Formatdate2(Now(), "dd-mm-yy hh:nn") & TextSeparator & Join(aMsg, " ")
+		End If
+		
+	End Sub
+
+	Public Sub writelogline(aMsg)
+		If LogFile Is Nothing Then Open "", False
+
+		If ErrCode = 0 Then
+			LogFile.Write Formatdate2(Now(), "dd-mm-yy hh:nn") & TextSeparator & Join(aMsg, " ")
+		End If
+		
+	End Sub
+
+
+	Private Function GetDefaultFileName()
+		Dim aPath, Sys, Path
+
+		aPath = RD.GetPathArray("*." & ExtFile)
+
+		If UBound(aPath) = -1 Then
+			Path = Trim(CreateLibObject("System").TempFolder)
+		Else
+			Path = Trim(aPath(0))
+		End If
+
+		If Right(Path, 1) <> "\" Then Path = Path & "\"
+		GetDefaultFileName = Path & "logfile" & iif(ExtFile = "","",".") & ExtFile
+			
+	End Function
+
+	Public Function Open(FileName, IsNew)
+		Dim aPath
+
+		If Not LogFile Is Nothing Then 	Close
+
+		If FileName <> "" Then 
+			LogFilePath = RD.GetFullPath(FileName & iif(ExtFile = "","",".") & ExtFile)
+			If LogFilePath = "" Then
+				aPath = RD.GetPAthArray("*." & ExtFile)
+				If UBound(aPath) <> -1 Then
+					LogFilePath = Trim(aPath(0))
+					If Right(LogFilePath, 1) <> "\" Then LogFilePath = LogFilePath & "\"
+					LogFilePath = LogFilePath & FileName & iif(ExtFile = "","",".") & ExtFile
+				End If
+			End If
+		End If
+
+		Set LogFile = OpenTextFile(LogFilePath, IsNew)
+
+		If Not LogFile Is Nothing Then
+			LogFile.WriteLine String(24, "-")
+			LogFile.WriteLine Formatdate2(Now(), "dd-mm-yy hh:nn") & TextSeparator & "протокол открыт"
+			Open = True
+		Else
+			Open = False
+		End If
+
+	End Function
+
+	Private Function OpenTextFile(LogFilePath, IsNew)
+		Dim FSO
+
+		On Error Resume Next
+		Set FSO = CreateObject("Scripting.FileSystemObject")
+		
+		If Err.Number = 0 Then
+			Set OpenTextFile = FSO.OpenTextFile(LogFilePath, iif(IsNew, 2, 8), True)
+		End If
+
+		If Err.Number <> 0 Then
+			Set OpenTextFile = Nothing
+			ErrorCode = Err.Number
+			ErrorDescription = Err.Description
+			Err.Clear
+		End If
+
+	End Function
+
+	Public Sub Close
+		If Not LogFile Is Nothing Then
+			LogFile.WriteLine Formatdate2(Now(), "dd-mm-yy hh:nn") & TextSeparator & "протокол закрыт"
+			LogFile.WriteLine String(24, "-")
+			LogFile.Close
+		End If
+	End Sub
+
+	Private Sub Class_Terminate
+
+	End Sub
+
+End Class

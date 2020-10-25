@@ -1,0 +1,302 @@
+Const FORM_CUT_SUM	= "Округлять до"
+Const FUEL_DENSITY_ACC = "ГСМ"
+
+'---- Наименование переменных в Workarea.Map
+
+Const mapWACurrentOperation 		= "CurrentOperation"
+Const mapWACurrentOperationMap 	= "CurrentOperationMap"
+
+'---- Параметры базы данных
+
+Const prmDBShowWelcome 		= "Показать диалог приветствия"
+Const prmDBToExcelViaHTML 	= "Экспорт в Excel через HTML"
+Const prmDBTmlAlwaysCheck	= "Проверять целостность шаблонов"
+Const prmDBMakeTagByTml		= "Формировать признак документа по шаблону"
+Const prmDBCheckUpdates		= "Проверять обновления"
+
+Const prmDBCostItem 			= "Статья затрат"
+Const prmDBAgree 				= "Договора"
+Const prmDBCond 					= "Причины списания"
+Const prmDBOrder 				= "Приказы"
+Const prmDBMovingType 		= "Вид перевозок"
+Const prmDBBudget				= "Статьи бюджета"
+
+Const prmDbCostCenter			= "Центры затрат"
+Const prmDBDDS						= "Статьи ДДС"
+Const prmDBCalc					= "Статьи калькуляции"
+
+Const prmDBPositionList		= "Штатное расписание"
+'Const prmDBIncomeStat		= "Статьи декларации о прибыли"
+'Const prmDBObj 					= "Объекты СМР"
+Const prmDBCashPrint			= "Торговое оборудование. КР"
+Const prmDBZebraPrint			= "Торговое оборудование. Принтеры этикеток"
+Const prmDBTCD						= "Торговое оборудование. ТСД"
+Const prmDBAgRoot				= "Папка для новых корреспондентов"
+Const prmDBSize					= "Размеры"
+Const prmDBColor 				= "Цвета"
+
+Const prmDBEntRoot				= "Папка для новых объектов учета"
+Const prmDBPayType				= "Форма оплаты"
+Const prmDBPayKind				= "Способы оплаты"
+Const prmDBDelivCond			= "Условия поставки"
+Const prmDBCountries			= "Страны"
+Const prmDBDiscountCards 	= "Дисконтные карты"
+
+Const prmDBDiscountGroups 	= "Группы скидок"
+Const prmDBManagers				= "Менеджеры"
+Const prmDBTaxTypes				= "Виды налогообложения"
+Const prmDBPrnPrcTml			= "Шаблон ценников"
+Const prmDBDocsAttr				= "Признаки документа"
+Const prmDBvehicles				= "Транспортные средства"
+
+Const prmDBPaydelay				= "Отсрочка по умолчанию, дней"
+
+Const prmDBDriverMode			= "Режимы работы водителя"
+Const prmDBdeliveryPath		= "Маршруты"
+Const prmDBBrands				= "Бренды"
+Const prmDBSetBarCode			= "Автоматически создавать штрих код"
+Const prmDBRistClass 			= "Классы профессионального риска"
+Const prmDBFuelRoot				= "Папка ГСМ"
+
+Const prmDBExtRepWizard		= "Расширенные свойства Мастера отчетов"
+
+Const prmDBAddrTemplate		= "Шаблон адреса в печатных формах"
+Const prmDBCalendar				=	"Календарь рабочего времени"
+
+Const prmDBOrders				= "Заказы"
+Const prmDBNewDocDate			= "Режим даты нового документа"
+Const prmDBWStampShow			= "Показывать наличие печати у покупателя"
+
+'---- Факты базы даннных
+
+Const fctDBSocialTax			= "ЕСВ"
+Const fctDBSummerWinter		= "Транспортный учет лето / зима"
+	
+'---- Параметры корреспондентов
+
+Const prmAgDefPrice 			= "Цена по умолчанию"
+Const prmAgBossName 			= "Генеральный директор"
+Const prmAgBuhName 				= "Главный бухгалтер"
+Const prmAgCashier 				= "Кассир"
+Const prmAgAlterName 			= "Полное наименование"
+Const prmAgDeliveryAddr		= "Адрес доставки"
+
+Const prmAgTaxDepart			= "Налоговая инспекция"
+Const prmAgTaxType				= "Вид налогообложения"
+Const prmAgKindActivity		= "Виды деятельности"
+Const prmAgXLSTemplate		= "Шаблон для импорта документа"
+Const prmAgCountry				= "Страна"
+Const prmAgDiscountCard 	= "Дисконтная карта"
+
+Const prmAgDiscountGroup 	= "Группа скидок"
+Const prmAgManager				= "Менеджер"
+Const prmAgDriveLicense 	= "Водительские права" ' номер;выданы;категория;срок действия
+Const prmAgWorkerSocCode 	= "Код категории ЗЛ"
+Const prmAgWorkerSocCardNo	= "№ учетной карточки ЗЛ"
+Const prmAgWorkerGender 	= "Пол"
+
+Const prmAgPhone					= "Телефон"
+Const prmAgBased 				= "Действует на основании"
+Const prmAgEMail					= "EMail"
+'Const prmAgIsIndividual	= "Физическое лицо"
+Const prmAgPostAddr				= "Почтовый адрес"
+Const prmAgDateReg				= "Дата регистрации"
+
+Const prmAgManagment			= "Орган исполнительной власти"
+Const prmAgPictureStamp		= "Файл с изображением печати"
+Const prmAgProfDepart 		= "Профсоюз"
+Const prmAgPfDepart 			= "Пенсионный Фонд"
+Const prmAgPFRegNo				= "Регистрационный номер в ПФ"
+Const prmAgRiskClass			= "Класс профессионального риска"
+
+Const prmAgBuhPhone 			= "Телефон бухгалтера"
+Const prmAgBuhEMail 			= "E-mail бухгалтера"
+Const prmAgBossPhone			= "Телефон директора"
+Const prmAgBossEMail			= "E-mail директора"
+
+Const prmAgAgreeName			= "Должность подписанта"
+Const prmAgAgreeWordTemplate 	= "Шаблон договора"
+
+Const prmAgAddressReg			= "Адрес регистрации"
+Const prmAgAddressLife		= "Адрес проживания"
+
+'---- Факты корреспондентов
+
+Const fctAgPosition 			= "Должность"
+Const fctAgAlterName 			= "Полное наименование"
+Const fctAgSalary 				= "Оклад"
+Const fctAgAddress				= "Адреса доставки"
+Const fctAgIsIndivid			= "Физ. лицо"
+Const fctAgEcCode				= "Код основного вида деятельности"
+
+'Const fctAgJurForm				= "Организационно-правовая форма хозяйствования"
+Const fctAgTaxForm				= "Cистема налогообложения"
+Const fctAgPFK						= "Понижающий коэффициент"
+Const fctAgProfPercent		= "Профсоюз, %"
+
+Const fctAgIsNoStamp			= "Работает без печати"
+
+Const fctAgAlimony				= "Алименты, %"
+'---- Типы корреспондента
+
+Const atWorker						= 3
+
+'---- Параметры Разного
+
+Const prmMscCostAcc 			= "Счет затрат"
+'Const prmMscInherit 			= "Наследовать для дочерних"
+
+'---- Параметры шаблона
+
+Const prmTMLPriority 			= "Приоритет проведения"
+Const prmTMLCaption 			= "Шаблон заголовка"
+Const prmTMLIsInput 			= "Приходный документ"
+Const prmTMLAutonum 			= "Собственная нумерация"
+Const prmTMLSumOnly 			= "Только сумма"
+Const prmTMLLibra				= "Весы"
+Const prmTMLDefPrice 			= "Цена по умолчанию"
+Const prmTMLSchema 				= "Схема проведения"
+Const prmTMLPrintLabels		= "Принтер этикеток"
+Const prmTMLTCD 					= "ТСД"
+
+'---- Параметры проводки
+
+Const prmTrMemo					= "Примечание"
+Const prmTrMemo1					= "Примечание1"
+Const prmTrDataDocOsn			= "Дата документа-основания"
+Const prmTrSum 					= "Сумма"
+Const prmTrAddPrice 			= "Наценка"
+Const prmTrPercent 				= "Процент"
+
+Const prmTrPrice 				= "Цена"
+Const prmTrWeight 				= "Вес"
+Const prmTrCode 					= "Код"
+Const prmTrQty 					= "Количество"
+Const prmTrSign 					= "Признак"
+Const prmTrSumDown				= "Уценка"
+
+Const prmTrSumCostDown		= "Ниже себест."
+Const prmTrPriceBefore		= "До переоценки"
+Const prmTrPriceAfter			= "После переоценки"
+Const prmTrPriceCust			= "Таможенная цена"
+Const prmTrPercentCust		= "% таможенной цены"
+Const prmTrDateStart			= "Дата начала"
+Const prmTrDateEnd				= "Дата окончания"
+
+Const prmTrPackKind 			= "Вид упаковки"
+Const prmTrdensity				= "Плотность"
+
+'---- Наименование логотипа в документах по умолчанию
+
+Const LogoFileName 				= "logo.gif"
+
+'---- Наименование скана печати в документах по умолчанию
+
+Const StampFileName 			= "stamp.gif"
+
+'---- Параметры объектов учета
+
+Const prmEntAlterName 		= "Наименование для документов"
+Const prmEntWeight 				= "Вес"
+Const prmEntFoldPercent 	= "Процент наценки"
+Const prmEntCashName 			= "Наименование для ЭККА"
+Const prmEntTruncBefore 	= "Округлять цены до" ' папки, товар
+Const prmAssetVencicleType	= "Тип автотранспорта"
+
+Const prmAssetColor				= "Цвет"
+Const prmEntAccCost				= "Счет затрат"
+Const prmEntAccBuy				= "Счет покупной стоимости"
+Const prmEntManuf				= "Изготовитель"
+Const prmEntLiquidCost		= "Ликвидационная стоимость"
+Const prmEntPetrol				= "Бензин"
+
+Const prmEntGas					= "Газ"
+Const prmEntDiesel				= "Диз.топливо"
+Const prmEntFConsumption	= "Расход топлива л/з"
+Const prmEntAssetGroup		= "Группа ОС"
+Const prmEntVolume				= "Объем"
+Const prmEntWeightBrt			= "Вес брутто"
+
+Const prmEntCustomCode		= "Код ТН ВЭД"
+Const prmEntTaxGroup			= "Налоговая группа (КР)"
+Const prmGroupNo 				= "Товарная группа (КР)"
+Const prmEntPhotoRef 			= "Ссылка на фото"
+Const prmEntMscBrand 			= "Бренд"
+Const prmEntIncomeType 		= "Вид дохода для подоходного налога"
+
+Const prmEntFuelTank 			= "Место хранения ГСМ"
+Const prmEntCountry				= "Страна"
+Const prmEntLabelTemplate	= "Шаблон этикетки"
+
+Const prmEntPackKind			= "Вид упаковки"
+
+'---- Факты ОУ
+
+Const fctEntPriceLimit		= "Регулируемая цена" ' товар. используется в аптеках
+Const fctEntCustomPrc			= "Пошлина, %"
+Const fctEntDensity				= "Плотность"
+
+'---- Параметры Разного
+
+'---- Торговое оборудование. ТСД
+Const prmMscTCDNewAgRoot	= "Папка для новых корреспондентов"
+Const prmMscTCDNewEntRoot	= "Папка для новых объектов учета"
+Const prmMscTCDEntFldList	= "Папки объектов учета для загрузки"
+Const prmMscTCDAgFldList	= "Папки корреспондентов для загрузки"
+Const prmMscTCDFlags			= "Флажки"
+
+'---- Параметры элемента проекта ФОРМА
+
+Const prmFormColontitles 	= "Колонтитулы"
+Const prmFormPrintMargin 	= "Границы печати"
+Const prmFormMargin 			= "Границы колонтитулов"
+Const prmFormSettings 		= "Установки"
+Const prmPItemCaption 		= "Шаблон заголовка"
+Const prmPItemExport 			= "Шаблон для экспорта"
+Const prmPItemExportXML		= "Шаблон для экспорта в XML"
+
+Const prmPItemValidate		= "Проверять целостность данных"
+Const prmPItemCustomBMode	= "Режим быстрого поиска"
+
+'---- Параметры элемента проекта ОТЧЕТ
+
+Const prmProjItemAccID		= "Счет"
+Const prmProjItemAgID			= "Корреспондент"
+Const prmProjItemEntID		= "Объект учета (папка, группа)"
+Const prmProjItemKind			= "Назначение отчета"							'1 - шаблон ценника
+Const prmProjPrKindID			= "Вид цены"
+Const prmProjPrListID			= "Прайс лист"
+
+'---- Параметры подшивки
+
+Const prmBindDefTemplate		= "Шаблон для объединенного документа"
+Const prmBinderMergeByTrans 	= "Объединять по проводкам"
+
+'---- Параметры счетов
+
+Const prmAccAnalitics 		= "Аналитика"
+Const prmAccCurrency			= "Валюта"
+Const prmAccAmort				= "Счет износа"
+Const prmAccFirstCost			= "Счет первоначальной стоимости"
+Const prmAccAssetsMethod 	= "Метод износа"
+Const prmAccExcludeAcc		= "Исключить счета"
+
+'---- Счета для учета исходящих и входящих счет-фактур
+
+Const ACC_INVOIVE_OUT 		= "СФИ"
+Const ACC_INVOIVE_INP 		= "СФВ"
+
+'---- Константа для контекстного меню по уммолчанию
+
+Const FORM_CTXT_MENU_STD 	= "1:Печать:301|1:-:0|1:Проводки:402|1:Шаблон:401"
+Const FORM_CTXT_MENU_PRINT	= "1:В поле код отобразить:920|2:Штрих-код:921|2:Артикул:922|2:Каталожный №:923|2:Серийный №:924|1:-:0|" 
+Const FORM_CTXT_MENU_SGRID	= "1:Видимость столбцов таблицы:900|2:Штрих-код:902|2:Артикул:903|2:Каталожный №:904|2:Серийный №:905|1:-:0|"
+
+'---- Константы, которые не вошли в ОУ
+Const acCurrency 				= 16
+
+'---- Перечисления
+Const enmIncomeType 			= "Виды дохода для подоходного налога"
+
+'---- константы тегов 
+Const TAG_CUSTS_DLVR = "CUSTS_COST_DLVR"

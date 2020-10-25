@@ -1,0 +1,174 @@
+Option Explicit
+
+Sub Com_ClearTrans(TrList)
+	Dim i
+
+	TrList.Rows = 1
+
+	With TrList.Item(1)
+		.EntID = 0
+		.Qty = 0
+		.Sum = 0
+
+		With .Params
+			For i = 1 To .Count
+				.Item(i).SetNull
+			Next
+		End With
+
+	End With
+End Sub
+
+Sub Com_RoundSum(Tr)
+	Dim Qty
+
+	Qty = Tr.Qty
+	Tr.Sum = Round2(Tr.Sum, 2)
+	Tr.Qty = Qty
+
+End Sub
+'----
+'
+'----
+Function com_TruncSum(sum, TruncSum)
+	Dim rest
+
+	If TruncSum = 0 Then
+		com_TruncSum = Round2(sum, 2)
+	Else
+		rest = round2(sum * 10 - Int(Sum * 10), 1) / 10
+
+		If rest > TruncSum Then
+			com_TruncSum = Round2(Sum, 1)
+		ElseIf rest < TruncSum And rest <> 0 Then
+			com_TruncSum = Sum - Rest + TruncSum
+		Else
+			com_TruncSum = Sum
+		End If
+	End If
+End Function
+'----
+'
+'----
+Function com_Cur_RecalcSum(Tr, OnDate)
+	Dim TrCurs, Rate, Qty
+
+	Set TrCurs = Tr.TransCurs(1)
+
+	If TrCurs.CurID = 1 Then
+		Rate = 1
+	Else
+		With TrCurs.Cur
+			Rate = .GetRate(, OnDate) / .Denom
+		End With
+	End If
+
+	Qty = Tr.Qty
+	Tr.Price = TrCurs.Price / Rate
+	Tr.Sum = Round2(TrCurs.Sum / Rate, 2)
+	Tr.Qty = Qty
+
+End Function
+'----
+'
+'----
+Function Com_FindEntCode(Tr, Code, IsNew)
+	Dim Rs, aData, SQL
+
+	SQL = "select ent_id, ser_id from series where ser_code='" & Code & "'"
+
+	If GetRs2(SQL, aData) Then
+		Tr.EntID = aData(0, 0)
+		Tr.SeriesID = aData(1, 0)
+		Com_FindEntCode = True
+	Else
+		SQL = "select ent_id from entities where ent_bar='" & Code & "'"
+
+		If GetRs2(SQL, aData) Then
+			Tr.EntID = aData(0, 0)
+			Tr.SeriesID = 0
+			Com_FindEntCode = True
+		ElseIf Not IsNew Then
+			Tr.EntID = 0
+			Tr.SeriesID = 0
+			Com_FindEntCode = False
+		End If
+	End If
+
+End Function
+'----
+'
+'----
+Sub com_CalcEntRestSeries(AccID, AgID, EntID, SerID, DocID, OnDate, ByRef Qty, ByRef Sum)
+	Dim aPrm, aData, SQL
+
+	aPrm = Array(AgID, AccID, EntID, SerID, DocID, OnDate, Workarea.MyCompany.ID)
+	SQL = "PARAMETERS AgID Long, AccID Long, EntID long, SerID long, DocID Long, OnDate DateTime, MC Long;" & _
+				"Select 	Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum] " & _
+				"FROM series INNER Join JOURNAL On series.ser_id = JOURNAL.ser_id " & _
+				"WHERE ((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID]) Or (JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) And JOURNAL.[MC_Id]=[MC] "  & _
+				"And j_ent = [EntID] And j_date <= [OnDate] And j_done = 2 And JOURNAL.ser_id = [serid]"
+
+	If Query(SQL, aPrm, aData) Then
+		Qty = checknull(aData(0, 0), 0)
+		Sum = checknull(aData(1, 0), 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Sub com_CalcEntRest(AccID, AgID, EntID, DocID, OnDate, ByRef Qty, ByRef Sum)
+	Dim aPrm, aData, SQL
+
+	aPrm = Array(AgID, AccID, EntID, DocID, OnDate, Workarea.MyCompany.ID)
+	SQL = "PARAMETERS AgID Long, AccID Long, EntID long, DocID Long, OnDate DateTime, MC Long;" & _
+				"Select Sum(J_QTY*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS Qty, " & _
+				"Sum(J_SUM*(IIf(ACC_DB=[AccID] And J_AG1=[AgID],1,0)-IIf(ACC_CR=[AccID] And J_AG2=[AgID],1,0))) AS [Sum] " & _
+				"FROM JOURNAL " & _
+				"WHERE ((JOURNAL.ACC_DB=[AccID] And JOURNAL.J_AG1=[AgID]) Or (JOURNAL.ACC_CR=[AccID] And JOURNAL.J_AG2=[AgID])) And JOURNAL.[MC_Id]=[MC] "  & _
+				"And j_ent = [EntID] And j_date <= [OnDate] And j_done = 2"
+
+	If Query(SQL, aPrm, aData) Then
+		Qty = checknull(aData(0, 0), 0)
+		Sum = checknull(aData(1, 0), 0)
+	Else
+		Qty = 0
+		Sum = 0
+	End If
+
+End Sub
+'----
+'
+'----
+Function Com_GetParamValue(Elem, prmName, DefValue)
+	
+	Com_GetParamValue = DefValue
+
+	If Not Elem Is Nothing Then
+		With Elem.Params
+			If .Exists(prmName) Then
+				Com_GetParamValue = .Item(prmName).Value2
+			End If
+		End With
+	End If
+End Function
+'----
+'
+'----
+Function com_GetCurRate(CurrCode, OnDate)
+	Dim CurID, CurRate, Cur
+
+	CurID = workarea.Curs.Find(CurrCode)
+	Set Cur = workarea.Cur(CurID)
+
+	com_GetCurRate = Cur.GetRate(, Ondate) / Cur.denom
+End Function
+
+'----
+'
+'----

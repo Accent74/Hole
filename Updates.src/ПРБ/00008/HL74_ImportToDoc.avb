@@ -1,0 +1,383 @@
+'#include "HL74_XML.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_common.avb"
+'#include "HL74_const.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Импорт из файла"
+
+'---
+'
+'---
+Function GetNodeValue(xmlNodes, NodeName, wb, ErrorMsg)
+	Dim node, Col, Row, Expr, i
+
+	GetNodeValue = ""
+
+	For i = 0 To xmlNodes.Length - 1	
+		With xmlNodes.Item(i)
+			If .NodeName = NodeName Then
+				Col = .GetAttribute("col")
+				Row = .GetAttribute("row")
+				Expr = .GetAttribute("expr")
+
+				If IsNumeric(Col) And IsNumeric(row) Then
+					GetNodeValue = ex_GetValue(wb, CLng(row), CLng(col), Expr, 0, ErrorMsg)
+					If ErrorMsg <> "" Then Exit Function
+				End If
+
+				Exit For
+			End If
+		End With
+	Next
+	
+End Function
+'---
+'
+'---
+Function ex_GetValue(wb, row, col, Expr, TypeVal, ErrorMsg)
+	Dim CellVal, RetValue, EvalValue
+
+	Select Case TypeVal
+		Case vbCurrency
+			RetValue = 0
+		Case vbDate 
+			RetValue = Date
+		Case Else
+			RetValue = ""
+	End Select
+
+	If IsNumeric(row) And IsNumeric(col) Then
+		CellVal = wb.Sheets(1).Cells(CLng(Row), CLng(Col)).Value
+	
+		On Error Resume Next
+		If Expr <> "" Then 
+			EvalValue = Eval(Expr)
+		
+			If Err.Number <> 0 Then
+				ErrorMsg = Err.Description & "(" & Err.Number & ")" & vbNewLine & Expr
+			Else
+				RetValue = EvalValue
+			End If
+		Else
+			Select Case TypeVal
+				Case vbDate
+					RetValue = CDate(iif(IsDate(CellVal), CellVal, 0))
+				Case vbCurrency
+					RetValue = Str2Dbl(iif(IsNumeric(CellVal), CellVal, 0))
+				Case Else
+					RetValue = CellVal
+			End Select
+		End If
+	End If
+
+	ex_GetValue = RetValue
+End Function
+'---
+'
+'---
+Function com_GetAgByProps(AgXML, wb, AgRoot, ErrorMsg)
+	Dim aData, SQL, AgCode, AgNew, AgName, AgAcc, AgBankCode, AgBankName
+	Dim AgNewAcc, Bank
+
+	com_GetAgByProps = 0
+	AgCode = GetNodeValue(AgXML, "code", wb, ErrorMsg)
+	AgName = GetNodeValue(AgXML, "name", wb, ErrorMsg)
+
+	AgName = Replace(AgName, "'", "`")
+	AgName = Replace(AgName, Chr(34), "`")
+
+	SQL = "select ag_id from agents where ag_code like '" & AgCode & "'"
+	
+	If GetRS2(SQL, aData) Then
+		com_GetAgByProps = aData(0, 0)
+	Else
+		SQL = "select ag_id from agents where ag_name like '" & AgName & "'"
+		If GetRS2(SQL, aData) Then
+			com_GetAgByProps = aData(0, 0)
+		ElseIf AgName <> "" Then
+			Set AgNew = AgRoot.Create(1, AgName)
+			If Not AgNew Is Nothing Then
+				com_GetAgByProps = AgNew.ID
+				AgNew.Code = AgCode
+				AgNew.Address = GetNodeValue(AgXML, "address", wb, ErrorMsg)
+
+				AgAcc = GetNodeValue(AgXML, "bankacc", wb, ErrorMsg)
+
+				If AgAcc <> "" Then
+					AgBankCode = GetNodeValue(AgXML, "bankcode", wb, ErrorMsg)
+					If AgBankCode <> "" Then
+						Set Bank = Workarea.Banks.ItemCode(AgBankCode)
+
+						If Bank Is Nothing Then
+							AgBankName = GetNodeValue(AgXML, "bankname", wb, ErrorMsg)
+							AgBankName = iif(AgBankName = "", "< Добавлен системой импорта >", AgBankName)
+							Set Bank = Workarea.Banks.Create(AgBankCode, AgBankName)
+
+							If Bank Is Nothing Then 
+								ErrorMsg = "Ошибка добавления банка: " & AgBankCode
+							End If
+						End If
+
+						If Not Bank Is Nothing Then
+							Set AgNewAcc = Ag.BankAccounts.Create(AgAcc, Bank.ID, "добавлен системой импорта")
+
+							If AgNewAcc Is Nothing Then
+								ErrorMsg = "Ошибка добавления р/с: " & AgAcc
+							End If
+						End If
+					End If
+				End If
+
+				AgNew.Save
+			Else
+				ErrorMsg = "Ошибка добавления корреспондента: " & AgName
+			End If
+		End If
+	End If
+End Function
+'---
+'
+'---
+Sub HL74_ImportToDoc(prm)
+	Dim oXML, xApp, ErrorMsg, wb
+	Dim OP, xmlTemplate, xlsFile
+
+	Set OP = prm(0)
+	xmlTemplate = prm(1)
+	xlsFile = prm(2)
+	
+	Set oXml = New XML
+
+	If Not oXml.Create() Then
+		MsgBox "Ошибка создания XML объекта" & vbNewLine & oXML.ErrorMsg, vbCritical, MSG_BOX_CAPTION	
+	Else
+		oXml.FileName = xmlTemplate
+
+		If Not oXml.Load() Then
+			MsgBox "Ошибка открытия файла шаблона импорта" & vbNewLine & oXML.ErrorMsg, vbCritical, MSG_BOX_CAPTION				
+		Else
+
+			If Not CreateExcelApp(xApp, ErrorMsg) Then
+				MsgBox "Не удалось открыть Excel" & vbNewLine & ErrorMsg, vbCritical, MSG_BOX_CAPTION	
+			Else
+				Set wb = xApp.WorkBooks.Open(xlsFile)
+
+				If Not DoImportFromExcel(wb, oXml.xml, Op, ErrorMsg) Then
+					MsgBox "В процессе импорта произошли ошибки" & vbNewLine & ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+				Else
+					MsgBox "Импорт окончен" & vbNewLine & ErrorMsg, vbInformation, MSG_BOX_CAPTION
+				End If
+
+				wb.close
+				Set wb = Nothing
+				xApp.Quit
+				Set xApp = Nothing
+			End If
+
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Sub SetElementRoot(ByRef AgRoot, ByRef EntRoot)
+	If com_getparamvalue(Workarea, prmDBAgRoot, 0) <> 0 Then
+		Set EntRoot = Workarea.Entity(Workarea.Params(prmDBEntRoot).Value2).Children
+	Else
+		Set EntRoot = Workarea.Entities
+	End If
+
+	If com_getparamvalue(Workarea, prmDBEntRoot, 0) <> 0 Then
+		Set AgRoot = Workarea.Agent(Workarea.Params(prmDBAgRoot).Value2).Children
+	Else
+		Set AgRoot = Workarea.Agents
+	End If
+End Sub
+'---
+'
+'---
+Function DoImportFromExcel(wb, xml, Op, ByRef ErrorMsg)
+	Dim i, Col, Row, Expr, AgFromID, AgToID, AgreeID, AgreeMscNo
+	Dim EntFindField, AddWhile, AgRoot, EntRoot
+
+	DoImportFromExcel = False
+	AgFromID = 0
+	AgToID = 0
+	AgreeID = 0
+
+	SetElementRoot AgRoot, EntRoot
+
+	With xml.ChildNodes.Item(1).ChildNodes
+		For i = 0 To .Length - 1
+			With .Item(i)
+
+				Col = .GetAttribute("col")
+				Row = .GetAttribute("row")
+				Expr = .GetAttribute("expr")
+
+				Select Case .NodeName	
+					Case "doc_date"	
+						Op.Date = ex_GetValue(wb, row, col, Expr, vbDate, ErrorMsg)
+
+					Case "doc_no"
+						Op.DocNo = ex_GetValue(wb, row, col, Expr, vbString, ErrorMsg)
+
+					Case "doc_memo"
+						Op.Memo = ex_GetValue(wb, row, col, Expr, vbString, ErrorMsg)
+
+					Case "doc_sum" 
+						Op.Sum = ex_GetValue(wb, row, col, Expr, vbCurrency, ErrorMsg)
+
+					Case "agent"
+						If .GetAttribute("kind") = "from" Then
+							AgFromID = com_GetAgByProps(.ChildNodes, wb, AgRoot, ErrorMsg)
+						Else
+							AgToID = com_GetAgByProps(.ChildNodes, wb, AgRoot, ErrorMsg)
+						End If
+
+					Case "agree"
+						' договор
+
+					Case "rows"
+						EntFindField = .GetAttribute("findfield")
+						AddWhile = .GetAttribute("while")
+
+						AddTransRows .childnodes, Op, Row, Col, EntFindField, AddWhile, wb, EntRoot, ErrorMsg
+						Op.TransList(1).SetAgFrom AgFromID
+						Op.TransList(1).SetAgTo AgToID
+				End Select
+			End With
+
+			If ErrorMsg <> "" Then Exit For
+		Next
+	End With
+
+	DoImportFromExcel = (ErrorMsg = "")
+	
+End Function
+'---
+'
+'---
+Sub AddTransRows(xmlEnts, Op, Row, ColNo, EntFindField, AddWhile, wb, EntRoot, ErrorMsg)
+	Dim CheckValue, RowNo, i, Expr, Col, Tr
+	Dim dFields, EntID, UnitID
+
+	RowNo = 0
+	Set dFields = CreateLibObject("Map")
+
+	Do While True
+		RowNo = RowNo + 1
+		CheckValue = ex_GetValue(wb, CLng(Row) + RowNo, ColNo, Expr, vbString, ErrorMsg)
+		If CheckValue = AddWhile Then Exit Do
+
+		Set Tr = Op.Trans(1, RowNo)
+		dFields.RemoveAll
+
+		For i = 0 To xmlEnts.Length - 1
+			With xmlEnts.Item(i)
+				Col = .GetAttribute("col")
+				Expr = .GetAttribute("expr") 
+				dFields(.nodename) = ex_GetValue(wb, CLng(Row) + RowNo, col, Expr, 0, ErrorMsg)
+
+				If ErrorMsg <> "" Then Exit Sub
+			End With
+		Next 
+
+		EntID = GetEntID(EntFindField, dFields, EntRoot, ErrorMsg)
+		UnitID = GetUnitID(dFields("unit"), ErrorMsg)
+
+		Tr.EntID = EntID
+		Tr.UnitID = UnitID
+
+		Tr.Qty = str2dbl(dFields("qty"))
+		Tr.FQty = str2dbl(dFields("fqty"))
+		Tr.Sum = str2dbl(dFields("sum"))
+		Tr.Price = str2dbl(dFields("price"))
+
+	Loop
+
+End Sub
+'---
+'
+'---
+Function GetUnitID(UnitShort, ErrorMsg)
+	Dim SQL, aData, NewUnit
+
+	GetUnitID = 0
+
+	If IsEmpty(UnitShort) Then Exit Function
+
+	SQL = "select un_id from units where un_short = '" & UnitShort & "'"
+
+	If GetRs2(SQL, aData) Then
+		GetUnitID = aData(0, 0)
+	Else
+		Set NewUnit = Workarea.Units.Create(UnitShort)
+		If Not NewUnit Is Nothing Then
+			GetUnitID = NewUnit.ID
+		Else
+			ErrorMsg = "Ошибка добавления единицы измерения: " & UnitShort
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetEntID(EntFildField, dFields, EntRoot, ErrorMsg)
+	Dim SQL, aData, NewEnt, EntName
+
+	GetEntID = 0
+	SQL = "select ent_id from entities where ent_" & EntFildField & " like '" & dFields(EntFildField) & "'"
+	
+	If GetRs2(SQL, aData) Then
+		GetEntID = aData(0, 0)
+	Else
+		EntName = Replace(dFields("name"), "'", "`")
+		EntName = Replace(EntName, "%", "#")
+		EntName = Replace(EntName, Chr(34), "`")
+
+		SQL = "select ent_id from entities where ent_name like '" & EntName & "'"
+
+		If GetRs2(SQL, aData) Then
+			GetEntID = aData(0, 0)
+		Else
+			Set NewEnt = EntRoot.Create(1004, EntName)
+			If Not NewEnt Is Nothing Then
+				GetEntID = NewEnt.ID
+				NewEnt.Art = dFields("art")
+				NewEnt.nom = dFields("nom")
+				NewEnt.bar = dFields("bar")
+				NewEnt.cat = dFields("cat")
+				NewEnt.tag = dFields("tag")
+				NewEnt.Save
+			Else
+				ErrorMsg = "Ошибка создания объекта учета: " & EntName
+			End If
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function CreateExcelApp(ByRef xApp, ByRef ErrorMsg)
+	On Error Resume Next
+
+	Set xApp = CreateObject("Excel.Application")
+	If Err.Number = 0 Then
+		ErrorMsg = ""
+		'xApp.Visible = True
+	Else
+		ErrorMsg = Err.Description & "( " & Err.Number & " )"
+	End If
+
+	CreateExcelApp = (Err.Number = 0)
+	Err.Clear
+
+End Function
+'---
+'
+'---

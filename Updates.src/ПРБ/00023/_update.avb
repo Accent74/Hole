@@ -1,0 +1,239 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	023
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+'#include "hl74_AssistantLog.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "023"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+	
+	updateparams workarea.ProjectItems(1).Item(1).params, "Проверять целостность данных", "frm"
+	updateparams workarea.params, "Расширенные свойства Мастера отчетов", "db"
+	updateparams findtemplateparam(workarea.templates), "Собственная нумерация", "tml"
+
+	If Not updater.fail Then MiscPath(updater)
+	If Not updater.fail Then SetDiscountTag updater
+	If Not updater.fail Then UpdateTTN updater
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'---
+'
+'---
+Sub MiscPath(updater)
+	Dim i, dMiscs, oLog, count
+	
+		count = 0
+		Set oLog = New HTMLog
+	
+		If oLog.Open("Обработка операций ...", "") Then
+			oLog.writetext LOG_MSG_INFORMATION, "Загрузка разного ..."
+			LoadMiscs dMiscs, oLog
+			CheckFolder Workarea.Folders, dMiscs, oLog
+			oLog.writetext LOG_MSG_INFORMATION, "Исправлено: " & Count
+			oLog.Close
+		End If
+End Sub
+'---
+'
+'---
+Sub LoadMiscs(dMiscs, oLog)
+	Dim i
+
+	Set dMiscs = CreateLibObject("Map")
+	
+	With workarea.miscs
+		For i = 1 To .count
+			With .Item(i)
+				dMiscs(.MscNo) = .ID
+				oLog.writetext LOG_MSG_INFORMATION, .Name
+			End With
+		Next
+	End With
+End Sub
+'---
+'
+'---
+Sub CheckFolder(FolderRoot, dMiscs, oLog)
+	Dim i, Fld, Op, Mtr, j
+
+	For i = 1 To FolderRoot.Count
+		With FolderRoot.Item(i)
+			If .HasChildren Then CheckFolder .Children, dMiscs, oLog
+
+			oLog.writetext LOG_MSG_INFORMATION, "Папка:" & .Name
+			Set Mtr = Meter
+		
+			With Workarea.Operations(acFolder, .ID)
+				Mtr.Open "Обработка операций...", 1, .Count
+		
+				For j = 1 To .Count
+					Mtr.Pos = j
+					Set Op = .Item(j)
+		
+					If Op.TransCount > 1 Then
+						Op.TransList(1).EnumTrans GetRef("CheckTrans"), dMiscs
+						If Op.Modified Then 
+							count = count + 1
+							Op.Save 8 + 16
+						End If
+					End If
+				Next
+		
+				Mtr.Close
+			End With
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Function CheckTrans(Tr, ByRef dMiscs)
+	Dim i, j, keys, Op
+
+	CheckTrans = True
+	keys = dMiscs.Keys
+	Set Op = Tr.Operation
+
+	For i = 0 To UBound(keys)
+		If Tr.MiscID(keys(i)) = 0 Then
+			For j = 2 To Op.TransCount
+				Op.TransList(j).SetMisc keys(i), 0
+			Next
+		End If
+	Next
+	
+End Function		
+'---
+'
+'---
+Sub UpdateTTN(updater)
+	Dim AccID, Op, i, Mtr
+
+	If com_IsPeriodReadyToChange() Then
+		AccID = Workarea.GetAccID("ТТН")
+	
+		If AccID <> 0 Then
+			With Workarea.Operations(acAccount, AccID)
+				Set Mtr = Meter
+				Mtr.Open "Обработка", 1, .Count
+	
+				For i = 1 To .Count
+					Mtr.Pos = i
+					Set Op = .Item(i)
+	
+					With Op.TransList(1)
+						.SetAgFrom .Item(1).AgFromID
+						.SetAgTo .Item(1).AgToID
+					End With
+	
+					If Op.Modified Then Op.Save 8 + 16
+				Next
+	
+				Mtr.Close
+			End With
+		End If
+	Else
+		updater.fail = True
+		writelog Array(String(10, "-"), "Период, разрешенный для ввода, меньше, чем рабочий период." & _
+					"Уменьшите период просмотра документов или расширьте рабочий период," & _
+					"разрешенный для изменений"), updater
+	End If
+
+End Sub
+'---
+'
+'---
+Sub SetDiscountTag(updater)
+	Dim SQL, MscID, ErrorMsg, Msc
+
+	MscID = com_getparamvalue(workarea, prmDBDiscountCards, 0)
+
+	If MscID <> 0 Then
+		SQL = "update misc set msc_tag = 'DSC' where msc_id=" & MscID
+
+		If ExecQuery(SQL, ErrorMsg) = 0 Then	
+
+			Set Msc = Workarea.Misc(MscID)
+			SQL  = "update misc_attr set MSC_VISIBLE = 1735, " & _
+						"MS1_NAME = 'Код', MS2_NAME = 'ФИО', MS3_NAME = 'Телефон', MC1_NAME = 'Баллы', MC2_NAME = '% скидки', " & _
+						"MD1_NAME = 'Дата выдачи', MD2_NAME = 'Дата закрытия' " & _
+						"where msc_no = " & Msc.MscNo
+
+			If ExecQuery(SQL, ErrorMsg) <> 0 Then	
+			End If
+		Else
+			updater.fail = True
+			writelog Array(String(10, "-"), "Ошибка обновелния свойств дисконтных карт.",  ErrorMsg), updater
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Sub updateparams(prms, prmName, prefix)
+	Dim prm, En, SQL, msgError
+
+	If prms.exists(prmName) Then
+		Set prm = prms.item(prmName)
+
+		If prm.RefKind = 18 Then
+			If workarea.enum(prm.RefID) Is Nothing Then
+				Set En = Workarea.Enum("Логика")
+				SQL = "update " & prefix & "_param_names Set prm_refid=" & En.ID & " where prm_id=" & prm.id
+				ExecQuery SQL, msgError
+			End If
+		End If
+	End If
+End Sub
+'---
+'
+'---
+Function findtemplateparam(Root)
+	Dim i
+
+	Set findtemplateparam = Nothing
+
+	For i = 1 To Root.count
+		With Root.item(i)
+			If .type = 1 Then
+				Set findtemplateparam = .params
+				Exit Function
+			Else
+				Set findtemplateparam = findtemplateparam(.Children)
+			End If
+		End With
+	Next
+
+End Function
+'---
+'
+'---

@@ -1,0 +1,403 @@
+Option Explicit
+
+Const EVENTS_FILE_NAME = "HL74_workarea.xml"
+Const ATM_FILE_NAME = "HL74_AllTaskMenu.xml"
+Const CONST_FILE_NAME = "HL74_Const.xml"
+
+'--------------
+'
+'--------------
+Sub Workarea_OnProperties(Kind, KindID, ByRef Lock)
+	RunEvents "OnProperties", Kind, KindID, Lock
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_AfterCreate(Kind, KindID)
+	RunEvents "AfterCreate", Kind, KindID, Empty
+End Sub
+'--------------
+'
+'--------------
+Sub Workarea_OnAllTasksMenu(Kind, KindID, ByRef MenuString)
+	Dim aKey, ATMDict, aData, i, Keys, dCommand
+	Dim Elems, KindName, key, Elem
+
+	Elems = Array("Folder", "Account", "Agent", "Entity", "Misc", "Binder", "Template")
+
+	If KindID = 0 Then
+		aKey = Array(Kind, "root", 0)
+		KindName = ""
+	Else
+		KindName = "workarea." & Elems(Kind - 1) & "(" & KindID & ")"
+		Set Elem = Eval(KindName)
+		aKey = Array(Kind, Elem.Type, iif(workarea.map("ATM:ident") = "guid", Elem.guid, Elem.ID))
+	End If
+
+	Workarea.Map("ATM_Kind") = KindName
+	Workarea.Map("ATM_Key") = Join(aKey, ":")
+	Set ATMDict = Workarea.Map("WorkareaATM")
+
+	Key = ""
+
+	For i = 0 To 2
+		If Key <> "" Then Key = Key & ":"
+		Key = Key & aKey(i)
+	
+		If ATMDict.exists(Key) Then
+			If MenuString <> "" Then 
+				If Right(MenuString, 1) <> "|" Then MenuString = MenuString & "|"
+				MenuString = MenuString & "1:-:1"
+			End If
+
+			ATMCommand ATMDict(Key), MenuString
+		End If
+	Next
+
+End Sub
+'--------------
+'
+'--------------
+Sub ATMCommand(dCommand, ByRef MenuString)
+	Dim Keys, i, aData, IsEnabled
+
+	Keys = dCommand.Keys
+
+	For i = 0 To UBound(Keys)
+		If MenuString <> "" Then MenuString = MenuString & "|"
+		aData = dCommand(Keys(i))
+
+		If aData(3) <> "" Then 
+			App.RunModule aData(1), aData(3)
+			IsEnabled = Workarea.Map("IsEnabled")
+			Workarea.Map.Remove("IsEnabled")
+		Else
+			IsEnabled = True
+		End If
+
+		If IsEnabled Then
+			MenuString = MenuString & aData(0)
+		End If
+	Next
+
+End Sub
+'--------------
+'
+'--------------
+Sub Workarea_OnPopup(Command)
+	Dim ATMDict, aData, akeys, key, i
+	Dim dCommand
+
+	Set ATMDict = Workarea.Map("WorkareaATM")
+	key = Workarea.Map("ATM_Key")
+
+	aKeys = Split(key, ":")
+	key = ""
+
+	For i = 0 To UBound(aKeys)
+		If key <> "" Then Key = Key & ":"
+		Key = Key & aKeys(i)
+		If ATMDict.Exists(key) Then
+			Set dCommand = ATMDict.Item(key)
+			If dCommand.Exists(Command) Then
+				aData = dCommand.Item(Command)
+				App.RunModule aData(1), aData(2)
+				Exit Sub
+			End If
+		End If
+	Next
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_OnLoad
+	LoadWorkarea
+	LoadConst
+	LoadATM
+
+	RunEvents "OnLoad", Empty, Empty, Empty
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_OnReportStart(Kind, KindID, RepKind, RepID, ByRef Lock)
+
+	With workarea
+		.Map("RepKind") = RepKind
+		.Map("RepID") = RepID
+	End With
+
+	RunEvents "OnReportStart", Kind, KindID, Lock
+
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_OnTemplateScriptChanged(ID)
+	workarea.map("KindID") = ID
+	RunEvents "OnTemplateScriptChanged", Empty, Empty, Empty
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_CanToTrash(ID, ByRef Lock)
+	workarea.map("KindID") = ID
+	RunEvents "CanToTrash", Empty, Empty, Lock
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_OnSiteChanged(Kind, KindID)
+	RunEvents "OnSiteChanged", Kind, KindID, Empty
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_CanDelete(Kind, KindID, ByRef Lock)
+	RunEvents "CanDelete", Kind, KindID, Lock
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_BeforeClose
+	RunEvents "BeforeClose", Empty, Empty, Empty
+End Sub
+
+'--------------
+'
+'--------------
+Sub Workarea_OnChanged(Kind, KindID)
+	RunEvents "OnChanged", Kind, KindID, Empty
+End Sub
+'--------------
+'
+'--------------
+Sub Workarea_OnShowWebTab(Kind, KindID, ByRef URL)
+	workarea.map("WebTabURL") = ""
+	RunEvents "OnShowWebTab", Kind, KindID, URL
+	URL = workarea.map("WebTabURL")
+End Sub
+'--------------
+'
+'--------------
+Sub Workarea_OnTimer
+	RunEvents "OnTimer", Empty, Empty, Empty
+End Sub
+
+'--------------
+'
+'--------------
+Sub LoadWorkarea
+	Dim xml, i, ident
+	Dim RD, DictEvents
+
+	If Workarea.Map.Exists("WorkareaEvents") Then Workarea.Map.Remove("WorkareaEvents")
+
+	Set DictEvents = CreateObject("Scripting.Dictionary")
+	Set xml = CreateObject("msxml2.domdocument")
+
+	If IsFileExists(EVENTS_FILE_NAME) Then
+		Set RD = CreateLibObject("Redirect")
+
+		xml.load(RD.GetFullPath(EVENTS_FILE_NAME))
+		ident = xml.ChildNodes.Item(0).GetAttribute("ident")
+		workarea.map("WA:ident") = checknull(ident, "")
+
+		With xml.ChildNodes.Item(0).ChildNodes
+			For i = 0 To .Length - 1
+				DictEvents.Add .Item(i).NodeName, GetEvents(.Item(i))
+			Next
+		End With
+
+	End If
+
+	Set Workarea.Map.Item("WorkareaEvents") = DictEvents
+
+End Sub
+'--------------
+'
+'--------------
+Sub LoadATM
+	Dim xml, i, Key, ident
+	Dim RD, ATMEvents, aData
+	Dim Code, dCommand
+
+	If Workarea.Map.Exists("WorkareaATM") Then Workarea.Map.Remove("WorkareaATM")
+
+	Set xml = CreateObject("msxml2.domdocument")
+	Set ATMEvents = CreateObject("Scripting.Dictionary")
+
+	If IsFileExists(ATM_FILE_NAME) Then
+		Set RD = CreateLibObject("Redirect")
+
+		xml.load(RD.GetFullPath(ATM_FILE_NAME))
+		Code = 100
+
+		ident = xml.ChildNodes.Item(0).GetAttribute("ident")
+		workarea.map("ATM:ident") = checknull(ident, "")
+
+		With xml.ChildNodes.Item(0).ChildNodes
+			For i = 0 To .Length - 1
+				With .Item(i)
+					Key = .GetAttribute("kind") & iif(checknull(.GetAttribute("type"), "") <> "", ":" & .GetAttribute("type"), "") _
+							 & iif(checknull(.GetAttribute("id"), "") <> "", ":" & .GetAttribute("id"), "")
+
+					If Not ATMEvents.Exists(Key) Then
+						ATMEvents.Add Key, CreateObject("Scripting.Dictionary")
+					End If
+
+					Set dCommand = ATMEvents.Item(Key)
+
+					Code = Code + 1
+					aData = Array(.GetAttribute("menulevel") & ":" & .GetAttribute("name") & ":" & Code, .GetAttribute("module"), .GetAttribute("proc"), .GetAttribute("check"))
+					dCommand.Add Code, aData
+					Set ATMEvents.Item(Key) = dCommand
+				End With
+			Next
+		End With
+
+	End If
+
+	Set Workarea.Map.Item("WorkareaATM") = ATMEvents
+
+End Sub
+'--------------
+'
+'--------------
+Function GetEvents(xmlEventItems)
+	Dim i, dItems
+	Dim ModuleName, ProcName
+	Dim evKind, evType, evID, evMscNo
+
+	Set dItems = CreateObject("Scripting.Dictionary")
+
+	With xmlEventItems.ChildNodes
+		For i = 0 To .Length - 1
+			With .Item(i)
+				If Not .Attributes Is Nothing Then
+					ModuleName = .GetAttribute("module")
+					ProcName = .GetAttribute("proc")
+					evKind = CLng(checknull(.GetAttribute("kind"), 0))
+					evType = CLng(checknull(.GetAttribute("type"), 0))
+					evID = CLng(checknull(.GetAttribute("id"), 0))
+					evMscNo = CLng(checknull(.GetAttribute("mscno"), 0))
+
+					If Not (IsNull(ModuleName) Or IsNull(ProcName)) Then
+						dItems.Add dItems.Count + 1, Array(ModuleName, ProcName, evKind, evType, evID, evMscNo)
+					End If
+				End If
+			End With
+		Next
+	End With
+
+	Set GetEvents = dItems
+
+End Function
+'--------------
+'
+'--------------
+Sub RunEvents(evName, Kind, KindID, ByRef Result)
+	Dim i, dEvents, cmdStr
+	Dim aEvent, Elem, Elems
+
+	Elems = Array("Folder", "Account", "Agent", "Entity", "Misc", "Binder", "Template")
+
+	With Workarea.Map.Item("WorkareaEvents")
+	 	If .Exists(evName) Then
+			Set dEvents = .Item(evName)
+
+			With Workarea.Map
+				If Not IsEmpty(Kind) Then .Item("Kind") = Kind
+
+				If Not IsEmpty(KindID) Then 
+					If Workarea.Map("ident") = "guid" Then
+						.Item("KindID") = Eval("workarea." & Elems(Kind - 1) & "(" & KindID & ").guid")
+					Else
+						.Item("KindID") = KindID
+					End If
+				End If
+
+				If Not IsEmpty(Result) Then .Item("Result") = Result
+			End With
+
+			For i = 1 To dEvents.Count
+				aEvent = dEvents.Item(i)
+				If checkEventprops(aEvent, Kind, KindID) Then
+					App.RunModule aEvent(0), aEvent(1)
+					If Not IsEmpty(Result) Then Result = Workarea.Map.Item("Result")
+					If Result Then Exit Sub
+				End If
+			Next
+
+		End If
+	End With
+End Sub
+'---
+'
+'---
+Function checkEventprops(aEvent, Kind, KindID)
+
+	checkEventprops = False
+
+	If IsFileExists(aEvent(0)) Then
+		If Kind = acMisc And aEvent(5) <> 0 And KindID <> 0 Then
+			If aEvent(5) <> Workarea.Misc(KindID).MscNo Then Exit Function
+		End If
+
+		If aEvent(4) <> 0 And aEvent(4) <> KindID Then Exit Function
+
+		If aEvent(3) <> 0 Then
+			If Not workarea.site Is Nothing Then
+				If aEvent(3) <> workarea.site.type Then Exit Function
+			End If
+		End If
+
+		If aEvent(2) <> 0 And aEvent(2) <> Kind Then Exit Function
+		checkEventprops = True
+	End If
+
+End Function
+'--------------
+'
+'--------------
+Sub LoadConst
+	Dim xml, i, AttrLang
+	Dim RD, DictConst
+
+	If Workarea.Map.Exists("WorkareaConst") Then Workarea.Map.Remove("WorkareaConst")
+
+	Set xml = CreateObject("msxml2.domdocument")
+	Set DictConst = CreateObject("Scripting.Dictionary")
+
+	If CLng(Token(App.Version, 2, ".")) > 0 Then
+		AttrLang = App.LangUI
+	Else
+		AttrLang = "ru"
+	End If
+
+	If IsFileExists(CONST_FILE_NAME) Then
+		Set RD = CreateLibObject("Redirect")
+
+		xml.load(RD.GetFullPath(CONST_FILE_NAME))
+
+		With xml.ChildNodes.Item(0).ChildNodes
+			For i = 0 To .Length - 1
+				With .Item(i)
+					DictConst.Add .NodeName, .GetAttribute(AttrLang)
+				End With
+			Next
+		End With
+
+	End If
+
+	Set Workarea.Map.Item("WorkareaConst") = DictConst
+	
+End Sub

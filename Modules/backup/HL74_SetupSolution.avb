@@ -1,0 +1,419 @@
+Option Explicit
+
+'--------
+'	Свойства
+'	IsError - True/False признак ошибки
+'
+'	Методы
+'	OpenXML(SolName)			открыть XML файл
+'	Setup							установить приложение
+'--------
+
+'==================
+Class SetupSolution
+	Private MSG_TYPE_MSG
+	Private MSG_TYPE_ERROR
+
+	Public IsError
+
+	Private RD, FileLog
+	Private xml
+	Private SolutionName
+
+	'------------
+	Private Sub Class_Initialize
+
+		MSG_TYPE_MSG = 0
+		MSG_TYPE_ERROR = 1
+
+		Set RD = CreateLibObject("Redirect")
+		Set xml = CreateObject("msxml2.domdocument")
+	
+		IsError = (xml Is Nothing)
+		Set FileLog = Nothing
+
+	End Sub
+	'------------
+	Private Sub Class_Terminate
+		If Not FileLog Is Nothing Then FileLog.Close
+	End Sub
+	'------------
+	Private Function OpenErrorLog()
+		Dim FilePath
+		Dim FSO, LogFileName
+
+	  FilePath = RD.GetPAthArray("*.log")
+	
+		If UBound(FilePath) = -1 Then
+			' нет пути для создания лога
+			MsgBox "Не указан путь для Log файла", vbCritical, "Ошибка"
+			IsError = True
+		Else
+			Set FSO = CreateObject("Scripting.FileSystemObject")
+			LogFileName = FilePath(0) & iif(Right(FilePath(0), 1) = "\", "", "\") & SolutionName & ".log"
+
+			Set FileLog = FSO.OpenTextFile(LogFileName, 8, True)
+
+			If FileLog Is Nothing Then 
+				MsgBox "Ошибка открытия Log файла: " & LogFileName, "Ошибка", vbCritical	
+				IsError = True
+			Else
+				writelog MSG_TYPE_MSG, "протокол установки приложения :" & SolutionName
+			End If
+		End If
+
+		OpenErrorLog = Not IsError
+
+	End Function
+	'------------
+	Private Sub writelog (msg_type, msg_text)
+		Dim msg_types
+
+		msg_types = Array("-", "!")
+
+		FileLog.WriteLine msg_types(msg_type) & "[" & Now & "] " & msg_text
+
+		If msg_type = 1 Then IsError = True
+	End Sub
+	'------------
+	Public Sub OpenXML(SolName)
+		Dim FullFileName
+
+		SolutionName = SolName
+		FullFileName = rd.getfullpath(SolutionName & ".xml")
+	
+		If Not OpenErrorLog() Then Exit Sub
+
+		If FullFileName <> "" Then
+			xml.load(FullFileName)
+
+			With xml.parseerror
+				If .errorcode = 0 Then
+					' нормально прочитан
+					writelog MSG_TYPE_MSG, "прочтен файл: " & FullFileName
+				Else
+					' ошибка разбора XML
+					writelog MSG_TYPE_ERROR, "ошибка при разборе файла: " & FullFileName & ". Код:" & .errorcode & " Ошибка:" & .reason & " Строка: " & .line
+				End If
+			End With
+		Else
+			' пустое имя, файл не найден
+			writelog MSG_TYPE_ERROR, "файл не найден: " & FullFileName
+		End If
+	End Sub
+	'------------
+	Public Sub Setup	
+		Dim i, j, chNodes
+		Dim elParent, elFind, elType
+
+		If IsError Then Exit Sub
+	
+		With xml.childnodes.item(0)
+			checksolution .nodename, .getattribute("ver")
+			Set chNodes = .childnodes
+
+			For j = 1 To 2
+				If Not IsError Then
+					For i = 0 To chNodes.length - 1
+						If Not IsError Then
+							With chNodes.item(i)
+								If .nodename <> "params" Then
+									elParent = .GetAttribute("parent")		'	код "корня"
+									elFind = .GetAttribute("find")
+									elType = .GetAttribute("type")
+									AddElems .nodename, elparent, .childnodes, elfind, eltype
+								ElseIf j = 2 Then
+									AddParams chNodes.item(i), Nothing
+								End If
+							End With
+						Else
+							Exit For
+						End If
+					Next
+				Else
+					Exit For
+				End If
+			Next
+		End With
+
+		writelog MSG_TYPE_MSG, "установка окончена"
+
+	End Sub
+	'---
+	'
+	'---
+	Private Sub AddParams(NodeParam, Root)
+		Dim i, Op, nodeItem
+		Dim prmName, prmType, prmNew
+	
+		With NodeParam.ChildNodes
+			For i = 0 To .Length - 1
+				Set nodeItem = .Item(i)
+	
+				Select Case nodeItem.nodename
+					Case "operation"
+						Set Op = Workarea.CreateOperation
+
+						If Op Is Nothing Then
+							writelog MSG_TYPE_ERROR, "невозможно создать временную операцию"
+						Else
+							Op.Sum = 100 
+							Op.Save
+							AddParams nodeItem, Op
+						End If
+
+						If Not Workarea.RemoveOperation(Op.ID) Then
+							writelog MSG_TYPE_ERROR, "невозможно удалить временную операцию"
+						End If
+						
+					Case "transaction"
+						AddParams nodeItem, Root.Trans(1)
+	
+					Case "param"
+						prmName = nodeItem.GetAttribute("name")
+						prmType = nodeItem.GetAttribute("type")
+	
+						With Root.Params
+							If Not .Exists(prmName) Then
+								Set prmNew = Eval("Root.Params.Create(" & prmType & ", " & Chr(34) & prmName & Chr(34) & ")")
+
+								If prmNew Is Nothing Then
+									writelog "невозможно создать параметр/факт тип: "& prmType & " имя: " & prmName
+								End If
+							End If
+						End With
+				End Select	
+			Next
+		End With
+	
+	End Sub
+	'---
+	'
+	'---
+	Private Sub AddElems(nodename, parent, items, ElemFind, ElemType)
+		Dim elRoot
+	
+		If Parent = "root" Then
+			If IsNull(ElemType) Then
+				Set elRoot	= Eval("workarea." & nodename)
+			Else
+				Set elRoot	= Eval("workarea." & nodename & "(" & ElemType & ")")
+			End If
+		Else
+			Set elRoot = GetElRoot(nodename, parent)
+		End If
+	
+		If elRoot Is Nothing Then
+			writelog MSG_TYPE_ERROR, "ошибка создания елемента: " & nodename & " тип: " & ElemType
+		Else
+			CreateElems elRoot, items, ElemFind, nodename
+		End If
+	
+	End Sub
+	'---
+	'
+	'---
+	Private Sub CreateElems(elRoot, items, ElemFind, nodename)
+		Dim i, NewElem, ElemType, ElemSysCode
+		Dim ElemID
+	
+		For i = 0 To items.length - 1
+			With items.item(i)
+				If Not .Attributes Is Nothing Then
+					ElemType = .GetAttribute("type")
+					ElemSysCode = .GetAttribute("syscode")
+					ElemID = findidbysyscode(ElemSysCode, elRoot, ElemFind, nodename)
+		
+					If ElemID = 0 Then
+						If IsNull(ElemType) Then
+							Set NewElem = elRoot.Create(.GetAttribute("name"))
+						Else
+							Set NewElem = elRoot.Create(ElemType, .GetAttribute("name"))
+						End If
+		
+						If Not IsNull(ElemSysCode) And ElemSysCode <> NewElem.Name Then 
+							NewElem.Tag = ElemSysCode
+							NewElem.Save
+						End If
+					Else
+						Set NewElem = Eval("workarea." & Left(nodename, Len(nodename) - 1) & "(" & ElemID & ")")
+					End If
+	
+					If NewElem Is Nothing Then
+						writelog MSG_TYPE_ERROR, "невозможно создать элемент типа: " & nodename
+						Exit Sub
+					End If
+
+					AddElemProps items.item(i), nodename, NewElem
+		
+					If .ChildNodes.Length > 0 And Not IsError Then 
+						Select Case nodename
+							Case "enums"
+								CreateElems NewElem, items.item(i).childnodes, ElemFind, nodename								
+							Case Else
+								CreateElems NewElem.Children, items.item(i).childnodes, ElemFind, nodename
+						End Select
+					End If
+				End If
+			End With
+		Next
+	End Sub
+	
+	'---
+	'
+	'---
+	Private Function GetPropValue(propvalue, ElRoot, ElemFind, nodename)
+		If Not IsNull(propvalue) Then
+			GetPropValue = findidbysyscode(propvalue, elRoot, ElemFind, nodename)
+		Else
+			GetPropValue = 0
+		End If
+	End Function
+	'---
+	'
+	'---
+	Private Sub AddElemProps(node, nodename, NewElem)
+		Dim Modified
+
+		Modified = True
+
+		Select Case nodename
+			Case "folders"
+				NewElem.TemplateID = GetPropValue(node.getattribute("template"), Workarea.Templates, acTemplate, "templates")
+				NewElem.FormID = GetPropValue(node.getattribute("projectitems"), Workarea.ProjectItems(1), acForm, "projectitems")
+	
+			Case "projectitems"
+				If Not IsNull(node.getattribute("short")) Then
+					NewElem.ShortName = node.getattribute("short")
+				End If
+	
+				NewElem.AutonumID = GetPropValue(node.getattribute("autonum"), Workarea.autonums, 0, "autonums")
+	
+			Case "templates"
+				NewElem.SetScript node.text
+	
+			Case "autonums"
+				If Not IsNull(node.getattribute("suffix")) Then
+					NewElem.suffix = node.getattribute("suffix")
+				End If
+	
+				If Not IsNull(node.getattribute("prefix")) Then
+					NewElem.prefix = node.getattribute("prefix")
+				End If
+
+			Case Else
+				Modified = False
+		End Select
+
+		If Modified Then NewElem.Save
+
+	End Sub
+	'---
+	'
+	'---
+	Private Function GetElRoot(nodename, parent)
+		MsgBox "Не реализовано"
+	End Function
+	'---
+	'
+	'---
+	Private Sub checksolution(config_name, config_version)
+		Dim i
+	
+		With workarea
+			For i = 1 To 9
+				If .userparam("CONFIG_NAME" & i) = config_name Then
+					If .userparam("CONFIG_VERSION" & i) > config_version Then
+						.userparam("CONFIG_VERSION" & i) = config_version
+					End If
+	
+					Exit Sub
+				Else
+					If IsNull(.userparam("CONFIG_NAME" & i)) Then
+						Exit For
+					End If
+				End If
+			Next
+	
+			.userparam("CONFIG_NAME" & i) = config_name
+			.userparam("CONFIG_VERSION" & i) = config_version
+		End With
+	
+	End Sub
+	'---
+	'
+	'---
+	Private Function findidbysyscode(ElemSysCode, elRoot, ElemFind, nodename)
+		Dim elFinder
+	
+		Select Case LCase(nodename)
+			Case "projectitems"
+				findidbysyscode = findprojectitem(ElemSysCode, elRoot)
+
+			Case "autonums"
+				findidbysyscode = findbyname(ElemSysCode, elRoot)
+
+			Case "enums"
+				findidbysyscode = findbyname(ElemSysCode, elRoot)
+
+			Case Else
+				Set elFinder = Workarea.ElementFinder(ElemFind)
+				elFinder.AddCriteria "Tag", "=", ElemSysCode
+	
+				If elFinder.Find Then
+					findidbysyscode = elFinder.Elems.Item(1).ID
+				Else
+					findidbysyscode = 0
+				End If
+		End Select
+	
+	End Function
+	'---
+	'
+	'---
+	Private Function findbyname(ElemName, elRoot)
+		Dim i
+	
+		For i = 1 To elRoot.Count
+			With elRoot.Item(i)
+				If .Name = ElemName Then
+					findbyname = .ID
+					Exit Function
+				End If
+			End With
+		Next
+	
+		findbyname = 0
+	End Function
+	'---
+	'
+	'---
+	Private Function findprojectitem(ElemSysCode, elRoot)
+		Dim i
+	
+		For i = 1 To elRoot.Count
+			With elRoot.Item(i)
+				If .tag = ElemSysCode Then
+					findprojectitem = .ID
+					Exit Function
+				End If
+			End With
+		Next
+	
+		findprojectitem = 0
+	
+	End Function
+	'---
+	'
+	'---
+End Class
+'==================
+
+Dim SS 
+
+stop
+
+Set SS = New SetupSolution
+SS.OpenXML "st7_struct"
+
+If Not SS.IsError Then SS.Setup

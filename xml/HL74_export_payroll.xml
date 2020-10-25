@@ -1,0 +1,325 @@
+<AccentExportData><AccentOperations/><AccentFolders><folder ID="528" GUID="{guid {892E10F5-299B-49F5-921A-E7A8D6334712}}" Name="Кадры" FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="523" GUID="{guid {2F722CD6-4F98-4485-AA09-8589BD596FDE}}" Name="2. Кадры. Командировочное удостоверение" FormID="0" FormGUID="" Tag="" TID="1820" TGUID="{guid {10566D0A-5108-4E63-A51F-BA749CE604FC}}" Type="0"/><folder ID="522" GUID="{guid {7A392204-70C4-4891-82DE-BBA0D3CDD46A}}" Name="1. Кадры. Доверенность" FormID="0" FormGUID="" Tag="" TID="1819" TGUID="{guid {5BFD4CBD-BD24-4C45-B61C-539208DCEB43}}" Type="0"/><folder ID="538" GUID="{guid {A71D477D-CA8F-4341-943F-0A97E6404834}}" Name="3. Кадры. Заработная плата." FormID="0" FormGUID="" Tag="" TID="0" TGUID="" Type="0"><folder ID="536" GUID="{guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}" Name="3.1. Кадры. Заработная плата. Ведомость начисления заработной платы" FormID="801" FormGUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}" Tag="" TID="0" TGUID="" Type="0"/><folder ID="537" GUID="{guid {91EF57D0-6432-4722-9C62-F9BBE50E1A5D}}" Name="3.2. Кадры. Заработная плата. Ведомость обязательных удержаний" FormID="802" FormGUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}" Tag="" TID="0" TGUID="" Type="0"/></folder></folder></AccentFolders><AccentTemplates><template GUID="{guid {25836D39-7D62-4A3D-9199-6FBA5303B8FF}}" ID="1818" Memo="" Name="Кадры" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {10566D0A-5108-4E63-A51F-BA749CE604FC}}" ID="1820" Memo="" Name="Кадры. Командировочное удостоверение" Tag="" Type="1" FormID="685" FormGUID="{guid {05EDB8BC-6DDF-425C-82F4-4F79C7DB554F}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 685
+  op.SetFolder 523
+  op.Name = &quot;Кадры. Командировочное удостоверение&quot;
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {05EDB8BC-6DDF-425C-82F4-4F79C7DB554F}}
+  op.SetFolder {guid {2F722CD6-4F98-4485-AA09-8589BD596FDE}}
+  op.Name = "Кадры. Командировочное удостоверение"
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="6/1/2015 3:04:42 PM"/></parameters></template><template GUID="{guid {5BFD4CBD-BD24-4C45-B61C-539208DCEB43}}" ID="1819" Memo="" Name="Кадры. Доверенность" Tag="" Type="1" FormID="686" FormGUID="{guid {61BDF1A9-F217-4A34-8530-4831B6F44DFE}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 686
+  op.SetFolder 522
+  op.Name = &quot;Кадры. Доверенность&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 496
+  op.TransList(1).SetAccCr 565
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {61BDF1A9-F217-4A34-8530-4831B6F44DFE}}
+  op.SetFolder {guid {7A392204-70C4-4891-82DE-BBA0D3CDD46A}}
+  op.Name = "Кадры. Доверенность"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {8CA3EDE5-B243-46C0-903E-F2BD72E88ECB}}
+  op.TransList(1).SetAccCr {guid {949AC9DF-CD4E-4C28-BDE1-867BF99BA3CE}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="6/1/2015 12:06:05 PM"/></parameters></template><template GUID="{guid {49DC4171-90CA-4641-B6A7-371B7C92204F}}" ID="1830" Memo="" Name="Кадры. Заработная плата" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {DE203DE0-25EE-4419-979D-78F08E88E0EE}}" ID="1831" Memo="" Name="Кадры. Заработная плата. Начисления" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {97F95299-F6D3-4049-9F64-A9C23B145168}}" ID="1832" Memo="" Name="Кадры. Заработная плата. Начисление по окладу" Tag="" Type="1" FormID="801" FormGUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 801
+  op.SetFolder 536
+  op.Name = &quot;Кадры. Заработная плата. Начисление по окладу&quot;
+  '--Счета--
+  op.TransList(1).SetAccCr 321
+  '--Объекты учета--
+  op.TransList(1).SetEnt 715
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}
+  op.SetFolder {guid {AF7EE7F6-1ACC-418C-A722-798B307700F2}}
+  op.Name = "Кадры. Заработная плата. Начисление по окладу"
+  '--Счета--
+  op.TransList(1).SetAccCr {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  '--Объекты учета--
+  op.TransList(1).SetEnt {guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="7/13/2015 5:52:03 PM"/></parameters></template></template><template GUID="{guid {ED541D55-3B0E-4C01-9E67-ED6E44FA206F}}" ID="1833" Memo="" Name="Кадры. Заработная плата. Обязательные удержания" Tag="" Type="0" FormID="0" FormGUID="" Script=""><template GUID="{guid {DAC5724E-24A9-43D4-91A5-9D134B86E02B}}" ID="1834" Memo="" Name="Кадры. Заработная плата. Обязательные удержания" Tag="" Type="1" FormID="802" FormGUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}" Script="
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map(&quot;OpTagEval&quot;) then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; &quot;&quot; Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = 802
+  op.SetFolder 537
+  op.Name = &quot;Кадры. Заработная плата. Обязательные удержания&quot;
+  '--Счета--
+  op.TransList(1).SetAccDb 321
+  op.TransList(1).SetAccCr 305
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum &quot;=T1+T2&quot;
+  '}} END_RECALC
+End Sub
+
+">
+Sub TEMPLATE_BEFORESAVE(OP, ByRef CANCEL)
+  '{{ BEGIN_BEFORESAVE
+  '}} END_BEFORESAVE
+	If not Workarea.Map("OpTagEval") then exit Sub
+ 	With Workarea.Template(Op.TemplateID)
+		If .Memo &lt;&gt; "" Then Op.Tag = Eval(.Memo)
+ 	End With
+End Sub
+
+Sub Template_OnApply(op)
+  '{{ BEGIN_APPLY
+  '--Число проводок--
+  op.TransCount = 1
+  '--Общие--
+  op.FormID = {guid {A2661173-5167-43CC-87A4-3ECB36151066}}
+  op.SetFolder {guid {91EF57D0-6432-4722-9C62-F9BBE50E1A5D}}
+  op.Name = "Кадры. Заработная плата. Обязательные удержания"
+  '--Счета--
+  op.TransList(1).SetAccDb {guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}
+  op.TransList(1).SetAccCr {guid {21E6ADFC-D95E-46B0-B101-E0063E3CCF07}}
+  '}} END_APPLY
+End Sub
+
+
+Sub Template_OnEdit(op)
+  '{{ BEGIN_EDIT
+  '--Число проводок--
+  op.TransCount = 1
+  op.LockUI &amp;H9
+  '}} END_EDIT
+End Sub
+
+
+Sub Template_OnRecalc(op)
+  '{{ BEGIN_RECALC
+  '--Суммы--
+  op.CalcSum "=T1+T2"
+  '}} END_RECALC
+End Sub
+
+<parameters><parameter Name="Изменен" Type="7" RefKind="0" Value2="7/20/2015 9:37:35 AM"/></parameters></template></template></template></template></AccentTemplates><AccentEntities><entity ID="376" GUID="{guid {5E6E0FFE-CEAE-11D5-8141-0002440B6A16}}" Art="" Bar="" Cat="" Name="Налоги и сборы" Nom="" Tag="SYS376" Type="0" Memo="" UnSelf="False" UnitID="0"><entity ID="715" GUID="{guid {F7BCDDF4-729B-4E12-9BFC-DC4B72788B22}}" Art="" Bar="" Cat="" Name="Начисления по з\плате" Nom="" Tag="" Type="1002" Memo="" UnSelf="False" UnitID="0"/></entity></AccentEntities><AccentMiscs><misc ID="152" GUID="{guid {6E6DBBB7-8BE0-446B-BA3F-90A6B2C9640C}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Штатное расписание" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"><misc ID="154" GUID="{guid {83B5F756-FFE9-4B36-AE1C-8EB710EA5DCC}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Администрация" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0"><misc ID="155" GUID="{guid {02F9FFAD-C74E-42A6-A63B-5174BF88E7AF}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Бухгалтер" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/><misc ID="153" GUID="{guid {E3A7BE15-C462-4049-9910-C7A6FF8C209D}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="12" Name="Директор" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/></misc></misc><misc ID="90" GUID="{guid {2FFB8CD2-1D55-4319-8F22-151F929F4DB5}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="9" Name="Приказы" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="-1"><misc ID="91" GUID="{guid {DD85C0E5-917C-46EB-8626-181F57ABD236}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="9" Name="Приказы по списанию" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="0"><misc ID="92" GUID="{guid {CC5DE363-5F0C-4F77-B9A4-9228E4795082}}" Date1="12:00:00 AM" Date2="12:00:00 AM" Date3="12:00:00 AM" Long1="0" Long2="0" Long3="0" Memo="" MscNo="9" Name="Приказ № 1 от 01-01-2015" RefFolderID="0" RefKind="0" String1="" String2="" String3="" Sum1="0" Sum2="0" Sum3="0" Tag="" Type="1"/></misc></misc></AccentMiscs><AccentAgents><agent ID="1" GUID="{guid {CF984C46-CC58-11D2-89FD-0080480180F7}}" Name="ТОВ &quot;Рекламне бюро &quot;Еверест&quot;" Address="69037;Запоріжжя;вул. Сорок років РадянськоїУкраїни, 39-А" Code="30719812" Contact="" Country="ДНР" DateIn="12:00:00 AM" DateOut="12:00:00 AM" EMail="" Memo="" Passport="" Phone="0612364136" RegNo="  11846537" TabNo="" Tag="SYS1" Type="5" VatNo="307198108294" WWW=""><parameters><parameter Name="Полное наименование" Type="8" RefKind="0" Value2="Товариство з обмеженою відповідальністю &quot;Рекламне бюро &quot;Еверест&quot;"/></parameters><BankAccount AccountNo="26003302332001" BankID="1252" Memo=""/><BankAccount AccountNo="35704302332001" BankID="1252" Memo=""/><BankAccount AccountNo="29027318990002" BankID="1262" Memo=""/><BankAccount AccountNo="26007049701" BankID="1257" Memo=""/><BankAccount AccountNo="26000055897595" BankID="1252" Memo=""/><BankAccount AccountNo="260040198349" BankID="2597" Memo=""/><BankAccount AccountNo="26007060132840" BankID="1252" Memo=""/><BankAccount AccountNo="260020101987" BankID="2597" Memo=""/><BankAccount AccountNo="2600330173675" BankID="2638" Memo=""/><BankAccount AccountNo="2600410173401" BankID="1246" Memo=""/><BankAccount AccountNo="26009315112871" BankID="1262" Memo=""/><BankAccount AccountNo="260065001944" BankID="1791" Memo=""/><BankAccount AccountNo="2600646982" BankID="2711" Memo=""/><BankAccount AccountNo="26009001216101" BankID="2719" Memo=""/><BankAccount AccountNo="26008300211871" BankID="2578" Memo=""/><BankAccount AccountNo="26006051284001" BankID="2719" Memo=""/><BankAccount AccountNo="26004300007881" BankID="2703" Memo=""/><BankAccount AccountNo="260035822" BankID="2783" Memo=""/><BankAccount AccountNo="26001001740501" BankID="2719" Memo=""/><BankAccount AccountNo="26001584401" BankID="1246" Memo=""/><BankAccount AccountNo="260013303" BankID="2711" Memo=""/><BankAccount AccountNo="26008302219099" BankID="1252" Memo=""/><BankAccount AccountNo="29245055701067" BankID="1252" Memo=""/><BankAccount AccountNo="26003051830003" BankID="2727" Memo=""/><BankAccount AccountNo="26072055760207" BankID="1252" Memo=""/><BankAccount AccountNo="20622055721249" BankID="1252" Memo=""/><agent ID="850" GUID="{guid {69812777-75C9-4876-A87E-81CDF883E3DD}}" Name="СОТРУДНИКИ" Address="" Code="" Contact="" Country="" DateIn="12:00:00 AM" DateOut="12:00:00 AM" EMail="" Memo="" Passport="" Phone="" RegNo="" TabNo="" Tag="SYS143" Type="2" VatNo="" WWW=""><agent ID="2523" GUID="{guid {31986D57-A53E-4111-A98C-D32382581226}}" Name="Сотрудник" Address="" Code="" Contact="" Country="" DateIn="12:00:00 AM" DateOut="12:00:00 AM" EMail="" Memo="" Passport="" Phone="" RegNo="" TabNo="" Tag="" Type="3" VatNo="" WWW=""/></agent></agent></AccentAgents><AccentBanks><bank City="Запоріжжя" Code="313399" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {F058346C-9962-4B1D-98F6-026A782A01A0}}" ID="1252" Memo="вул. Глісерна, 1" Name="ЗРУ КБ &quot;Приватбанк&quot;" TypeName="Bank"/><bank City="Запоріжжя" Code="313010" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {64BDDA61-F2BC-4BEE-BF57-C096997E481C}}" ID="1262" Memo=" вул.Дзержинського, 35" Name="ЗАПОРіЗЬКА ОБЛФіЛіЯ АКБ СР&quot;УКРСОЦБАНК&quot;" TypeName="Bank"/><bank City="Мелітополь" Code="313281" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {2847DC02-AB85-4E82-9059-147136E1210F}}" ID="1257" Memo="вул. Дзержинського, 21" Name="Ф-Я ЗАПОР.КБ &quot;АВТОЗАЗБАНК&quot; МЕЛіТОПОЛЬ" TypeName="Bank"/><bank City="Київ" Code="320984" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {445470B7-A45A-44D3-8F43-63456A851602}}" ID="2597" Memo="вул. Боженка, 86" Name="ЗАТ &quot;МіКРОФіHАHСОВИЙ БАHК&quot;, КИЇВ" TypeName="Bank"/><bank City="ПАВЛОГРАД" Code="305556" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {40B7EA62-7E75-4AF0-8DDD-7FAD458FB47F}}" ID="2638" Memo="ПPОВ. МУЗЕЙНИЙ, 2" Name="Ф-Я&quot;ВіД.ПіБ В М.ПАВЛОГРАД ДН-СЬК.ОБЛ.&quot;" TypeName="Bank"/><bank City="Запоріжжя" Code="313582" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {1F888228-5F70-4609-8E04-1FBE7FED0C7B}}" ID="1246" Memo="пр. Металургів, 30" Name="КБ &quot;МЕТАЛУРГ &quot;, м.Запоріжжя" TypeName="Bank"/><bank City="Запоріжжя" Code="373061" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {FDA47EF7-798D-4DE2-BA8F-BB1EE41745B8}}" ID="1791" Memo="пр. Леніна, 149" Name="Орджонiкiд. вiд. нр.7717 м.Запорiжжя" TypeName="Bank"/><bank City="Запоріжжя" Code="313827" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {F669481E-6A71-4BD0-8D21-65B2DADA2425}}" ID="2711" Memo="вул. Тургенїва, 29" Name="Запорiзька дирекцiя АППБ &quot;АВАЛЬ&quot;" TypeName="Bank"/><bank City="Запоріжжя" Code="313731" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {7185F85F-B1B7-4704-8DAA-E4DAC5625150}}" ID="2719" Memo="вул. 40-років Радянської України, 39" Name="Ф-Я&quot;ФіНАНСИ ТА КРЕДИТ&quot;ТОВ,ЗАПОРіЗ.ОБЛ." TypeName="Bank"/><bank City="Київ" Code="321637" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {BE4CD25E-6F14-4D6D-A05D-1713B7237E36}}" ID="2578" Memo="вул. Зоологічна, 5" Name="ВАТ ВСЕУКРАЇНСЬКИЙ АКЦіОНЕРНИЙ БАНК" TypeName="Bank"/><bank City="Запоріжжя" Code="313913" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {89C99FA1-9E59-41D7-B0F0-699464C0C99A}}" ID="2703" Memo="вул. Лермонтова, 10" Name="ЗАПОРіЗЬКА ФіЛіЯ АКБ &quot;ФОРУМ&quot;" TypeName="Bank"/><bank City="Луцьк" Code="303569" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {69418BAC-CDA9-46B6-B2E8-AB565558B862}}" ID="2783" Memo="вул. Л.Українки, 52" Name="Волинська обл. дир. АППБ &quot;АВАЛЬ&quot;" TypeName="Bank"/><bank City="ДНIПРОПЕТРОВСЬК" Code="305299" CorrAccount="" CorrBankID="0" Country="" GUID="{guid {EE5EC427-4FAC-48C1-97E5-996F4D17B5BA}}" ID="2727" Memo="НАБЕРЕЖНА ПЕРЕМОГИ, 50" Name="КБ &quot;ПРИВАТБАНК&quot; М.ДНіПРОПЕТРОВСЬК" TypeName="Bank"/></AccentBanks><AccentAccounts><account ID="70" GUID="{guid {D7ACAE94-296D-11D3-A02D-0080480180F7}}" Code="A" Name="Основной план счетов" PlanID="70" SaldoType="0" Tag="SYS70" Type="-1" Memo=""><account ID="563" GUID="{guid {66C31ABD-10C3-4395-80E4-FA7DA46516B3}}" Code="ТХ" Name="Технические забалансовые счета" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""><account ID="565" GUID="{guid {949AC9DF-CD4E-4C28-BDE1-867BF99BA3CE}}" Code="008б" Name="Балансовый счет для доверенностей" PlanID="70" SaldoType="0" Tag="" Type="3" Memo=""/><account ID="496" GUID="{guid {8CA3EDE5-B243-46C0-903E-F2BD72E88ECB}}" Code="&lt;008&gt;" Name="Учет доверенностей" PlanID="70" SaldoType="0" Tag="SYS496" Type="3" Memo=""/></account><account ID="320" GUID="{guid {3272D4AD-F79F-45B9-BAB4-E8A116385B79}}" Code="66" Name="Расчеты по оплате труда" PlanID="70" SaldoType="0" Tag="SYS320" Type="2" Memo=""><account ID="321" GUID="{guid {7E2DC7C3-828D-492D-A641-BA2F19BFE8E0}}" Code="661" Name="Расчеты по заработной плате" PlanID="70" SaldoType="0" Tag="SYS321" Type="1" Memo=""/></account><account ID="301" GUID="{guid {5DCDC761-1A2D-458E-9480-E0082AC0D5A6}}" Code="64" Name="Расчеты по налогам и платежам" PlanID="70" SaldoType="0" Tag="SYS301" Type="2" Memo=""><account ID="302" GUID="{guid {E2C4971E-06E3-40AD-A582-92871F486B07}}" Code="641" Name="Расчеты по налогам" PlanID="70" SaldoType="0" Tag="SYS302" Type="1" Memo=""><account ID="305" GUID="{guid {21E6ADFC-D95E-46B0-B101-E0063E3CCF07}}" Code="6414" Name="Подоходный налог" PlanID="70" SaldoType="0" Tag="SYS305" Type="1" Memo=""/></account></account></account></AccentAccounts><AccentUnits/><AccentCurs/><parameters><parameter Name="Показать диалог приветствия" Type="3" RefKind="0" Value2="-1"/></parameters><AccentForms><form ANID="0" FileName="HL74_PayRoll.afm" ID="801" Name="Кадры. Заработная плата. Ведомость начислений" ShortName="" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {3C541562-6097-4D20-BF4D-AEFA4478F31D}}"/><form ANID="0" FileName="HL74_PayRollTax.afm" ID="802" Name="Кадры. Заработная плата. Ведомость обязательных удержаний" ShortName="" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {A2661173-5167-43CC-87A4-3ECB36151066}}"/><form ANID="74" FileName="HL74_Attorney.afm" ID="686" Name="Кадры. Доверенность" ShortName="ДОВ" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {61BDF1A9-F217-4A34-8530-4831B6F44DFE}}"/><form ANID="80" FileName="HL74_Authority.afm" ID="685" Name="Кадры. Командировочное удостоверение" ShortName="КУД" Tag="" Type="0" TypeName="ProjectItem" GUID="{guid {05EDB8BC-6DDF-425C-82F4-4F79C7DB554F}}"/></AccentForms><AccentAutoNum><AutoNum ID="74" PR="" SF="" NAME="Кадры. Доверенность"/><AutoNum ID="80" PR="" SF="" NAME="Кадры. Командировочное удостоверение"/></AccentAutoNum></AccentExportData>

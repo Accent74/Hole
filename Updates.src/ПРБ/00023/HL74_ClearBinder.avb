@@ -1,0 +1,26 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+
+Const MSG_BOX_CAPTION = "Очистка подшивки"
+
+Sub HL74_ClearBinder
+	Dim ID, SQL, ErrorMsg, Bnd
+
+	ID = Workarea.Map("KindID")
+
+	Set Bnd = Workarea.Binder(ID)
+
+	If Not Bnd.IsRightEnabled(512) Then Exit Sub
+	If MsgBox("Удалить все документы из подшивки " & vbCrLf & Bnd.Name & " ?", _
+						vbQuestion + vbOKCancel, "Внимание !") <> vbOK Then Exit Sub
+
+	SQL = "delete from bind_docs where bind_id=" & ID
+
+	If ExecQuery(SQL, ErrorMsg) = 0 Then
+		MsgBox "Подшивка " & Bnd.Name & " очищена", vbInformation, MSG_BOX_CAPTION
+	Else
+		MsgBox "В процессе очистки подшивки " & Bnd.Name & "возникла ошибка №" & ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+	End If
+
+	workarea.window.refresh
+End Sub

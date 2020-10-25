@@ -1,0 +1,160 @@
+Option Explicit
+
+Const LOG_MSG_INFORMATION = 0
+Const LOG_MSG_WARNING = 1
+Const LOG_MSG_ERROR = 2
+Const LOG_MSG_OK = 3
+
+'	Class htmlog
+'	function Open(Caption, htmlFileName)
+'	sub Close
+'	sub clear
+'	sub writelog(Kind, aMsgText, acKind, acID)
+'	Sub writetext(Kind, MsgText)
+'	function IsLogOpen()
+
+Class htmlog
+	Private dHtml, assistFileName, HTMLDoc, logcaption, IsOpen
+	Private RD, AstPrnt, AstPrntType
+
+	Public aLog_images
+
+	Private Sub Class_Initialize
+		aLog_images = Array("info16.png", "warn16.png", "err16.png", "ok16.png")
+		IsOpen = False
+		Set dHtml = Nothing
+		Set Rd = CreateLibObject("Redirect")
+		Set AstPrnt = workarea
+		AstPrntType = 0
+	End Sub 
+
+	Public Function OpenWParent(Caption, htmlFileName, AstParent)
+		If Caption = "" Then Caption = "Протокол работы"
+
+		If htmlFileName <> "" Then 
+			assistFileName = htmlFileName
+		Else
+			assistFileName = RD.GetFullPAth("HL74_Log.htm")
+		End If
+
+		assistFileName = RD.GetFullPAth(assistFileName)
+		If Not AstParent Is Nothing Then Set AstPrnt = AstParent
+			
+		If assistFileName <> "" Then
+			Set dHtml = AstPrnt.Assistant
+
+			dHtml.reset
+			dHtml.visible = True
+			dHtml.navigate assistFileName
+
+			Set HTMLDoc = dHtml.HTMLDocument
+			logcaption = caption
+			HTMLDoc.GetElementByID("caption").InnerHTML = logcaption
+
+			OpenWParent = True
+			IsOpen = True
+		Else
+			OpenWParent = False
+		End If
+
+	End Function
+
+	Public Property Set Parent(oAstPrnt)
+		If Not IsOpen Then
+			Set AstPrnt = oAstPrnt
+		End If
+	End Property
+
+	Public Property Let ParentType(nType)
+		If Not IsOpen Then
+			AstPrntType = nType
+		End If
+	End Property
+
+	Public Function Open(Caption, htmlFileName)
+		Open = OpenWParent(Caption, htmlFileName, Nothing)
+	End Function
+
+	Public Sub Close
+		If Not dHtml Is Nothing Then dHtml.Visible = False
+		IsOpen = False
+	End Sub
+
+	Public Sub clear
+		If Not dHtml Is Nothing Then 
+			dHtml.Reset
+			HTMLDoc.GetElementByID("caption").InnerHTML = logcaption
+		End If
+	End Sub
+	
+	Public Property Let Caption(capValue)
+		logcaption = capValue
+		HTMLDoc.GetElementByID("caption").InnerHTML = logcaption
+		HTMLDoc.GetElementByID("btnSave").style.visibility = "hidden"
+	End Property
+
+	Public Sub writelog(Kind, aMsgText, acKind, acID)
+		Dim NewRow, NewCell, logtable, msgText, btn, KindPref
+
+		If Not IsOpen Then 
+			If Not Open("", "") Then Exit Sub
+		End If
+
+		If IsArray(aMsgText) Then
+			msgText = Join(aMsgText, " ")
+		Else
+			msgText = aMsgText
+		End If
+
+		Set logtable = HTMLDoc.GetElementByID("logtable")
+	
+		If Not logtable Is Nothing Then
+			Set NewRow = logtable.insertrow(1)
+	
+			Set NewCell = NewRow.InsertCell(0)
+			NewCell.ClassName = "styleimage"
+			logtable.Rows(NewRow.RowIndex).Cells(0).InnerHTML = "<img src='" & RD.GetFullPath(aLog_images(Kind)) & "'>"
+	
+			Set NewCell = NewRow.InsertCell(1)
+			NewCell.ClassName = "datestyle" & Kind
+			logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = Now()
+	
+			Set NewCell = NewRow.InsertCell(2)
+			NewCell.ClassName = "txtstyle" & Kind
+
+			If acKind <> 0 Then 
+				Select Case acKind
+					Case acEntity
+						KindPref = "entity"
+					Case acAgent
+						KindPref = "agent"
+				End Select
+
+				logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = "<a onclick='vbscript:" & KindPref & "_hlink(" & acID & ")'>" &  MsgText & "</a>"
+			Else
+				logtable.Rows(NewRow.RowIndex).Cells(NewCell.CellIndex).InnerHTML = MsgText
+			End If
+
+			Set btn = HTMLDoc.GetElementByID("btnSave")
+			If Not btn.style.visibility = "hidden" Then btn.style.visibility = "visible"
+
+			If AstPrntType = 1 Then 
+				AstPrnt.RefreshScreen
+			ElseIf AstPrntType = 2 Then 
+			End If
+		
+			Doevent
+		End If
+	
+	End Sub
+
+	Public Sub writetext(Kind, MsgText)
+		writelog Kind, Array(MsgText), 0, 0
+	End Sub
+
+	Public Property Get IsLogOpen
+		IsLogOpen = IsOpen
+	End Property
+
+End Class
+

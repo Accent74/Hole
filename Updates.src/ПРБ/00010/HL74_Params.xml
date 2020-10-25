@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<config configname="ПРБ" configversion="00010">
+	<agentparams>
+		<param id="82" guid="{5738BC3E-4638-459E-99DF-1386F8C6AABE}" name="Страна" refkind="5" nodetype="1" type="3" />
+		<param id="55" guid="{2A25DE9D-7FB4-41E9-B6FF-E310A4F9ABB9}" name="Полное наименование" refkind="" nodetype="1" type="8"/>
+		<param id="65" guid="{A7F24883-5C23-474B-97B6-2ED3B1A63737}" name="Цена по умолчанию" refkind="27" nodetype="1" type="3"/>
+		<param id="25" guid="{C94A95BE-D29A-11D5-8141-0002440B6A16}" name="Главный бухгалтер" refkind="3" nodetype="1" type="3"/>
+		<param id="24" guid="{C94A95BD-D29A-11D5-8141-0002440B6A16}" name="Генеральный директор" refkind="3" nodetype="1" type="3"/>
+		<param id="83" guid="{FAB7C6E6-141C-4F6D-953E-630FE65CD417}" name="Дисконтная карта" refkind="5" refid="173" nodetype="1" type="3"/>
+		<param id="84" guid="{74EF628B-8FF1-4CD9-9333-F5C337662F2B}" name="Менеджер" refkind="5" refid="175" nodetype="1" type="3"/>
+		<param id="85" guid="{78C0EB93-973F-4AAA-A5D6-F0E169F8EBCA}" name="Группа скидок" refkind="5" nodetype="1" type="3"/>
+		<param id="80" guid="{8CA5A5BF-632B-4269-B979-147E1EBCCDD4}" name="Адрес доставки" refkind="" nodetype="1" type="8"/>
+		
+		<param id="60" guid="{EE605195-B6A4-451A-AF96-E5B926EFF7B2}" name="Полное наименование" refkind="" nodetype="2" type="8"/>
+		<param id="63" guid="{782986B9-18B3-4FD6-B8AE-9A5C376A9369}" name="Цена по умолчанию" refkind="27" nodetype="2" type="3"/>
+		
+		<param id="15" guid="{ADB5AC8E-B7F6-11D5-8141-0002440B6A16}" name="Дата рождения" refkind="" nodetype="3" type="7"/>
+		<param id="18" guid="{7609F6EF-BE2F-11D5-8141-0002440B6A16}" name="Фотография" refkind="" nodetype="3" type="8"/>
+		<param id="28" guid="{E1011599-431F-11D6-8041-004F49068F5D}" name="Телефон" refkind="" nodetype="3" type="8"/>
+		<param id="17" guid="{ADB5ACBB-B7F6-11D5-8141-0002440B6A16}" name="Причина увольнения" refkind="" nodetype="3" type="8"/>
+		<param id="16" guid="{ADB5AC8F-B7F6-11D5-8141-0002440B6A16}" name="Образование" refkind="" nodetype="3" type="8"/>
+		<param id="88" guid="{30025C70-EBD1-4489-97AC-D799BD27BA7E}" name="№ учетной карточки ЗЛ" refkind="" nodetype="3" type="8"/>
+		<param id="64" guid="{479BBA9D-3D32-4309-849E-89973178EC70}" name="Цена по умолчанию" refkind="27" nodetype="3" type="3"/>
+		<param id="87" guid="{E0B2736D-FA28-41AB-8BC9-3AB930941296}" name="Пол" refkind="18" refid="Пол" nodetype="3" type="3"/>
+		<param id="86" guid="{3B620CEB-A183-4774-9864-26321B911319}" name="Код категории ЗЛ" refkind="" nodetype="3" type="8"/>
+		<param id="81" guid="{6879B516-43CD-4E1E-A927-3837BC5B11E4}" name="Водительские права" refkind="" nodetype="3" type="8"/>
+				
+		<param id="66" guid="{2FADE33D-1FB8-4C8F-A6BD-329AAC5BFF72}" name="Цена по умолчанию" refkind="27" nodetype="4" type="3"/>
+		<param id="62" guid="{02C58BF6-C4F1-4149-AD04-FB8B4BDC1AF5}" name="Полное наименование" refkind="" nodetype="4" type="8"/>
+		
+		<param id="79" guid="{BD466D7F-4D39-4C97-9DBA-6754AD0457F7}" name="Кассир" refkind="3" nodetype="5" type="3"/>
+		<param id="39" guid="{8D17D060-2D38-42F1-912A-400E346A5499}" name="Генеральный директор" refkind="3" nodetype="5" type="3"/>
+		<param id="25" guid="{C94A95BE-D29A-11D5-8141-0002440B6A16}" name="Главный бухгалтер" refkind="3" nodetype="5" type="3"/>
+		<param id="49" guid="{E5F6C3DC-E5BC-4471-9054-55BE42F5A8DB}" name="Полное наименование" refkind="" nodetype="5" type="8"/>
+		<param id="51" guid="{1F333F86-5D23-46A6-9A7B-BF86CF55F189}" name="Цена по умолчанию" refkind="27" nodetype="5" type="3"/>
+		<param id="53" guid="{54275136-FDA7-491D-8D27-AC27CF4260BE}" name="Налоговая инспекция" refkind="3" nodetype="5" type="3"/>
+		<param id="54" guid="{D63A1FD8-E4E8-4424-ACDB-8878EFCE3011}" name="Пенсионный Фонд" refkind="3" nodetype="5" type="3"/>
+		<param id="90" guid="{335E8712-20B3-4A47-88DC-9DEC9B44C916}" name="Дата регистрации" refkind="" nodetype="5" type="7"/>
+		<param id="38" guid="{55F3562B-B81C-4EEC-A9DF-7E282DBCF104}" name="Главный бухгалтер" refkind="3" nodetype="5" type="3"/>
+	</agentparams>
+	
+	<agentfacts>
+		<fact id="7" name="График" nodetype="2" type="5"/>			
+		<fact id="39" name="Договор" nodetype="2" type="3" refkind="5" refid="10"/>
+		
+		<fact id="45" name="Должность" nodetype="3" type="3" refkind="5"/>
+		<fact id="46" name="Оклад" nodetype="3" type="6"/>
+		
+		<fact id="47" name="Адреса доставки" nodetype="1" type="8"/>
+		<fact id="48" name="Физ. лицо" nodetype="1" type="3" refkind="18" refid="Логика"/>
+		
+		<fact id="50" name="Физ. лицо" nodetype="5" type="11"/>
+		<fact id="51" name="Код основного вида деятельности" nodetype="5" type="8"/>
+	</agentfacts>
+	
+	<entparams>
+		<param id="1" guid="{7FE6999D-3DCC-4125-865A-57AD9D29FCB6}" name="Вес" nodetype="1004" type="5"/>
+		<param id="3" guid="{880DD371-BAA1-416D-86AF-B3D67D214A4A}" name="Округлять цены до" nodetype="1004" type="6"/>
+		
+		<param id="2" guid="{5F29CC0F-0828-4B4D-8512-DDCE13C3E5D8}" name="Округлять цены до" nodetype="0" type="6"/>
+		
+		<param id="6" guid="{DB257009-CBCC-4010-9737-F7A7CE927A05}" name="Тип автотранспорта" nodetype="1008" refkind="18" refid="Типы автотранспорта" type="3"/>
+		<param id="7" guid="{D3343E47-6EB3-42DD-B006-6AEC98F9D9B0}" name="Цвет" nodetype="1008" refkind="18" refid="Цвета" type="3"/>
+	</entparams>
+	
+	<entfacts>
+		<fact id="1" name="Регулируемая цена" nodetype="1004" refkind="18" refid="Логика" type="3" />
+	</entfacts>
+	
+	<accparams>
+		<param id="3" guid="{4EDC65C7-244C-4DC8-8792-6AEF3A1E7524}" name="Исключить счета" nodetype="0" type="8"/>
+		<param id="4" guid="{C5F9C8E1-39C1-41B1-ACDD-E0A179A59951}" name="Валюта" nodetype="0" refkind="29" type="3"/>
+	</accparams>	
+	
+	<dbfacts>
+		<fact id="1" name="ЕСВ" nodetype="0" type="6" ondate="2016/01/01" value="31"/>
+	</dbfacts>
+	
+	<dbparams>
+		<param id="31" guid="{C334A46D-FDEF-4B28-AD97-16C9C437E224}" name="Показать диалог приветствия" nodetype="0" type="3" />
+		<param id="36" guid="{14128466-7FE5-4FDE-B9BE-ADEA98739010}" name="Причины списания" nodetype="0" refkind="5" type="3" valueguid="{4036AF6A-539A-44AB-85EC-C071C2A72BD7}"/>
+		<param id="40" guid="{17BE0960-C3FF-4370-B9DC-C014EDD29F4B}" name="Экспорт в Excel через HTML" nodetype="0" refkind="18" refid="Логика" type="3"/>
+		<param id="41" guid="{6B360A6E-351D-40D6-BA13-D2B23B29B872}" name="Договора" nodetype="0" refkind="5" type="3" valueguid="{E0EB4D64-851A-4104-84A0-521C4CD77263}"/>
+		<param id="42" guid="{917204A4-2831-42E0-8B25-3D1702994910}" name="Проверять целостность шаблонов" nodetype="0" refkind="18" refid="Логика" type="3"/>
+		<param id="44" guid="{C2B627CC-72A3-4094-A992-69C4880D8E65}" name="Формировать признак документа по шаблону" nodetype="0" refkind="18" refid="Логика" type="3"/>
+		<param id="48" guid="{2BB405BE-9CE4-4575-AA87-C3FF6E01B45E}" name="Проверять обновления" nodetype="0" refkind="18" refid="Логика" type="3"/>
+		<param id="49" guid="{391FFD64-C669-4030-945F-EC32F2F1AF0E}" name="Приказы" nodetype="0" refkind="5" type="3" valueguid="{2FFB8CD2-1D55-4319-8F22-151F929F4DB5}"/>
+		<param id="50" guid="{3389CEF0-7099-4551-B117-157790C2D758}" name="Статья затрат" nodetype="0" refkind="5" type="3" valueguid="{09154D04-74A5-432D-8130-0C5A9057FAEB}"/>
+		<param id="52" guid="{59DD811D-8B99-4863-9DCB-A37AE9BCC889}" name="Вид перевозок" nodetype="0" refkind="5" refid="151" type="3" valueguid="{38008C32-1565-4AC5-84D1-676CA777597D}"/>
+		<param id="53" guid="{8CDE7066-3F00-46A1-9309-ED3434E3CBA4}" name="Штатное расписание" nodetype="0" refkind="5" type="3" valueguid="{6E6DBBB7-8BE0-446B-BA3F-90A6B2C9640C}"/>
+		<param id="54" guid="{4F5C3E98-5179-433E-85CB-7C9E57345809}" name="Торговое оборудование. КР" nodetype="0" refkind="5" type="3" valueguid="{8EBAF842-4FF0-4AB5-A7C8-49B97BEE8DC3}"/>
+		<param id="55" guid="{09795C7B-A233-4446-BA42-A6A803A51101}" name="Папка для новых корреспондентов" nodetype="0" refkind="3" type="3"/>
+		<param id="56" guid="{442745FE-66B0-447F-A4B4-62F34EA45010}" name="Папка для новых объектов учета" nodetype="0" refkind="4" type="3"/>
+		<param id="57" guid="{281B8A88-3DFF-46B4-9160-F9F1D103B48D}" name="Форма оплаты" nodetype="0" refkind="5" type="3" valueguid="{78DAE15E-B01F-40C8-ADED-F00A6AFFA629}"/>
+		<param id="58" guid="{80AF3802-652A-4D9A-B1CB-9EB206119981}" name="Условия поставки" nodetype="0" refkind="5" type="3" valueguid="{983B9487-F09C-4D80-B233-C92BC45E26A5}"/>
+		<param id="59" guid="{C78A89A7-37D4-4FD9-B062-68B0C0DC72E9}" name="Страны" nodetype="0" refkind="5" type="3" valueguid="{4E201ECA-6246-4565-8CF6-CFE074C7DC75}"/>
+		<param id="60" guid="{AB859DD6-4BDA-4AD4-884F-45135D39675E}" name="Дисконтные карты" nodetype="0" refkind="5" type="3" valueguid="{51F99947-17D5-46CB-910D-E23270119B05}"/>
+		<param id="61" guid="{88C24D3D-7211-4941-A09C-848C91FCB2E0}" name="Менеджеры" nodetype="0" refkind="5" type="3" valueguid="{895BDF7C-61E2-4CBB-BFBA-690958D12ADD}"/>
+		<param id="62" guid="{F55792CA-B39E-4F5C-BC86-E48C9B0CF49F}" name="Группы скидок" nodetype="0" refkind="5" type="3" valueguid="{46949855-8516-4C78-88E5-53E88429896B}"/>
+	</dbparams>
+
+	<formparams>
+		<param id="12" guid="{4A210CC5-15C3-4C28-BF02-1BA64645EF1D}" name="Колонтитулы" nodetype="0" type="8"/>
+		<param id="13" guid="{FBAE0585-FA3B-4934-B830-DC7070F4E49C}" name="Границы печати" nodetype="0" type="8"/>
+		<param id="14" guid="{3125E0E4-5A95-449A-9AA9-DD040FFF9D0B}" name="Границы колонтитулов" nodetype="0" type="8"/>
+		<param id="15" guid="{4D6D6239-7EF4-4A2C-AEC8-6B5D0FB3DD8B}" name="Шаблон заголовка" nodetype="0" type="8"/>
+		<param id="16" guid="{52257AF1-A6AC-4F4A-8179-1B8079419381}" name="Установки" nodetype="0" type="8"/>
+	</formparams>
+	
+	<transparams>
+		<param id="19" guid="{423CDEF4-C144-11D5-915F-004F49068F5D}" name="Количество" nodetype="0" type="6"/>
+		<param id="20" guid="{FD25CBAB-C2F5-11D5-9164-004F49068F5D}" name="Сумма" nodetype="0" type="6"/>
+		<param id="48" guid="{878CB291-7880-11D6-8142-0002440B6A16}" name="Наценка" nodetype="0" type="6"/>
+		<param id="49" guid="{878CB292-7880-11D6-8142-0002440B6A16}" name="Процент" nodetype="0" type="6"/>
+		<param id="52" guid="{4FE7E305-27A2-11D7-A79F-0002442974C1}" name="Дата документа-основания" nodetype="0" type="7"/>
+		<param id="91" guid="{401B1BF4-F0F8-41EB-9D8B-272F0D418BD2}" name="Цена" nodetype="0" type="6"/>
+		<param id="98" guid="{BEABBE58-5E3B-4EF6-A352-1FA47B4D76E6}" name="Примечание" nodetype="0" type="8"/>
+		<param id="99" guid="{8EEB70EF-3E52-464C-A790-B50E6F9E18E3}" name="Вес" nodetype="0" type="5"/>
+		<param id="100" guid="{50B11332-5950-4071-9A3F-1A06FD3F9CA1}" name="Код" nodetype="0" type="8"/>
+		<param id="101" guid="{309524D8-CE53-4ACD-8C14-AE80A57E4FA8}" name="Признак" nodetype="0" type="3"/>
+		<param id="103" guid="{47033E5A-29AF-446E-B163-61826E1CFD44}" name="Уценка" nodetype="0" type="6"/>
+		<param id="104" guid="{1CF90B1B-2038-42B7-87BC-2B6A380D6689}" name="Ниже себест." nodetype="0" type="6"/>
+		<param id="105" guid="{28350641-150D-42C0-BA49-0EC1170BF4E8}" name="До переоценки" nodetype="0" type="6"/>
+		<param id="106" guid="{B9D51C69-9961-4911-B833-0A34B7DCF8C3}" name="После переоценки" nodetype="0" type="6"/>
+		<param id="107" guid="{35211BF9-B61A-4BC9-BCAA-61CFD0A0558E}" name="Таможенная цена" nodetype="0" type="6"/>
+		<param id="108" guid="{A1154CFF-8B22-48E3-B302-FABC1E7BD5CE}" name="% таможенной цены" nodetype="0" type="6"/>
+	</transparams>
+	
+	<tmlparams>
+		<param id="8" guid="{8555F571-D742-486B-8209-1BDE87E08F91}" name="Приоритет проведения" nodetype="1" type="3"/>
+		<param id="9" guid="{3E3E1178-A2B0-406D-97F4-E12F5127A5AD}" name="Только сумма" nodetype="1" refkind="18" refid="Логика" type="3"/>
+		<param id="10" guid="{81569FF7-90F2-4388-88F3-E41001754B68}" name="Изменен" nodetype="1" type="7"/>
+		<param id="11" guid="{1F8D7BDF-EF24-495A-8B86-71A87BD65F90}" name="Шаблон заголовка" nodetype="1" type="8"/>
+	</tmlparams>
+	
+</config>

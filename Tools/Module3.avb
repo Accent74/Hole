@@ -1,0 +1,59 @@
+Option Explicit
+'#include "hl74_ado.avb"
+'#include "hl74_common.avb"
+'#include "hl74_const.avb"
+
+Dim Op, prm
+
+Set Op = workarea.operation(20)
+Set prm = OP.TransList(4)
+'stop
+
+com_ClearTrans Op.TransList(4)
+Op.TransList(1).EnumTrans GetRef("CheckPriceRow"), prm
+OP.SAve
+
+Function CheckPriceRow(Tr, ByRef TrList)
+	Dim Tr2, Price, RestQty, RestSum, aData, RowNo
+	Dim i
+
+	CheckPriceRow = True
+
+	If Tr.EntID <> 0 Then	
+		com_CalcEntRest Tr.AccDbID, Tr.AgToID, Tr.EntID, Tr.Operation.ID, Tr.Date, RestQty, RestSum
+
+		If RestQty <> 0 And RestSum <> 0 Then
+			Price = Round2(RestSum / RestQty, 2)
+
+			If Price <> Tr.Params(prmTrPrice).Value2 Then
+				If com_GetRestEntSeries(Tr.AccDbID, Tr.AgToID, Tr.EntID, Tr.Operation.ID, Tr.Date, aData) Then
+					RowNo = TrList.Rows
+					If  TrList(RowNo).EntID <> 0 Then RowNo = RowNo + 1
+
+					For i = 0 To UBound(aData, 2)
+						Set Tr2 = TrList.Item(RowNo)
+						Tr2.EntID = Tr.EntID
+						Tr2.AgToID = Tr.AgToID
+						Tr2.SeriesID = aData(0, i)
+						Tr2.Qty = 0
+						Tr2.Sum = aData(1, i) * (Tr.Params(prmTrPrice).Value2 - Price)
+					Next
+				End If
+			End If
+		Else
+			Price = 0
+		End If
+	End If
+End Function
+
+Function com_GetRestEntSeries(AccID, AgID, EntID, DocID, OnDate, ByRef aData) 
+	Dim aQueryPrm
+
+	If App.AppType = "DAO" Then
+		aQueryPrm = Array(AgID, AccID, EntID, DocID, OnDate, Workarea.MyCompany.ID)
+		com_GetRestEntSeries = DAO_QueryByName("HL74_RestEntSeries", aQueryPrm, aData)
+	Else
+		com_GetRestEntSeries = False
+	End If
+
+End Function

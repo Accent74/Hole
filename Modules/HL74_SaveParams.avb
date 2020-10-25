@@ -1,0 +1,42 @@
+'#include "HL74_XML.avb"
+
+Option Explicit
+
+'---
+'
+'---
+Sub CreateParams(configname, configversion)
+	Dim xmlFileName, oXML, xmlRoot
+
+	Set oXML = New XML
+
+	If oXML.Create() Then
+		oXML.XML.appendChild(oXML.XML.createProcessingInstruction("xml", "version='1.0' encoding='windows-1251'"))
+		Set xmlRoot = oXML.XML.CreateElement("params")
+		xmlRoot.SetAttribute "configname", configname
+		xmlRoot.SetAttribute "configversion", configversion
+
+		xmlRoot.AppendChild GetElementParams(oXML.XML, "workarea", "", workarea.params, workarea.facts, 0, 0)
+
+		oXML.XML.appendChild xmlRoot
+		oXML.FileName = "HL74_Params.xml"
+		oXML.SaveAll	
+	Else
+	End If
+
+End Sub
+'---
+'
+'---
+Function GetElementParams(XML, ElRootName, ElName, Elparams, ElFacts, KindStart, KindEnd)
+	Dim xmlEl, i
+
+	xmlEl = xml.createelement(ElRootName)
+	
+	For i = KindStart, KindEnd
+	If Not ElParams Is Nothing Then xmlEl.AppendChild GetParams(XML, "params", ElParams)
+	If Not ElFacts Is Nothing Then xmlEl.AppendChild GetParams(XML, "facts", ElFacts)
+End Function
+'---
+'
+'---

@@ -1,0 +1,576 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+Const MSC_BOX_CAPTION = "Обмен данными с ЭККА"
+Const XML_FILE_NAME = "\IN\Data.xml"
+Const XML_FILE_PATH = "\OUT\History\"
+
+Const MODE_INTERNAL_PRICE = 0
+Const MODE_AG_PRICE_PRICE = 1
+'---
+'	загрузить по прайс-листу корреспондента (указывается в настройках ККМ)
+'---
+Sub HL74_LoadEntsPrices
+	HL74_LoadEnts MODE_AG_PRICE_PRICE, GetRef("CreateDataFilePrices")
+End Sub
+'---
+' загрузить по остаткам и ценам из прайс-листа(счет и корр. указываются в настройках ККМ). 
+'---
+Sub HL74_LoadEntsRestPrice
+	HL74_LoadEnts MODE_AG_PRICE_PRICE, GetRef("CreateDataFileRest")
+End Sub
+'---
+' загрузить по остаткам (счет и корр. указываются в настройках ККМ). 
+'---
+Sub HL74_LoadEntsRest
+	HL74_LoadEnts MODE_INTERNAL_PRICE, GetRef("CreateDataFileRest")
+End Sub
+'---
+'
+'---
+Sub HL74_LoadSalesFromFile
+	Dim Dlg, DictFiles, keys, key, AgID, ErrorMsg
+	Dim Msc, MscID
+
+	MscID = Workarea.Site.ID
+	Set Msc = Workarea.Misc(MscID)
+
+	If Msc.String3 = "" Or Msc.Long3 = 0 Then
+		MsgBox "Установите свойства ККМ", vbExclamation, MSG_BOX_CAPTION
+		Exit Sub
+	End If
+
+	Set Dlg = App.CreateDialog("HL74_M130_FileList.adg")
+
+	If Dlg.DoModal = vbOK Then
+		Set DictFiles = Dlg.Map.Item("DictFiles")
+		keys = DictFiles.Keys
+
+		For Each key In keys
+			If Not HL74_ImportData(DictFiles(key), Msc.Long3, ErrorMsg) Then
+				MsgBox "Ошибка в процессе импорта" & vbNewLine & ErrorMsg, vbCritical, MSG_BOX_CAPTION
+				Exit Sub
+			End If
+		Next
+
+	End If
+
+End Sub
+'---
+'
+'---
+Sub HL74_LoadSales
+	Dim Msc, M130
+
+	If M130_Open(M130, Msc) Then
+		M130.CollectReport 		
+
+		If M130.Result = "OK" Then
+			If HL74_LoadLastFile(Msc, ErrorMsg) Then
+				MsgBox "Данные импортированы успешно", vbInformation, MSG_BOX_CAPTION
+			Else
+				MsgBox "Ошибка импорта данных" & vbNewLine & ErrorMsg, vbInformation, MSG_BOX_CAPTION
+			End If
+		Else
+			MsgBox "В процессе выгрузки произошли ошибки." & vbNewLine & M130.Result, vbInformation, MSG_BOX_CAPTION
+		End If
+		
+		M130.Close
+		Set M130 = Nothing
+	End If
+End Sub
+'---
+'	mode: 1-285	2-pricelist
+'---
+Sub HL74_LoadEnts(Mode, ByRef GetData)
+	Dim M130, xmlFilePath, Msc, ErrorMsg
+
+	If M130_Open(M130, Msc) Then
+		If GetData(Msc, mode, ErrorMsg) Then
+			M130.UpdateWares
+
+			If M130.OperResult <> "OK" Then 
+				MsgBox "Ошибка импорта файла со списком товара: " & vbNewLine & M130.LastError, vbExclamation, MSC_BOX_CAPTION
+			Else
+				MsgBox "Загрузка окончена", vbInformation, MSC_BOX_CAPTION
+			End If
+		Else
+			MsgBox "Ошибка подготовки данных: " & vbNewLine & ErrorMsg, vbExclamation, MSC_BOX_CAPTION	
+		End If
+
+		M130.Close
+		Set M130 = Nothing
+	End If
+End Sub
+'---
+'
+'---
+Function GetEntList(Msc, ByRef ErrorMsg)
+	Dim Ag, DefPriceID, SQL, pKind
+
+	Set GetEntList = Nothing
+	Set Ag = Nothing
+	DefPriceID = Workarea.DefPriceList
+
+	If Msc.Long3 <> 0 Then
+		Set Ag = Workarea.Agent(Msc.Long3)
+	End If
+
+	If Ag Is Nothing Then
+		ErrorMsg = "Укажите подразделение в свойствах ККМ"
+	Else
+
+		Set pKind = GetPriceKind(Msc, ErrorMsg)
+
+		If Not pKind Is Nothing Then
+			If App.AppType = "DAO" Then
+				SQL = "Select distinct prc_contents.ent_id, ENTITIES.ENT_NAME, " & _
+							"(Select top 1 p.prc_value from prc_contents as p where p.ent_id = prc_contents.ent_id And p.prc_date <= Date() and prc_id = " & pKind.ID & " And prl_id = " & DefPriceID & " order by prc_date desc) AS price " & _
+							"FROM prc_contents Left Join ENTITIES On prc_contents.ENT_ID = ENTITIES.ENT_ID " & _
+							"where (Select top 1 p.prc_value from prc_contents as p where p.ent_id = prc_contents.ent_id And p.prc_date <= Date() and prc_id = " & pKind.ID & " And prl_id = " & DefPriceID & " order by prc_date desc) <> 0 " & _
+							"ORDER BY ENTITIES.ENT_NAME"
+		
+			Else
+				SQL = "Select distinct prc_contents.ent_id, ENTITIES.ENT_NAME,  " & _
+							"(Select top 1 p.prc_value from prc_contents as p where p.ent_id = prc_contents.ent_id And p.prc_date <= getdate() and prc_id = " & pKind.ID & " And prl_id = " & DefPriceID & " order by prc_date desc) AS price " & _
+							"FROM prc_contents Left Join ENTITIES On prc_contents.ENT_ID = ENTITIES.ENT_ID " & _
+							"where (Select top 1 p.prc_value from prc_contents as p where p.ent_id = prc_contents.ent_id And p.prc_date <= getDate() and prc_id = " & pKind.ID & " And prl_id = " & DefPriceID & " order by prc_date desc) <> 0 " & _
+							"ORDER BY ENTITIES.ENT_NAME"
+			End If
+	
+ 			Set GetEntList = GetRs(SQL)
+
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function CreateDataFilePrices(Msc, mode, ByRef ErrorMsg)
+	Dim xmlBuffer, defPrice, Rs
+
+	defPrice = Workarea.DefPriceList
+	CreateDataFilePrices = False
+
+	Set Rs = GetEntList(Msc, ErrorMsg)
+
+	If Not Rs Is Nothing Then
+		xmlBuffer = MakeXMLHeader()
+
+		While Not Rs.EOF
+			WriteOneRow Rs.Fields(0).Value, Rs.Fields(2).Value, xmlBuffer
+			Rs.MoveNext
+		Wend
+
+		MakeXMLBottom xmlBuffer
+		CreateDataFilePrices = WriteTextFile(Trim(Msc.String3), xmlBuffer, Msc.Tag, ErrorMsg)
+	Else
+		ErrorMsg = "Ошибка построения отчета"
+	End If
+
+	
+End Function
+'---
+'
+'---
+Function GetPriceKind(Msc, ByRef ErrorMsg)
+	Dim Ag, pKindID, pKind
+
+	Set Ag = Workarea.Agent(Msc.Long3)
+	Set pKind = Nothing
+
+	If Ag Is Nothing Then
+		Msc.Long3 = 0
+		Msc.Save
+		ErrorMsg = "В свойствах ККМ: " & Msc.Tag & " не указан корреспондент"
+	Else
+		pKindID = Ag.Params(prmAgDefPrice).Value2
+
+		If pKindID <> 0 Then
+			Set pKind = Workarea.PriceKind(pKindID)
+		End If
+
+		If pKind Is Nothing Then
+			ErrorMsg = "В свойствах корреспондента: " & Ag.Name & " укажите вид цены по умолчанию"		
+		End If
+	End If
+
+	Set GetPriceKind = pKind
+
+End Function
+'---
+'
+'---
+Function CreateDataFileRest(Msc, mode, ByRef ErrorMsg)
+	Dim Root, i, Ent, xmlBuffer
+	Dim EndSaldo, WR, pKind, price
+
+	CreateDataFileRest = False
+	Set Root = Nothing
+
+	If Mode = MODE_AG_PRICE_PRICE Then
+		Set pKind = GetPriceKind(Msc, ErrorMsg)
+		If pKind Is Nothing Then Exit Function
+	End If
+
+	If MakeReport(Msc.Long2, Msc.Long3, WR) Then
+		xmlBuffer = MakeXMLHeader()
+
+		With WR.Root.Child(1)
+			For i = 1 To .Children
+				With .Child(i)
+					EndSaldo = (.EndDB - .EndCR)
+
+					If .Value <> 0 And EndSaldo > 0 And .QtyEnd > 0 Then
+						If Mode = MODE_AG_PRICE_PRICE Then
+							price = pKind.GetEntPrice(.Value)
+						Else
+							price = round2(EndSaldo / .QtyEnd, 2)
+						End If
+
+						WriteOneRow .Value, price, xmlBuffer
+					End If
+				End With
+			Next
+		End With
+
+		MakeXMLBottom xmlBuffer
+		CreateDataFileRest = WriteTextFile(Trim(Msc.String3), xmlBuffer, Msc.Tag, ErrorMsg)
+	Else
+		ErrorMsg = "Ошибка построения отчета"
+	End If
+	
+End Function
+'---
+'
+'---
+Function WriteTextFile(xmlFileName, ByRef xmlBuffer, CashPrintName, ByRef ErrorMsg)
+	Dim FSO, xmlFile
+
+	If Right(xmlFileName, 1) <> "\" Then xmlFileName = xmlFileName & "\"
+	xmlFileName = xmlFileName & CashPrintName & XML_FILE_NAME
+
+	On Error Resume Next
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+
+	If Err.Number = 0 Then 
+		Set xmlFile = FSO.CreateTextFile(xmlFileName, 2)
+
+		If Err.Number = 0 Then 
+			xmlFile.Write xmlBuffer
+			xmlFile.Close
+		End If
+	End If
+
+	If Err.Number <> 0 Then 
+		ErrorMsg = Err.Description
+		WriteTextFile = False
+	Else
+		WriteTextFile = True
+	End If
+End Function
+'---
+'
+'---
+Sub MakeXMLBottom(ByRef xmlBuffer)
+	xmlBuffer = xmlBuffer & vbTab & "</WARES>" & vbNewLine
+	xmlBuffer = xmlBuffer & "</INCOTEX_MERCURY_CASHER_OFFLINE_UPDATE>" & vbNewLine
+End Sub
+'---
+'
+'---
+Function MakeXMLHeader()
+	Dim xmlBuffer
+
+	xmlBuffer = "<?xml version='1.0' encoding='windows-1251'?>" & vbNewLine
+	xmlBuffer = xmlBuffer & "<INCOTEX_MERCURY_CASHER_OFFLINE_UPDATE VERSION='1.0.1' MODE='CLEAR_BEFORE'>" & vbNewLine
+	xmlBuffer = xmlBuffer & vbTab & "<WARES>" & vbNewLine
+
+	MakeXMLHeader = xmlBuffer
+End Function
+'---
+'
+'---
+Sub SetEntArt(Ent)
+	Dim Rs, SQL
+
+	If App.AppType = "DAO" Then
+		SQL = "Select max(IIf(IsNull(ent_art),0,ent_art)) FROM entities WHERE (((entities.[ENT_TYPE])>1000) And ((IsNumeric([ent_art]))<>False))"
+	Else
+		SQL = "Select max(IsNull(ent_art, 0)) from entities where ENT_TYPE > 1000 And IsNumeric(ent_art) = 1"
+	End If
+
+	Set Rs = GetRs(SQL)
+
+	If Not Rs.eof Then
+		Ent.Art = checknull(Rs.Fields(0).Value, 0) + 1
+	Else
+		Ent.Art = 1
+	End If
+
+	Ent.Save
+End Sub
+'---
+'
+'---
+Sub WriteOneRow(EntID, Price, ByRef xmlBuffer)
+	Dim Ent
+
+	Set Ent = Workarea.Entity(EntID)
+	
+	If Not Ent Is Nothing Then
+		If Ent.Art = "" Then SetEntArt Ent
+
+		xmlBuffer = xmlBuffer & vbTab & vbTab & "<WARE "
+		xmlBuffer = xmlBuffer & "PLU=" & Chr(34) & Ent.Art & Chr(34)
+		xmlBuffer = xmlBuffer & " NAME=" & Chr(34) & Com_GetParamValue(Ent, prmEntCashName, Ent.Name) & Chr(34)
+		xmlBuffer = xmlBuffer & " TYPE=" & Chr(34) & "0" & Chr(34)
+		xmlBuffer = xmlBuffer & " GROUP=" & Chr(34) & "Продукты " & Chr(34) 
+		xmlBuffer = xmlBuffer & " GROUPID=" & Chr(34) & "000000003" & Chr(34) 
+		xmlBuffer = xmlBuffer & " ED=" & Chr(34) & Com_GetUnitName(Ent.UnitID) & Chr(34)
+		xmlBuffer = xmlBuffer & " PRICE=" & Chr(34) & FormatNumber(Price, 2) & Chr(34)
+		xmlBuffer = xmlBuffer & " TAX=" & Chr(34) & "0%" & Chr(34)
+		xmlBuffer = xmlBuffer & " WEIGHT=" & Chr(34) & "0" & Chr(34)
+		xmlBuffer = xmlBuffer & " REMAINS=" & Chr(34) & "0" & Chr(34)
+		xmlBuffer = xmlBuffer & " DESCRIPTION=" & Chr(34) & "" & Chr(34) 
+		xmlBuffer = xmlBuffer & " PRODUCER=" & Chr(34) & "" & Chr(34) 
+		xmlBuffer = xmlBuffer & " CONSIGNMENT=" & Chr(34) & "" & Chr(34) 
+		xmlBuffer = xmlBuffer & " WEIGHTCODE=" & Chr(34) & "" & Chr(34)
+		xmlBuffer = xmlBuffer & "></WARE>"& vbNewLine
+	End If
+End Sub
+'---
+'
+'---
+Function MakeReport(AccID, AgID, ByRef WR)
+	Set WR = Workarea.CreateReport("RepWizard")
+	WR.AccID = AccID
+	WR.Kind = acAgent
+	WR.KindID = AgID
+
+	WR.SetRemMode False, 0
+	WR.SetTurnMode False, 0
+	WR.SetTurnMode True, 0
+	WR.SetRemMode True, 2, 1
+
+	WR.AddColumn 3
+	WR.AddColumn 5
+
+	MakeReport = WR.Build
+End Function
+'---
+'
+'---
+Function M130_Open(ByRef M130, ByRef Msc)
+	Dim MscID
+
+	MscID = Workarea.Site.ID
+	M130_Open = False
+
+	If MscID <> 0 Then
+		Set Msc = Workarea.Misc(MscID)
+
+		If Not Msc Is Nothing Then
+
+			If Msc.String3 = "" Or Msc.Long2 = 0 Or Msc.Tag = "" Then
+				MsgBox "Установите в свойствах параметры для обмена", vbExclamation, MSG_BOX_CAPTION
+				Exit Function
+			End If
+
+			On Error Resume Next
+			Set M130 = CreateObject("MercuryCOM.KKMOffline")
+
+			If Err.Number <> 0 Then
+				MsgBox "Ошибка создания ActiveX: " & Err.Description & " (" & Err.Number & ")", vbCritical, MSG_BOX_CAPTION
+			Else
+				M130.Open(Msc.Tag)
+
+				If M130.OperResult = "OK" Then
+					M130_Open = True
+				Else
+					MsgBox "Ошибка открытия ККМ: " & M130.OperResult & " ККМ:" & Msc.Tag, vbCritical, MSG_BOX_CAPTION
+				End If
+			End If
+
+			Err.Clear
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Sub HL74_M130_Config
+	Dim M130, Msc, MscID
+
+	If M130_Open(M130, Msc) Then
+		If M130.CanEditCfg Then
+			M130.EditDeviceList
+		Else
+			MsgBox "Редактирование свойств ЭККА запрещено." & vbNewLine & "Возможно доступ заблокировн другой программой.", vbExclamation, MSG_BOX_CAPTION
+		End If
+		
+		M130.Close
+		Set M130 = Nothing	
+	End If
+
+End Sub
+'---
+'
+'---
+Function HL74_LoadLastFile(Msc, ByRef ErrorMsg)
+	Dim FSO, Fld, Fls, Fl, FileDate, FilePath, FileExt
+
+	HL74_LoadLastFile = False
+	Set FSO = CreateObject("Scripting.FileSystemObject")
+	Set Fld = FSO.GetFolder(Msc.String3 & XML_FILE_PATH)
+	Set Fls = Fld.Files
+
+	FileDate = Date()
+	FilePath = ""
+
+	For Each Fl In Fls
+		FileExt = LCase(Mid(fl.Name, InStrRev(fl.Name, ".") + 1))
+		If FileDate < Fl.DateCreated And FileExt = "xml" Then 
+			FileDate = Fl.DateCreated
+			FilePath = Fl.Path
+		End If
+	Next
+	
+	If FilePath <> "" And FileDate >= Date() Then
+		HL74_LoadLastFile = HL74_ImportData(FilePath, Msc.Long3, ErrorMsg)
+	Else
+		ErrorMsg = "Данные не обнаружены"
+	End If
+
+End Function
+
+'---
+'
+'---
+Function GetEntID(Art, EntRoot)
+	Dim Rs, SQL, NewEnt
+
+	SQL = "select ent_id from entities where ent_type > 1000 and ent_art like '" & Art & "'"
+	
+	Set Rs = GetRS(SQL)
+
+	If rs.eof Then
+		Set NewEnt = EntRoot.Create(1004, "<Артикул " & Art & " не найден>")
+		NewEnt.Art = Art
+		NewEnt.Save
+		GetEntID = NewEnt.ID
+	Else
+		GetEntID = Rs.Fields(0).Value
+	End If
+End Function
+'---
+'
+'---
+Function GetTMLID(TmlKey)
+	Dim Rs, SQL
+
+	SQL = "select tml_id from templates where tml_tag like '" & TmlKey & "'"
+	
+	Set Rs = GetRS(SQL)
+
+	If rs.eof Then
+		GetTMLID = 0
+	Else
+		GetTMLID = Rs.Fields(0).Value
+	End If
+
+End Function
+'---
+'
+'---
+Sub MakeTrans(Root, Op, DictEnt, EntRoot)
+	Dim i, Art, Tr
+			
+	For i = 0 To Root.Length - 1
+		With Root.Item(i)
+			Art = .GetAttribute("PLU")
+			Set Tr = Op.Trans(1, i + 1)
+
+			If Not DictEnt.Exists(Art) Then
+				DictEnt.Add Art, GetEntID(Art, EntRoot)
+			End If
+
+			Tr.EntID = DictEnt(Art)
+			Tr.Qty = .GetAttribute("COUNT")
+			Tr.SUM = .GetAttribute("OPER_SUM")
+		End With
+	Next
+End Sub
+'---
+'
+'---
+Function HL74_ImportData(xmlFileName, AgID, ByRef ErrorMsg)
+	Dim oXml, xmlRoot, Op, DictEnt, Cancel
+	Dim i, EntRoot, KKM_Name, TmlKey, DictTml
+
+	HL74_ImportData = False
+	Set EntRoot = Workarea.Entities
+	Set oXml = New XML
+	
+	If oXML.Create() Then
+		oXML.xmlFileName = xmlFileName
+		If oXml.Load() Then 
+			Set xmlRoot = oXml.xml.documentElement.selectNodes("/INCOTEX_MERCURY_CASHER_OFFLINE_REPORT/REP_SHIFT").item(0)
+
+			If xmlRoot.ChildNodes.Length > 0 Then
+				Set DictEnt = CreateObject("Scripting.Dictionary")
+				Set DictTml = CreateObject("Scripting.Dictionary")
+				KKM_Name = xmlRoot.GetAttribute("ECR")
+
+				With xmlRoot.ChildNodes.item(0).childnodes
+					For i = 0 To .Length - 1
+						With .Item(i)
+							Set Op = Workarea.CreateOperation
+							MakeTrans .ChildNodes, Op, DictEnt, EntRoot
+
+							Op.Date = .GetAttribute("DATE")
+							Op.DocNo = .GetAttribute("CHK_NO")
+							Op.TransList(1).SetAgFrom AgID
+				
+							TmlKey = KKM_Name & ":" & .GetAttribute("CHK_TYPE")
+							If Not DictTML.Exists(TmlKey) Then DictTML.Add TmlKey, GetTmlID(TmlKey)
+							
+							Op.TemplateID = DictTML(TmlKey)
+
+							With Op.TemplateInvoker2
+								.FireOnApply
+								.FireOnRecalc
+								.FireBeforeSave Cancel
+							End With
+
+							Op.Save
+					
+						End With
+					Next
+			
+					HL74_ImportData = True
+
+				End With
+			Else	
+				ErrorMsg = "Данные по продажам отсутствуют"
+			End If
+		Else
+			ErrorMsg = oXml.ErrorMsg
+		End If
+	Else
+		ErrorMsg = oXml.ErrorMsg
+	End If
+	
+End Function
+'---
+'
+'---
+
+
+'HL74_M130_Config
+'HL74_LoadEntsPrices(Mode)
+'HL74_LoadEntsRest(Mode)
+'LoadSales

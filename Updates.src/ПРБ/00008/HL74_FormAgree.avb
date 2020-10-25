@@ -1,0 +1,156 @@
+Option Explicit
+
+Class Form_Agree
+
+	Public sgrdPayList
+	Public AccID
+	Public slAgree
+	Public lbAgree
+	Public lbAgreeList
+	Public AgreeMscNo
+	Public chkAllAgree
+	Public RefVisibleCheck
+	Public Op
+	Public Ag
+
+	Private Sub Class_initialize
+		AccID = 0
+
+		Set sgrdPayList = Nothing
+		Set slAgree = Nothing
+		Set lbAgree = Nothing
+		Set chkAllAgree = Nothing 
+		Set RefVisibleCheck = Nothing
+		Set lbAgreeList = Nothing
+		Set Op = Nothing
+		Set Ag = Nothing
+	End Sub
+
+	Public Sub SetAgree(aTransNo)
+		Dim i, MscID
+
+		MscID = Op.Trans(1).MiscID(AgreeMscNo)
+
+		For i = 0 To UBound(aTransNo)
+			Op.TransList(aTransNo(i)).SetMisc AgreeMscNo, MscID
+		Next
+
+	End Sub
+
+	Public Sub AfterRecalc(ColNo)
+		Dim IsDisableBindClick
+
+		IsDisableBindClick = (Ag.ID <> 0 And Not chkAllAgree.Checked)
+
+		slAgree.Enabled = CheckAgreeVisible()
+		slAgree.DisableBindClick IsDisableBindClick
+		chkAllAgree.Enabled = slAgree.Enabled
+
+		'lbAgree.Enabled = (AgreeMscNo <> 0)
+		If Not lbAgreeList Is Nothing Then lbAgreeList.Visible = Not slAgree.Enabled
+
+		If Not sgrdPayList Is Nothing Then
+			If ColNo <> 0 Then
+	 			sgrdPayList.Column(ColNo).DisableBindClick IsDisableBindClick
+			End If
+
+			sgrdPayList_pack
+			sgrdPayList.CalcAutoHeight
+			sgrdPayList.PackAutoGrow
+		End If
+	End Sub
+
+	Public Sub Init
+		If Not sgrdPayList Is Nothing Then
+			sgrdPayList.Column(3).DisableBindClick True
+			sgrdPayList.column(3).customBind False
+		End If
+	End Sub
+
+	Private Function CheckAgreeVisible()
+		Dim Count
+
+		Count = 0
+		Op.TransList(1).EnumTrans RefVisibleCheck, Count
+		CheckAgreeVisible = Not (Count > 1)
+
+	End Function
+
+	Private Sub sgrdPayList_pack
+		Dim i
+
+		i = 1
+
+		While i <= Op.Translist(1).Rows
+			With Op.Trans(1, i)
+				If .Sum = 0 And .MiscID(AgreeMscNo) = 0 Then
+					If i > 1 Then
+						Op.Translist(1).DeleteRow i
+					Else
+						i = i + 1				
+					End If
+				Else
+					i = i + 1				
+				End If
+			End With
+		Wend 
+
+	End Sub
+
+	Public Sub CheckAgree
+		With Op.Trans(1)
+			If .MiscID(AgreeMscNo) <> 0 Then
+				If Ag.ID = 0 Then
+					Ag.ID = .Misc(AgreeMscNo).Long1
+				ElseIf Ag.ID <> .Misc(AgreeMscNo).Long1 Then
+					.MiscID(AgreeMscNo) = 0
+				End If
+			End If
+		End With
+	End Sub
+
+	Public Sub ShowDlgAgree(Row)
+		Dim Dlg
+	
+		Set Dlg = App.CreateDialog("HL74_AgreeList.adg")
+		Set Dlg.Map.Item("Ag") = Ag
+		Dlg.Map("AgreeMscNo") = AgreeMscNo
+	
+		If Dlg.DoModal = vbOK Then
+			If Row = 0 Then
+				Op.TransList(1).SetMisc AgreeMscNo, Dlg.Map("MscID")
+			Else
+				Op.Trans(1, Row).MiscID(AgreeMscNo) = Dlg.Map("MscID")
+			End If
+
+			CheckAgree
+		End If
+	End Sub
+
+	Public Sub ShowDlgInvoice(Row, Column, AccPayID, MyCoID)
+		Dim Dlg
+	
+		Set Dlg = App.CreateDialog("HL74_InvList.adg")
+		Dlg.Map("OnDate") = Op.Date
+		Dlg.Map("MC") = MyCoID
+		Dlg.Map("AccInvoiceID") = AccID
+		Dlg.Map("AccPayID") = AccPayID
+		Dlg.Map("AgreeMscNo") = AgreeMscNo
+		Dlg.Map("DocID") = Op.ID
+		Set Dlg.Map.Item("Msc") = Op.TRans(1, Row).Misc(AgreeMscNo)
+			
+		If Dlg.DoModal = vbOK Then
+			With Op.Trans(1, Row)
+				.MiscID(AgreeMscNo) = Dlg.Map("MscID")
+				.ParentDocID = Dlg.Map("DocID")
+				.Params(prmTrMemo).Value = GetParentDocName(.ParentDocID)
+				.Params(prmTrSum).Value = Dlg.Map("DocSum")
+				.Sum = Dlg.Map("RestSum")
+			End With
+		End If
+	End Sub
+
+	Private Sub Class_terminate
+	End Sub
+
+End Class

@@ -1,0 +1,12 @@
+'#include "HL74_Const.avb"
+Option Explicit
+
+Dim aPrm, ElNew
+
+
+Set ElNew = Workarea.Entities.Create(1004, "!test")
+
+stop
+aPrm = Array("AfterCreate", acEntity, ElNew.ID, Empty)
+app.RunModule Workarea.Map(mapWAWorkareaPath), "RunEventsApp", aPrm
+stop

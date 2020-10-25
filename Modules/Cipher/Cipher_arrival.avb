@@ -1,0 +1,13 @@
+Option Explicit
+
+'#include "Cipher_common.avb"
+
+Dim Cipher1
+
+stop
+Set Cipher1 = New Cipher
+
+Cipher1.SetAgIDExt = GetRef("NewEnt")
+
+Function NewEnt
+End Function

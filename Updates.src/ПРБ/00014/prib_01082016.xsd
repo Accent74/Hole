@@ -1,0 +1,281 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="REPORT">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="DPAHEAD">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DATE_PODACHI">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                              
+                            <xs:pattern value="(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+              
+              <xs:element name="TYPE_DECL">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-3]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element> 
+              
+              
+              
+              <xs:element name="TYPE_PERIOD">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-2]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+
+              
+              <xs:element name="MONTH_REPORT">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="(0[1-9]|1[012])"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              
+              
+              <xs:element name="YEAR_REPORT">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="(20)[0-9]{2}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              <xs:element type="xs:long" name="INN"/>
+           
+              
+              <xs:element name="FACE_MODE">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[1-3]{1}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              
+              
+              
+         
+              
+              
+              <xs:element name="NAME_PLAT">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="1"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+              
+              
+              <xs:element name="YUR_ADDRES">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="4"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            
+
+              <xs:element type="xs:string" name="TEL"/>
+              <xs:element type="xs:string" name="EMAIL"/>
+              <xs:element type="xs:float" name="KVED"/>
+              
+              <xs:element name="STI">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[0-9]{3}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+
+              <xs:element type="xs:long" name="SHARE_GOS"/>
+              
+              <xs:element name="FIO_PREDPR">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:minLength value="4"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+              
+              
+              <xs:element type="xs:string" name="FIO_BUH"/>
+               
+              <xs:element type="xs:long" name="ROW1"/>
+              <xs:element type="xs:long" name="ROW1_1"/>
+              <xs:element type="xs:long" name="ROW1_1_1"/>
+              <xs:element type="xs:long" name="ROW1_1_2"/>
+              <xs:element type="xs:long" name="ROW1_2"/>
+              <xs:element type="xs:long" name="ROW1_2_1"/>
+              <xs:element type="xs:long" name="ROW1_3"/>
+              <xs:element type="xs:long" name="ROW1_4"/>
+              <xs:element type="xs:long" name="ROW1_5"/>
+              <xs:element type="xs:long" name="ROW1_6"/>
+              <xs:element type="xs:long" name="ROW1_7"/>
+              <xs:element type="xs:long" name="ROW1_8"/>
+              <xs:element type="xs:long" name="ROW2"/>
+              <xs:element type="xs:long" name="ROW2_1"/>
+              <xs:element type="xs:long" name="ROW2_2"/>
+              <xs:element type="xs:long" name="ROW2_3"/>
+              <xs:element type="xs:long" name="ROW2_4"/>
+              <xs:element type="xs:long" name="ROW3"/>
+              <xs:element type="xs:long" name="ROW3_1"/>
+              <xs:element type="xs:long" name="ROW3_2"/>
+              <xs:element type="xs:long" name="ROW3_3"/>
+              <xs:element type="xs:long" name="ROW3_4"/>
+              <xs:element type="xs:long" name="ROW3_5"/>
+              <xs:element type="xs:long" name="ROW3_6"/>
+              <xs:element type="xs:long" name="ROW3_7"/>
+              <xs:element type="xs:long" name="ROW3_8"/>
+              <xs:element type="xs:long" name="ROW3_9"/>
+              <xs:element type="xs:long" name="ROW3_10"/>
+              <xs:element type="xs:long" name="ROW3_11"/>
+              <xs:element type="xs:long" name="ROW3_12"/>
+              <xs:element type="xs:long" name="ROW3_13"/>
+              <xs:element type="xs:long" name="ROW3_14"/>
+              <xs:element type="xs:long" name="ROW4"/>
+              <xs:element type="xs:long" name="ROW4_1"/>
+              <xs:element type="xs:long" name="ROW4_2"/>
+              <xs:element type="xs:long" name="ROW4_3"/>
+              <xs:element type="xs:long" name="ROW4_4"/>
+              <xs:element type="xs:long" name="ROW4_5"/>
+              <xs:element type="xs:long" name="ROW4_6"/>
+              <xs:element type="xs:long" name="ROW5"/>
+              <xs:element type="xs:long" name="ROW6"/>
+              <xs:element type="xs:long" name="ROW7"/>
+              <xs:element type="xs:long" name="ROW8"/>
+              <xs:element type="xs:long" name="ROW9"/>
+              <xs:element type="xs:long" name="ROW10"/>
+              <xs:element type="xs:long" name="ROW11"/>
+              <xs:element type="xs:long" name="ROW12"/>
+              <xs:element type="xs:long" name="ROW13"/>
+              <xs:element type="xs:long" name="ROW14"/>
+              <xs:element type="xs:long" name="ROW15"/>
+              <xs:element type="xs:long" name="ROW16"/>
+              <xs:element type="xs:long" name="ROW17"/>
+              <xs:element type="xs:long" name="ROW18"/>
+              <xs:element type="xs:long" name="ROW19"/>
+              <xs:element type="xs:long" name="ROW20"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_ISSUE">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_BUYER"/>
+                    <xs:element type="xs:string" name="VIEW_DOC"/>
+                    
+                     <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_GET">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME_PROVAIDER"/>
+                    <xs:element type="xs:string" name="VIEW_DOC"/>
+                    
+                      <xs:element name="DATE_DOC">
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                            <xs:pattern value="((0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d)*"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                    
+                    <xs:element type="xs:string" name="N_DOC"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="NOT_INCLUDED_INCOMES">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                    <xs:element type="xs:string" name="STRING_DECL"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="NOT_INCLUDED_COSTS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="INN"/>
+                    <xs:element type="xs:string" name="NAME"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                    <xs:element type="xs:string" name="STRING_DECL"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ATTACHMENT_AM">
+          <xs:complexType>
+            <xs:sequence> 
+              <xs:element name="ROW" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                   <xs:element type="xs:long" name="NPP"/>
+                    <xs:element type="xs:string" name="N_GROUP"/>
+                    <xs:element type="xs:float" name="PRICE"/>
+                    <xs:element type="xs:float" name="BEGIN_PERIOD"/>
+                    <xs:element type="xs:float" name="END_PERIOD"/>
+                    <xs:element type="xs:float" name="SUMMA"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

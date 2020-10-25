@@ -1,0 +1,33 @@
+Option Explicit
+
+AddQuery "ST7_TaxInDocs", _
+				"PARAMETERS Acc631ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long; " &_
+				"Select A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO, Sum(J.J_SUM) AS [Sum-J_SUM] " &_
+				"FROM AGENTS AS A INNER Join ((JRN_TAX AS JT INNER Join JOURNAL AS J On JT.J_ID = J.J_ID) INNER Join DOCUMENTS AS D On J.DOC_ID = D.DOC_ID) On A.AG_ID = J.J_AG2 " &_
+				"WHERE (((JT.TX_ID)=[TaxRepID]) And ((JT.[JT_ADDR1])='Ä.À.') AND ((J.MC_ID)=[MCID]) AND ((J.[J_DATE])>=[StartDate] And (J.[J_DATE])<[EndDate]) AND ((J.[J_DONE])=2) AND ((J.[ACC_CR]) In (select id from acc_tree where Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7)))) " &_
+				"GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;"
+				
+AddQuery "ST7_TaxOutDocs", _
+				"PARAMETERS Acc361ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long; " &_
+				"Select A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO, Sum(J.J_SUM) AS [Sum-J_SUM] " &_
+				"FROM AGENTS AS A INNER Join ((JRN_TAX AS JT INNER Join JOURNAL AS J On JT.J_ID = J.J_ID) INNER Join DOCUMENTS AS D On J.DOC_ID = D.DOC_ID) On A.AG_ID = J.J_AG1 " &_
+				"WHERE (((JT.TX_ID)=[TaxRepID]) And ((JT.[JT_ADDR1])='Ä.À.') AND ((J.MC_ID)=[MCID]) AND ((J.[J_DATE])>=[StartDate] And (J.[J_DATE])<[EndDate]) AND ((J.[J_DONE])=2) AND ((J.[ACC_DB]) In (select id from acc_tree where Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7)))) " &_
+				"GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;"
+
+Sub AddQuery(QueryName, QuerySQL)
+	Dim i, QD
+
+	With workarea.daodatabase.querydefs
+		For i = 0 To .count - 1
+			Set QD = .item(i)
+
+			If UCase(QD.Name) = UCase(QueryName) Then
+				.Delete QueryName
+				Exit For
+			End If
+		Next
+
+	End With
+
+	workarea.daodatabase.CreateQueryDef QueryName, QuerySQL
+End Sub

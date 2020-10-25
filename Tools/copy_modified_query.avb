@@ -1,0 +1,75 @@
+'#include "HL74_XML.avb"
+'#include "HL74_ADO.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Обработка файлов базы данных"
+Const FOLDER_DIST = "temp"
+Const XML_FILES_FILE_NAME = "Queries"
+Const CONFIG_CODE = "HL74_"
+Const CONFIG_NAME = "ПРБ"
+Const CONFIG_VERSION = "020"
+
+Dim i, QDs, RD, RootFolder, Rs, aData, SQL
+Dim MODIFIED_DATE
+Dim oXml, xmlRoot, xmlElem
+
+MODIFIED_DATE = CDate("17/04/2018")
+Set RD = createlibobject("Redirect")
+RootFolder = RD.DBPath
+RootFolder = RootFolder & iif(Right(RootFolder, 1) <> "\", "\", "") & "..\"
+
+Set oXml = New xml
+
+If oXml.Create() Then
+	Set xmlRoot = oXml.Xml.CreateElement("scripts")
+	xmlRoot.SetAttribute "configversion", CONFIG_VERSION
+	xmlRoot.SetAttribute "configname", CONFIG_NAME
+	xmlRoot.SetAttribute "configdate", formatdate2(Date, "dd/mm/yyyy")
+
+	If App.AppType = "DAO" Then
+		Set QDs = Workarea.DAODataBase.QueryDefs
+
+		For i = 0 To QDs.Count - 1
+			With QDs.Item(i)
+				If .LastUpdated > MODIFIED_DATE Then
+					Set xmlElem = oXml.xml.CreateElement("query")
+					xmlElem.SetAttribute "type", "DAO"
+					xmlElem.SetAttribute "name", .name
+					xmlElem.SetAttribute "cmd", "add"
+					xmlElem.SetAttribute "lastmodifieddate", .LastUpdated
+					xmlElem.text = .SQL
+
+					xmlRoot.AppendChild xmlElem
+				End If
+			End With
+		Next
+	Else
+
+		SQL = "Select sp.name, sm.definition, sp.modify_date " & _
+					"FROM sys.objects sp INNER Join sys.sql_modules sm On sp.object_id = sm.object_id " & _
+					"WHERE   sp.[Type] = 'P' And DB_NAME() like 'Hole_stable' 	And sp.modify_date >" & Replace(Formatdate2(MODIFIED_DATE, "'yyyy mm dd' "), " ", "") & _
+					"ORDER BY sp.name"
+
+		If GetRs2(SQL, aData) Then
+			For i = 0 To UBound(aData, 2)
+				Set xmlElem = oXml.xml.CreateElement("query")
+				xmlElem.SetAttribute "type", "OLEDB"
+				xmlElem.SetAttribute "name", aData(0, i)
+				xmlElem.SetAttribute "cmd", "add"
+				xmlElem.SetAttribute "lastmodifieddate", aData(2, i)
+				xmlElem.text = aData(1, i)
+
+				xmlRoot.AppendChild xmlElem
+			Next
+
+		End If
+	End If
+
+	oXml.xml.InsertBefore xmlRoot, Null
+	oXml.FileName = RootFolder & FOLDER_DIST & "\" & CONFIG_CODE & XML_FILES_FILE_NAME & app.AppType & ".XML"
+
+	oXml.SaveAll
+Else
+	MsgBox oXml.ErrorMsg, vbCritical, MSG_BOX_CAPTION
+End If

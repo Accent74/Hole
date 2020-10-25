@@ -1,0 +1,40 @@
+Option Explicit
+
+Dim aCodes, i, SerDict, j, AccID
+
+aCodes = Array("282", "285")
+Set SerDict = CreateObject("Scripting.dictionary")
+
+For i = 0 To UBound(aCodes)
+	AccID = Workarea.GetAccID(aCodes(i))
+
+	With Workarea.Operations(acAccount, AccID)
+		For j = 1 To .Count
+			With .Item(j)
+				.TransList(1).EnumTrans GetRef("UpdateSeriesRow"), AccID
+				.Save 8 + 16
+			End With
+		Next
+	End With
+Next
+
+Function UpdateSeriesRow(Tr, ByRef AccID)
+	Dim Key
+If Tr.entid = 3597 Then stop
+	UpdateSeriesRow = True
+
+	If Tr.AccDBID = AccID Then
+		key = Tr.AgToID
+	Else
+		key = Tr.AgFromID
+	End If
+		
+	Key = Key & ":" & Tr.EntID
+
+	If SerDict.Exists(Key) Then
+		Tr.SeriesID = SerDict.Item(Key)
+	Else
+		SerDict.Add Key, Tr.SeriesID
+	End If
+
+End Function

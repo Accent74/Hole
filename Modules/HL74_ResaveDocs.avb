@@ -1,0 +1,76 @@
+Option Explicit
+
+'#include "HL74_Users.avb"
+
+Const MSG_BOX_CAPTION = "Повторное проведение документов"
+
+
+'---
+'
+'---
+Sub HL74_ResaveDocs
+	Dim i, DictOp, key, Keys, Op
+	Dim Cancel, mtr
+
+	If Not (IsUserInGroup("Admins") Or IsUserInGroup("Повторное проведение")) Then Exit Sub
+	If MsgBox("Провести выделеные документы повторно ?", vbQuestion + vbOKCancel, MSG_BOX_CAPTION) <> vbOK Then Exit Sub
+
+	Set DictOp = CreateObject("Scripting.Dictionary")
+	Set mtr = Meter()
+
+	With Workarea.Site.Selected
+		Mtr.Open "Подготовка документов ...", 1, .Count
+
+		For i = 1 To .Count
+			Mtr.Pos = i
+			DoEvent
+
+			Set Op = .Item(i)
+			With Op
+				If .Done Then
+					.Done = False
+					.Save
+
+					key = Replace(formatdate2(Op.Date, "yyyy/mm/dd"), "/", "") & ":" & .DocNo & ":" & .ID
+					DictOp.Add key, Op
+				End If
+			End With
+		Next
+	End With
+
+	Mtr.Close
+	Keys = DictOp.Keys
+
+	Mtr.Open "Сортировка ...", 1, 1
+	SortArray Keys
+	Mtr.Close
+
+	For i = 0 To UBound(Keys)
+		DoEvent
+		Set Op = DictOp.Item(Keys(i))
+		Op.Done = True
+		Op.TemplateInvoker2.FireBeforeSave Cancel
+		Op.Save
+	Next
+
+End Sub 
+'---
+'
+'---
+Sub SortArray(ByRef Keys)
+	Dim I, j, key
+
+	For i = 0 To UBound(keys) - 1
+		For j = i + 1 To UBound(keys)
+			If keys(i) > keys(j) Then
+				key = keys(i)
+				keys(i) = keys(j)
+				keys(j) = key
+			End If
+		Next
+	Next
+
+End Sub
+'---
+'
+'---

@@ -1,0 +1,189 @@
+Option Explicit
+'---------------------------------------------------
+' процедура формирует серии партионного учета (розница)
+' для объектов проводки. Используется в типовых шаблонах
+' 
+' Свойства партии товара формируются следующим образом
+' Код партии			ID строки документа, по которой серия была зарегистрирована
+' Наименование			Дата документа + № документа
+' Поставщик				поставщик товара
+' Приходная цена		Приходная цена товара
+' Дата						Дата создания серии
+' Номер						Код приходного документа
+'
+'---------------------------------------------------
+'#include "HL74_const.avb"
+
+Sub MakeSeriesRetail(Op, TrNo, TrNoAdd)
+	Dim i
+	Dim NewSeries
+	Dim Mtr
+	Dim OpTrans			' проводка хозяйственной операции для объектов которой формируются партии
+	Dim SeriesName		' наименование партии
+	Dim SeriesDate		' дата поступления для партий
+	Dim seriesCode
+	Dim OpID
+	Dim WinAPI
+	Dim MCID
+
+	If Not TestData(Op, TrNo, TrNoAdd) Then 
+		Op.Done = False
+		Exit Sub
+	End If
+
+
+	Set WinAPI = CreateLibObject("WinAPI")
+	MCID = Workarea.MyCompany.ID
+
+	Set OpTrans = Op.TransList(TrNo)
+
+	Op.TransList(TrNoAdd).Rows = 1
+
+	With Op.Trans(TrNoAdd, 1)
+		.EntID = 0
+		.Sum = 0
+	End With
+
+	SeriesName = CStr(Op.Date) & " № " & IIf (Op.DocNo = "", "<Без номера>", Op.DocNo)
+	SeriesDate = Op.Date
+	OpID = Op.ID
+
+	Set Mtr = PrepareMeter(OpTrans.Rows)
+
+		' цикл по всем объектам учета
+		For i = 1 To OpTrans.Rows
+			' переместить показатель прогресса
+			Mtr.StepIt
+
+			With OpTrans(i)
+				If .EntID <> 0 Then
+					' если объект учета указан
+					If .SeriesID = 0 Then
+						'  если у него нет партии, то добавляем ее 
+						SeriesCode = Iif(.Params("Код").Value2 <> "", .Params("Код").Value2, SeriesName)
+						Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+					Else
+
+						' если есть, то загружаем ее
+						Set NewSeries = .Entity.SeriesColl.ItemID(.SeriesID)
+							If NewSeries Is Nothing Then
+								' Если текущая партия не соответствует объекту учета, создаем новую
+								Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+							Else
+								' партия существует, обновляем ее свойства 
+								With Newseries
+									.Name 		= SeriesName					' наименование партии
+									.DateIn		= SeriesDate					' дата поступления партии
+									.Number		= CStr(OpID)					' номер партии
+								End With
+							End If
+					End If
+
+					' обновляем остальные свойства партии
+					NewSeries.AgFromID = 	.AgFromID			' поставщик партии
+					NewSeries.PriceIn = .Price					' приходная цена партии
+					NewSeries.PriceOut = .Params("Цена").Value2					' цена реализации партии
+
+					' сохранили свойства партии
+					NewSeries.Save										
+
+					' запомнили ID партии в проводке
+					.SeriesID = NewSeries.ID
+
+					SetAddValues Op.Trans(TrNo, i), Op.Trans(TrNoAdd, i), Op.Date, Op.ID, MCID
+				End If
+			End With
+		Next
+		
+	' выключили индикатор
+	Mtr.Close
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function PrepareMeter(Rows)
+	Dim Mtr
+
+	' создали индикатор прогресса
+	Set Mtr = Meter	
+
+	' сформировали индикатор прогресса
+	With Mtr
+		.Caption = "Создание партий ..."
+		.Max = Rows
+		.Min = 1
+		.Open
+	End With
+
+	Set PrepareMeter = Mtr
+End Function
+
+'---
+'
+'---
+Sub SetAddValues(Tr, TrAdd, OnDate, DocID, MCID)
+	Dim CurrPrice
+	Dim PriceKind, RetailPrice
+
+	CurrPrice = Tr.Params(prmTrPrice).Value2
+
+	If Tr.AgToID <> 0 Then
+		With Tr.AgTo.Params
+			If .Exists(prmAgDefPrice) Then
+				If .Item(prmAgDefPrice).Value2 <> 0 Then
+					Set PriceKind = Workarea.PriceKind(.Item(prmAgDefPrice).Value2)
+					PriceKind.SetEntPrice Tr.EntID, OnDate, CurrPrice, WorkArea.DefPriceList
+				End If
+			End If
+		End With
+	End If
+
+	TrAdd.EntID = Tr.EntID
+	TrAdd.Sum = (CurrPrice - Tr.Price) * Tr.Qty
+	TrAdd.Qty = 0
+	TrAdd.SeriesID = Tr.SeriesID
+	TrAdd.AgToID = Tr.AgToID
+End Sub
+'---
+'
+'---
+Function GetEntRetailPrice(AccID, EntID, AgToID, OnDate, DocID, MCID)
+	Dim QD, Rs
+	Dim Qty, Sum
+
+	Set QD = WorkArea.DAODataBase.CreateQueryDef("")
+	QD.SQL = "Select Qty, Sum from ST7_oddments_of_the_goods where EntID=[Ent_ID] and Qty <> 0 and Sum <> 0"
+
+	QD.Parameters(0).Value = AgToID
+	QD.Parameters(1).Value = AccID
+	QD.Parameters(2).Value = DocID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = ""
+	QD.Parameters(5).Value = MCID
+	QD.Parameters(6).Value = EntID
+
+	Set Rs = QD.OpenRecordSet()
+
+	If Rs.EOF Then
+		GetEntRetailPrice = 0
+	Else
+		Qty = Rs.Fields(0).Value
+		Sum = Rs.Fields(1).Value
+
+		GetEntRetailPrice = Sum / Qty
+	End If
+
+End Function
+'---
+'
+'---
+Function TestData(Op, TrNo, TrNoAdd)
+	Dim Tr, TrAdd
+
+	Set Tr = Op.Translist(TrNo).Item(1)
+	Set TrAdd = Op.Translist(TrNoAdd).Item(1)
+
+	TestData = (Tr.AgToID <> 0 And Tr.AgFromID <> 0 And TrAdd.AgToID <> 0) And (TrNo <> TrNoAdd)
+
+End Function

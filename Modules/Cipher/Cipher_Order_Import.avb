@@ -1,0 +1,128 @@
+'----
+'	модуль импорта данных по заявкам из ТСД в Акцент
+'	Запускается из меню Все задачи для папки документов
+'	использует шаблон документа, привязанную к папке
+'----
+Option Explicit
+
+'#include "Cipher_class.avb"
+'#include "Cipher_common.avb"
+'#include "Cipher_const.avb"
+'#include "ST74_ADO.avb"
+
+Dim C8400
+
+Cipher_CreateOperation 4, 3, False
+'---
+'
+'---
+Function AddEntRow(Tr, ByRef DictEnt)
+	Dim Bar
+
+	AddEntRow = True
+		
+	If Tr.EntID <> 0 Then
+		Bar = Tr.Params("String3").Value2
+		If Not DictEnt.Exists(Bar) Then
+			DictEnt.Add Bar, Tr.RowNo2
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetOperation(WA, DocTag, TmlID, ByRef DictEnt, ByRef RowNo)
+	Dim Op
+
+	Set Op = WA.CreateOperation
+
+	If Op.IsNew Then
+		Op.DocNo = Token(DocTag, 2, "|")
+		Op.TemplateID = TmlID
+		RowNo = 0
+		DictEnt.RemoveAll
+	Else
+		With Op.TransList(1)
+			RowNo = .Rows
+			.EnumTrans GetRef("AddEntRow"), DictEnt
+		End With
+	End If
+
+	Set GetOperation = Op
+
+End Function
+'---
+'
+'---
+Sub SetDataTr(Op, CurRowNo, EntID, aFields)
+
+	With Op.Trans(1, CurRowNo)
+		.Params("Строка_1").Value = aFields(2)
+		.EntID = EntID
+		
+		.Price = str2dbl(aFields(4))
+		.Qty = .Qty + str2dbl(aFields(5))
+		.Sum = Round2(.Sum, 2)
+
+	End With
+End Sub
+'---
+'
+'---
+Function GetEntID(ByRef EntBar, EntName, DocNo, LineNo)
+	Dim NewEntName, NewEnt, NewEntID
+
+	GetEntID = 0
+
+	If EntBar <> "" Then
+		NewEntID = FindEntByBarCode(EntBar)
+	
+		If NewEntID <> 0 Then
+			GetEntID = NewEntID
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function GetAgID(AgCode, AgRoot, DocNo)
+	Dim AgFinder, NewAg
+	
+	If AgCode = "" Then
+		GetAgID = 0
+	Else
+		Set AgFinder = Workarea.ElementFinder(acAgent)
+		AgFinder.AddCriteria "Code", "=", AgCode
+		
+		If Not AgFinder.Find Then
+'			Set NewAg = AgRoot.Create(1, "< Новый корреспондент ОКПО: " & AgCode & " заказ № " & DocNo & " >")
+			'	20.09.2013 исправлено по просьбе ОА	
+			Set NewAg = AgRoot.Create(1, "< Новый корреспондент ОКПО: " & AgCode & " >")
+			NewAg.Code = AgCode
+			NewAg.Contact = NewAg.Name
+			NewAg.Save
+			GetAgID = NewAg.ID
+		Else
+			GetAgID = AgFinder.Elems.Item(1).ID
+		End If
+	End If
+End Function
+'---
+'
+'---
+Function OpBeforeSave(Op)
+	Dim prm
+
+	Op.String1 = Op.DocNo
+	Op.DocNo = ""
+	Op.Done = False
+	Op.Sum3 = -1
+
+	OpBeforeSave = True
+
+End Function
+'---
+'
+'---

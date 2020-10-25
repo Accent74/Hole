@@ -1,0 +1,44 @@
+[OPTIONS]
+Auto Index=Yes
+Compatibility=1.1 or later
+Compiled file=frb_whatsnew.chm
+Contents file=toc.hhc
+Default Window=Navigation Pane
+Default topic=default.htm
+Display compile progress=No
+Index file=Index.hhk
+Language=0x419 Русский (Россия)
+Title=Что нового в программе первый Республиканский Бухгалтер (ПРБ) ?
+
+[WINDOWS]
+Default="Что нового в программе первый Республиканский Бухгалтер (ПРБ) ?","toc.hhc","Index.hhk","default.htm",,,,,,0x2020,,0x200e,[178,181,880,645],,,,1,,,0
+Navigation Pane=,"toc.hhc","Index.hhk","default.htm","default.htm",,,,,0x61520,,0x304e,[271,372,593,566],,,,,,,0
+
+
+[FILES]
+default.htm
+001.htm
+002.htm
+003.htm
+004.htm
+005.htm
+006.htm
+007.htm
+008.htm
+009.htm
+010.htm
+011.htm
+012.htm
+013.htm
+014.htm
+015.htm
+016.htm
+017.htm
+018.htm
+019.htm
+020.htm
+021.htm
+022.htm
+023.htm
+[INFOTYPES]
+

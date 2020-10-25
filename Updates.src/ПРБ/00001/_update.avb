@@ -1,0 +1,125 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.0
+'-------------------
+Option Explicit
+
+Const acProjItemForm	=	0
+Const acProjItemDlg		= 1
+Const acProjItemReport	= 2
+Const acProjItemModules	= 4
+
+Const ver = "001"
+'---
+'
+'---
+Sub writelog(aParam, updater)
+	'updater.writelog Now & " " & Join(aParam, " ")
+	updater.writelog aParam(0)
+End Sub
+'---
+'
+'---
+Function AddProjectItem(acProjItem, ProjectItemName, ProjItemFileName, updater)
+	Dim NewItem, i
+	
+	AddProjectItem = 0
+	If updater.fail Then Exit Function
+
+	With workarea.projectitems(acProjItem + 1)
+		For i = 1 To .Count
+			Set NewItem = .Item(i)
+			If NewItem.Name = ProjectItemName And NewItem.FileName = ProjItemFileName Then Exit For
+			Set NewItem = Nothing
+		Next
+	
+		If NewItem Is Nothing Then
+			Set NewItem = .Create(ProjectItemName, ProjItemFileName)
+			
+			If Not NewItem Is Nothing Then
+				writelog Array("В проект добавлен элемент:", ProjectItemName, " файл:", ProjItemFileName), updater
+			Else
+				writelog Array("Ошибка при добавлении в проект элемента:", ProjectItemName, " файл:", ProjItemFileName), updater
+				updater.fail = True
+			End If
+		End If
+
+		AddProjectItem = NewItem.ID
+	End With
+End Function
+'---
+'
+'---
+Sub AddReport(Kind, FindCode, ReportName, ReportFile, updater)
+	Dim i, ElemReps, ElemID, Elem
+
+	If updater.fail Then Exit Sub
+
+	Select Case Kind
+		Case acAccount
+			ElemID = Workarea.GetAccID(FindCode)
+	
+			If ElemID = 0 Then
+				writelog Array("Невозможно добавить отчет:", ReportName, " файл:", ReportFile, "Отсутствует счет:", FindCode), updater
+				updater.fail = True
+			Else
+				Set ElemReps = Workarea.Account(ElemID).RepElems
+			End If
+	End Select
+
+	If updater.fail Then Exit Sub
+
+	For i = 1 To ElemReps.count
+		With ElemReps.Item(i)
+			If .FileName = ReportFile And .Name = ReportName Then Exit Sub
+		End With
+	Next
+
+	If ElemReps.Create(12, ReportName, ReportFile) Is Nothing Then
+		writelog Array("Ошибка при добавлении отчета:", ReportName, " файл:", ReportFile), updater
+		updater.fail = True
+	Else
+		writelog Array("Добавлен отчет:", ReportName, " файл:", ReportFile), updater
+	End If
+
+End Sub
+'---
+'
+'---
+Sub AddParamMscRef(ElParams, prmName, mscName, updater)
+	Dim MscID, NewParam
+
+	If updater.fail Then Exit Sub
+	If ElParams.Exists(prmName) Then Exit Sub
+
+	MscID = Workarea.Miscs.Find(mscName)
+	Set NewParam = ElParams.CreateRef(prmName, acMisc, MscID)
+
+	If NewParam Is Nothing Then
+		writelog Array("Ошибка создания параметра:", prmName), updater
+	End If
+
+	NewParam.Value2 = MscID
+ 
+End Sub
+'---
+'
+'---
+Sub Main(Updater)
+	'writelog Array("Начало установки обновления", ver), updater
+
+	AddProjectItem acProjItemDlg, "HL74_ManualSelectionSeries", "HL74_ManualSelectionSeries.adg", updater
+	AddProjectItem acProjItemReport, "Отчет: Движение товара в рознице", "Движение товара в рознице.ash", updater
+	AddReport acAccount, "281", "Движение товара в рознице", "Движение товара в рознице.ash", updater
+	AddParamMscRef workarea.params, "Вид перевозок", "Вид перевозок", updater
+
+	If updater.fail Then
+		writelog Array("Процесс установки прерван из-за возникшей ошибки"), updater
+	Else
+		writelog Array("Процесс установки завершен успешно."), updater
+	End If
+
+End Sub
+'------
+'
+'------

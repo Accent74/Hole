@@ -1,0 +1,158 @@
+Option Explicit
+
+Class Enums
+	Private En, EnMap
+
+	Private Sub Class_initialize
+		Set EnMap = CreateLibObject("Map")
+		Set En = Nothing
+	End Sub
+
+	Public Property Get TypeName()
+		TypeName = "Enums"
+	End Property
+
+	Public Property Let ID(IDValue)
+		Dim i
+
+		Set En = Nothing
+		EnMap.RemoveAll
+
+		If IDValue <> 0 Then
+			Set En = Workarea.Enum(IDValue)
+
+			If Not En Is Nothing Then
+				For i = 1 To En.Count
+					Set EnMap(i) = New EnumItem
+					Set EnMap(i).Parent = Me
+					EnMap(i).Name = En.ItemName(i)
+					EnMap(i).Tag = En.ItemTag(i)
+					EnMap(i).ID = en.ItemID(i)
+				Next
+			End If
+		End If
+	End Property
+
+	Public Property Get ID
+		If En Is Nothing Then 
+			ID = 0
+		Else
+			ID = -En.ID
+		End If
+	End Property
+
+	Public Property Get Name
+		If En Is Nothing Then 
+			Name = ""
+		Else
+			Name = En.Name
+		End If
+	End Property
+
+	Public Property Get Tag
+		If En Is Nothing Then 
+			Tag = ""
+		Else
+			Tag = En.Tag
+		End If
+	End Property
+
+	Public Property Get Parent
+		Set Parent = Nothing
+	End Property
+
+	Public Property Get Item(ItemNo)
+		If EnMap.count >= ItemNo Then
+			Set Item = EnMap(ItemNo)
+		Else
+			Set Item = Nothing
+		End If
+	End Property
+
+	Public Property Get Count
+		If Not En Is Nothing Then
+			Count = En.Count
+		Else
+			Count = 0
+		End If
+	End Property
+
+End Class
+
+Class EnumItem
+	Private EnumName, EnumTag, EnumID, En
+
+	Private Sub Class_initialize
+		Set En = Nothing
+		EnumName = ""
+		EnumTag = ""
+		EnumID = 0
+	End Sub
+
+	Public Property Get TypeName()
+		TypeName = "EnumItem"
+	End Property
+
+	Public Property Set Parent(EnValue)
+		Set En = EnValue
+	End Property
+
+	Public Property Get Parent
+		Set Parent = En
+	End Property
+
+	Public Property Get Name
+		Name = EnumName
+	End Property 
+
+	Public Property Get Tag
+		Tag = EnumTag
+	End Property 
+
+	Public Property Get ID
+		ID = EnumID
+	End Property 
+
+	Public Property Let Name(NameValue)
+		EnumName = NameValue
+	End Property 
+
+	Public Property Let Tag(TagValue)
+		EnumTag = TagValue
+	End Property 
+
+	Public Property Let ID(IDValue)
+		Dim SQL, aData
+
+		If IDValue <> 0 Then
+			EnumID = IDValue
+
+			SQL = "select enn_id from enums where enm_id=" & IDValue
+			If GetRs2(SQL, aData) Then
+				If aData(0, 0) <> Abs(En.ID) Then
+					En.ID = aData(0, 0)
+				End If
+			Else
+				En.ID = 0
+			End If
+		End If
+	End Property 
+
+End Class
+
+'Dim EnItems, EnItem
+'
+'stop
+'Set EnItems = New Enums
+'EnItems.ID = 17
+'stop
+'
+'Set EnItem = EnItems.Item(3)
+'
+'MsgBox EnItem.Parent.ID
+'
+'EnItem.ID = 5
+'stop
+'
+'MsgBox EnItem.Parent.ID
+'stop

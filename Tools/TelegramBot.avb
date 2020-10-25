@@ -1,0 +1,28 @@
+Option Explicit
+
+Dim sAPI_ID, sChat_ID, sMSG, sUrl, sRequest
+
+
+stop
+HTTPPost "https://t.me/@Andrew_Grin", sRequest
+
+sAPI_ID = "1337456561:AAH8DyTcOMzynk9hjbCBPmRPNj_UKcphQxo"' Токен бота
+sChat_ID ="443168150" ' ИД чата 
+
+sMSG = "Всем привет! Это бот с сайта skywalkeradmin.ru"' Текст сообщения
+sUrl = "https://api.telegram.org/bot" & sAPI_ID & "/sendMessage" 'формирование сроки запроса
+sRequest = "text=" & sMSG & "&chat_id=" & sChat_ID
+
+HTTPPost sUrl, sRequest 'обращаемся к серверу
+
+Function HTTPPost(sUrl, sRequest) ' вызов функции отправки
+	Dim oHTTP
+
+  Set oHTTP = CreateObject("Microsoft.XMLHTTP")
+  oHTTP.open "POST", sUrl,False
+  oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"
+  oHTTP.setRequestHeader "Content-Length", Len(sRequest)
+  oHTTP.send sRequest
+  HTTPPost = oHTTP.responseText
+ End Function
+

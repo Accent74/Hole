@@ -1,0 +1,68 @@
+Option Explicit
+'#Include "HL74_Forms.avb"
+'#Include "HL74_Common.avb"
+
+Const FILE_NAME = "F:\downloads\ДОГОВОР ПОРУЧЕНИЯ Эльдорадо.docx"
+
+Sub MakeWordDoc(DocFileName, Op, ExMap, Dict)
+	Dim wrd, StdDict, AgreeMscNo
+	Dim Keys, i
+
+	Set wrd = CreateObject("Word.Application")
+
+	If Not wrd Is Nothing Then
+		If Dict Is Nothing Then
+			Set StdDict = GetStdDict()
+		Else
+			Set StdDict = Dict
+		End If 
+
+ 		wrd.Documents.Open FILE_NAME, False, False, False, "", "", False, "", "", 0, ""
+		Keys = StdDict.Keys
+
+		For i = 0 To UBound(Keys)
+						
+			With wrd.Selection.Find
+				.ClearFormatting
+				.Replacement.ClearFormatting
+				.Text = keys(i)
+				.Replacement.Text = Eval(StdDict(keys(i)))
+				.Forward = True
+				.Wrap = 1
+				.Format = False
+				.MatchCase = False
+				.MatchWholeWord = False
+				.MatchWildcards = False
+				.MatchSoundsLike = False
+				.MatchAllWordForms = False
+				.Execute 2
+			End With
+		Next
+
+		wrd.visible = True
+		Set wrd = Nothing
+	Else
+	End If
+End Sub
+
+Function GetStdDict()
+	Dim dEval
+
+	Set dEval = CreateLibObject("Map")
+
+	dEval("%клиент_наименование%") = "Form_GetAgAlterName(Op.Trans(1).AgTo, Op.Date)"
+	dEval("%клиент_юридический_адрес%") = "Form_GetAgAddress2(Op.Trans(1).AgTo, 1)"
+	dEval("%клиент_ИНЮЛ%") = "Op.Trans(1).AgToBind.Code"
+	dEval("%через кого оплата%") = "ExMap(""Дов.№"")"
+	dEval("%клиент_паспорт_номер%") = ""
+	dEval("%клиент_паспорт_серия%") = ""
+	dEval("%клиент_паспорт_выдан%") = ""
+	dEval("%сумма_цифрами%") = "Op.Sum"
+	dEval("%сумма_прописью%") = "replace(SpellMoney(Op.Sum, 1), "_", " ")"
+	dEval("%документ_номер%") = "Op.DocNo"
+	dEval("%документ_дата%") = "formatdate2(Op.Date, ""«dd»mmmm yyyy г."")"
+	dEval("%договор_номер%") = "iif(Op.Trans(1).MiscID(AgreeMscNo) <> 0, Op.Trans(1).MiscBind(AgreeMscNo).String1, ""Без договора"")"
+	dEval("%договор_дата%") = "iif(Op.Trans(1).MiscID(AgreeMscNo) <> 0, formatdate2(Op.Trans(1).MiscBind(AgreeMscNo).Date1, ""«dd»mmmm yyyy г.""), ""Без договора"")"
+
+
+End Function

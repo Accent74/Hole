@@ -1,0 +1,29 @@
+Option Explicit
+
+'#include "HL74_XML.avb"
+
+Dim oXml, RootTag, i, UnitItems
+
+Set oXml = New XML
+
+If oXml.Create() Then
+	oXml.FileName = "From1C.xml"
+
+	If oXml.Load() Then
+		Set RootTag = oXml.GetTag("/ROOT/DATA/CATALOGS/CATALOG[@GUID='80452C60-B442-4DA9-A048-42F63270CA14']")
+		Set UnitItems = RootTag.Item(0).ChildNodes.Item(0).ChildNodes
+
+		For i = 0 To UnitItems.Length - 1
+			With UnitItems.Item(i)
+				.SetAttribute "A02", "0"
+			End With
+		Next
+
+		oXml.FileName = "From1C_new.xml"
+		oXml.SaveAll
+	Else
+		MsgBox oXml.ErrorMsg
+	End If
+Else
+	MsgBox oXml.ErrorMsg
+End If

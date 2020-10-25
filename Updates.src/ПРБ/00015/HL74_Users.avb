@@ -1,0 +1,16 @@
+Option Explicit
+
+Function IsUserInGroup(GroupName)
+	Dim i, aGrps, Grp
+
+	IsUserInGroup = False
+	aGrps = Workarea.UserGroups
+
+	For Each Grp In aGrps
+		If UCase(Grp) = UCase(GroupName) Then
+			IsUserInGroup = True
+			Exit Function
+		End If
+	Next
+
+End Function

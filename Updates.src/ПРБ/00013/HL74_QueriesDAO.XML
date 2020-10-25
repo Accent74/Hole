@@ -1,0 +1,5 @@
+<scripts configversion="013" configname="ПРБ" configdate="09/10/2016"><query type="DAO" name="HL74_CalcCurrencyRest" cmd="add" lastmodifieddate="8/9/2016 2:24:21 PM">PARAMETERS AccID Long, CurID Long, OnDate DateTime, MC Long;
+SELECT sum(JOURNAL.J_SUM * (iif(acc_db = [accid], 1, 0) - iif(acc_cr = [accid], 1, 0) )), sum(JRN_CRC.JC_SUM * (iif(acc_db = [accid], 1, 0) - iif(acc_cr = [accid], 1, 0) ))
+FROM JOURNAL INNER JOIN JRN_CRC ON JOURNAL.J_ID = JRN_CRC.J_ID
+WHERE (((JOURNAL.J_DONE)=2) AND ((JRN_CRC.CRC_ID)=[CurID]) AND ((JOURNAL.J_DATE)&lt;[OnDate]) AND (([acc_db]=[AccID] Or [acc_cr]=[AccID])=True) AND ((JRN_CRC.JC_NO)=1));
+</query></scripts>

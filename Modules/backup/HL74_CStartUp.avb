@@ -1,0 +1,56 @@
+Option Explicit
+
+' параметры предприятия "Моя фирма"
+
+Dim ArrayCodes
+	ArrayCodes = Array("СПАТО", "КОАТУУ", "КВЕД", "КФВ", "КОПФГ", "КОДУ", "СПОДУ", "ЗКГНГ", "ДКУД")
+
+Dim MC
+	Set MC = WorkArea.MyCompany
+
+
+'----------------
+'
+'----------------
+Function CreateAgStrParams()
+	Dim i
+	Dim CodeName
+	
+	With MC.Params
+		For i = 0 To UBound(ArrayCodes)
+			CodeName = "Код " & ArrayCodes(i)
+			If Not .Exists(CodeName) Then .Create vbString, CodeName
+		Next
+	End With
+
+	CreateAgStrParams = True
+
+End Function
+
+'----------------
+'
+'----------------
+Function CreateAgRefParams()
+
+	With MC.Params
+		If Not .Exists("Цена по умолчанию") Then .CreateRef "Цена по умолчанию", 27
+		If Not .Exists("Генеральный директор") Then .CreateRef "Генеральный директор", acAgent, MC.ID
+		If Not .Exists("Главный бухгалтер") Then .CreateRef "Главный бухгалтер", acAgent, MC.ID
+		If Not .Exists("Сведения о ГНИ") Then .CreateRef "Главный бухгалтер", acAgent
+	End With
+
+End Function
+
+'----------------
+'
+'----------------
+
+CreateAgStrParams() 
+CreateAgRefParams()
+
+WorkArea.Map("StartUp") = False
+
+'----------------
+'
+'----------------
+	

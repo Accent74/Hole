@@ -1,0 +1,12 @@
+Option Explicit
+
+Dim i, Op
+
+With Workarea.Site.Operations	
+	For i = 1 To .Count
+		Set Op = .Item(i)
+		op.TransList(1).SetTax 8, "Ä.À."
+		op.TransList(1).SetTax 9, "Ä.Á."
+		Op.Save 8 + 16
+	Next
+End With

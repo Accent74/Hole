@@ -1,0 +1,271 @@
+Option Explicit
+'---------------------------------------------------
+' процедура формирует серии партионного учета 
+' для объектов проводки. Используется в типовых шаблонах
+' 
+' Свойства партии товара формируются следующим образом
+' Код партии			ID строки документа, по которой серия была зарегистрирована
+' Наименование			Дата документа + № документа
+' Поставщик				поставщик товара
+' Приходная цена		Приходная цена товара
+' Дата						Дата создания серии
+' Номер						Код приходного документа
+'
+'---------------------------------------------------
+Sub MakeSeries2(Op, TrNo)
+	Dim i
+	Dim NewSeries
+	Dim Mtr
+	Dim OpTrans			' проводка хозяйственной операции для объектов которой формируются партии
+	Dim SeriesName		' наименование партии
+	Dim SeriesDate		' дата поступления для партий
+	Dim seriesCode
+	Dim OpID, SeriesOutPrice, dQtyRestore, dData
+	
+	Set OpTrans = Op.TransList(TrNo)
+
+	If Not Op.IsNew And Op.Done Then
+		If Not CheckQty(Op, TrNo, dQtyRestore, dData) Then
+			If MsgBox("Изменение количества в документе приведет к нарушению целостности данных." & vbNewLine & _
+							"Восстановить предыдущие значения количества ?", vbCritical + vbOKCancel, "Внимание ! " & Op.Name) = vbOK Then
+				Op.TransList(TrNo).EnumTrans GetRef("RestoreQtyRow"), dQtyRestore
+			Else
+				Op.Done = False
+			End If
+
+			Exit Sub
+		End If
+	End If
+
+	SeriesName = Left(CStr(Op.Date) & " № " & IIf (Op.DocNo = "", "<Без номера>", Op.DocNo) & " " & OpTrans.AgFromBind.Name, 50)
+	SeriesDate = Op.Date
+	OpID = Op.ID
+
+	Set Mtr = PrepareMeter(OpTrans.Rows)
+
+		' цикл по всем объектам учета
+		For i = 1 To OpTrans.Rows
+			' переместить показатель прогресса
+			Mtr.StepIt
+
+			With OpTrans.Item(i)
+				If .EntID <> 0 Then
+					' если объект учета указан
+					SeriesCode = Iif(.Params("Код").Value2 <> "", .Params("Код").Value2, SeriesName)
+
+					If .SeriesID = 0 Then
+						'  если у него нет партии, то добавляем ее 
+						Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+					Else
+						' если есть, то загружаем ее
+						Set NewSeries = .Entity.SeriesColl.ItemID(.SeriesID)
+							If NewSeries Is Nothing Then
+								Set NewSeries = .Entity.SeriesColl.Create(SeriesName, SeriesCode, CStr(OpID), SeriesDate)
+							Else
+								' партия существует, обновляем ее свойства, но только для родительского документа
+								With Newseries
+									If CLng(.Number) = OpID Or CLng(.Number) = 0 Then
+										.Name 		= SeriesName					' наименование партии
+										.Code 		= SeriesCode 
+										.DateIn		= SeriesDate					' дата поступления партии
+										.Number		= CStr(OpID)					' номер партии
+									End If
+								End With
+							End If
+					End If
+
+					' обновляем остальные свойства партии
+					NewSeries.AgFromID = 	.AgFromID			' поставщик партии
+					NewSeries.PriceIn = .Price					' приходная цена партии
+					NewSeries.PriceOut = .Params("Цена").Value2					' цена реализации партии
+
+					' сохранили свойства партии
+					NewSeries.Save										
+
+					' запомнили ID партии в проводке
+					.SeriesID = NewSeries.ID
+				End If
+			End With
+		Next
+		
+	' выключили индикатор
+	Mtr.Close
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function PrepareMeter(Rows)
+	Dim Mtr
+
+	' создали индикатор прогресса
+	Set Mtr = Meter	
+
+	' сформировали индикатор прогресса
+	With Mtr
+		.Caption = "Создание партий ..."
+		.Max = Rows
+		.Min = 1
+		.Open
+	End With
+
+	Set PrepareMeter = Mtr
+End Function
+'---
+'
+'---
+Function CheckQty(Op, TrNo, dQtyRestore, dData)
+	Dim SQL, Rs, n, aData, key, i, keys, prm
+	Dim dQty, Tr, dQtySer
+
+	CheckQty = True
+	SQL = "select j_ent, ser_id, sum(j_qty) from journal where doc_id=" & Op.ID & " And j_tr_no=" & (TrNo - 1) & " group by j_ent, ser_id"
+	Set Rs = Workarea.DAOdataBase.OPenrecordset(SQL)
+
+	If Not Rs.eof Then
+		Rs.MoveLast
+		n = Rs.RecordCount
+		Rs.MoveFirst
+
+		aData = Rs.GetRows(n)
+		Rs.Close
+
+		Set dData = CreateLibObject("Map")
+		Set dQtySer = CreateLibObject("Map")
+		Set dQty = CreateLibObject("Map")
+		Set dQtyRestore = CreateLibObject("Map")
+
+		' выбрали в хэш данные предыдущей версии документа
+		For i = 0 To UBound(aData, 2)
+			key = aData(0, i) & ":" & aData(1, i)
+			dData(Key) = dData(Key) + checknull(aData(2, i), 0)
+			dQtyRestore(Key) = checknull(aData(2, i), 0)
+		Next
+
+		' отминусовали то, что в новом документе
+		prm = Array(dData, dQtySer, dQty)
+		Op.TransList(TrNo).EnumTrans GetRef("CheckQtyOneRow"), prm
+
+		' проверили наличие уменьшенного количества
+		keys = dData.keys
+
+		For i = 0 To UBound(Keys)
+			If dData(keys(i)) >= 0 Then
+				dData.Remove keys(i)
+			End If
+		Next
+
+		keys = dData.keys
+
+		For i = 0 To UBound(Keys)
+			Set Tr = Op.Trans(TrNo, dQtySer(keys(i)))
+
+			If Not CheckQtySeries(Tr.AccDbID, Tr.AgToID, Tr.SeriesID, Tr.Date, Tr.Qty) Then
+				CheckQty = False
+			ElseIf Not CheckQtyEnt(Tr.AccDbID, Tr.AgToID, Tr.EntID, Tr.Date, Tr.Qty, Op.ID) Then
+				CheckQty = False
+			Else
+				dData.Remove Keys(i)
+			End If
+		Next
+
+	End If
+	
+End Function
+'---
+'
+'---
+Function CheckQtyEnt(AccID, AgID, EntID, OnDate, Qty, DocID) 
+	Dim SQL, QD, Rs
+
+	CheckQtyEnt = True
+
+	SQL = "Parameters AccID long, AgID long, EntID long, OnDate Datetime, docid long,  MC Long ; " & _
+				"Select j.j_date, Sum(j.j_qty) AS [Sum-j_qty], " & _
+					"(Select sum(j2.j_qty * (iif(j2.acc_db = [accid] And j2.j_ag1 = [agid],1,0) - iif(j2.acc_cr = [accid] And j2.j_ag2 = [agid],1,0))) " & _
+							"from journal as j2 where j2.mc_id = [mc] And j2.j_done =2 And j2.j_ent = [EntID] And j2.j_date <= j.j_date And j2.doc_id <> [DocID]) as rest " & _
+				"FROM journal as j " & _
+				"WHERE (((j.[j_done])=2) And ((j.[mc_id])=[mc]) And ((j.[j_ent])=[EntID]) And ((j.[j_ag2])=[AgID]) And ((j.[Acc_Cr])=[AccID]) And ((j.[j_date])>=[OnDate])) " & _
+				"GROUP BY j.j_date " & _
+				"having (Select sum(j2.j_qty * (iif(j2.acc_db = [accid] And j2.j_ag1 = [agid],1,0) - iif(j2.acc_cr = [accid] And j2.j_ag2 = [agid],1,0))) " & _
+							"from journal as j2 where j2.mc_id = [mc] And j2.j_done =2 And j2.j_ent = [EntID] And j2.j_date <= j.j_date And j2.doc_id <> [DocID]) < 0"
+
+	Set QD = Workarea.DAODAtabase.CreateQueryDef("", SQL)
+	QD.Parameters(0).Value = AccID
+	QD.Parameters(1).Value = AgID
+	QD.Parameters(2).Value = EntID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = DocID
+	QD.Parameters(5).Value = Workarea.MyCompany.ID
+
+	Set Rs = QD.OpenRecordSet
+
+	While Not Rs.eof
+		If -checknull(Rs.Fields(2).Value) > Qty Then
+			CheckQtyEnt = False
+			Exit Function
+		End If
+
+		Rs.Movenext
+	Wend
+	
+End Function
+'---
+'
+'---
+Function CheckQtySeries(AccID, AgID, SerID, OnDate, Qty)
+	Dim SQL, QD, Rs
+
+	CheckQtySeries = True
+
+	SQL = "Parameters AccID long, AgID Long, SeriesID long, OnDate datetime, MC long ;" & _
+				"Select sum(j_qty) from journal " & _
+				"where j_done = 2 And mc_id = [mc] And ser_id = [SeriesID] " & _
+					"And j_ag2 = [AgID] And Acc_Cr = [AccID] " & _
+					"And j_date >= [OnDate]"
+
+	Set QD = Workarea.DAODataBase.CreateQueryDef("", SQL)
+	QD.Parameters(0).Value = AccID
+	QD.Parameters(1).Value = AgID
+	QD.Parameters(2).Value = SerID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = Workarea.MyCompany.ID
+
+	Set Rs = QD.OpenRecordSet
+
+	If Not Rs.eof Then
+		CheckQtySeries = ((Qty - checknull(Rs.Fields(0).Value, 0)) >= 0)
+	End If
+
+End Function
+'---
+'
+'---
+Function CheckQtyOneRow(Tr, ByRef prm)
+	Dim key, dData, dQtySer, dQty
+
+	CheckQtyOneRow = True
+	Set dData = prm(0)
+	Set dQtySer = prm(1)
+	Set dQty = prm(2)
+
+	key = Tr.EntID & ":" & Tr.SeriesID
+
+	If dData.Exists(Key) Then
+		dData(Key) = Tr.Qty - dData(Key)
+	End If
+
+	dQty(Tr.EntID) = dQty(Tr.EntID) + Tr.qty
+	dQtySer(key) = Tr.RowNo2
+
+End Function
+'---
+'
+'---
+Function RestoreQtyRow(Tr, ByRef dQtyRestore)
+	RestoreQtyRow = True
+	Tr.Qty = dQtyRestore(Tr.EntID & ":" & Tr.SeriesID)
+End Function
+'---
+'
+'---

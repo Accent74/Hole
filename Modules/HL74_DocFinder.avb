@@ -1,0 +1,211 @@
+Option Explicit
+
+Class DocFinder
+	Private dCriteria, dSort, aData
+	Public Count, FindDeleted, FindDone
+	Public operations
+
+	Private Sub Class_initialize
+		Set dCriteria = CreateObject("Scripting.Dictionary")
+		Set dSort = CreateObject("Scripting.Dictionary")
+		Set operations = New Documents
+
+		Me.NewFind
+	End Sub
+
+	Public Sub NewFind
+		dCriteria.RemoveAll
+		dSort.RemoveAll
+		Count = 0
+		' по умолчанию ищем не удаленные и проведенные
+		FindDeleted = False
+		FindDone = True
+	End Sub
+
+	Public Sub AddCriteria(Field, Compare, Value)
+		dCriteria.Add dCriteria.Count + 1, Array(Field, Compare, Value)
+	End Sub
+
+	Public Sub AddSort(FieldName)
+		dSort.Add dSort.Count + 1, FieldName
+	End Sub
+
+	Public Function Find()
+		Dim SQL
+
+		SQL = "Select distinct "
+
+		If count > 0 Then SQL = SQL & "top " & Count & " "
+		sql = sql & "d.doc_id, d.Doc_Name, d.Doc_Tag, d.Doc_Date, d.Doc_Sum, d.Doc_No, d.Doc_ID from documents as d Left Join journal as j On j.doc_id = d.doc_id "
+
+		sql = sql & GetWhere()
+		sql = sql & GetOrder()
+
+		If GetRs2(SQL, aData) Then
+			Count = UBound(aData, 2) + 1
+			Operations.LoadFromArray aData
+		Else
+			Count = 0
+		End If
+
+		Find = (count <> 0)
+	End Function
+
+	Private Function GetOrder()
+		Dim i, OrderStr
+
+		OrderStr = ""
+
+		For i = 1 To dSort.Count
+			OrderStr = OrderStr & iif(OrderStr = "", "", ", ") & dSort.Item(i)
+		Next
+
+		If OrderStr <> "" Then OrderStr = " order by " & OrderStr
+		GetOrder = OrderStr
+
+	End Function
+
+	Public Sub Sort(FieldNum)
+		Dim aFields
+
+		aFields = Array("", "Doc_Name", "Doc_Tag", "Doc_Date", "Doc_Sum", "Doc_No", "Doc_ID")
+		If FieldNum = 0 Or FieldNum > UBound(aFields) Then Exit Sub
+
+		Me.AddSort(aFields(Abs(FieldNum)) & Iif( FieldNum < 0, " desc", ""))
+	End Sub
+
+	Private Function GetWhere()
+		Dim i, GetWhereStr, aItem, NoFind, DocDone
+
+		GetWhereStr = ""
+
+		For i = 1 To dCriteria.Count
+			aItem = dCriteria.Item(i)
+			NoFind = False
+			Select Case aItem(0)
+				Case "DocDate"
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.doc_date"
+				Case "DocName"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.doc_name"
+				Case "DocNo"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.doc_no"
+				Case "DocMemo"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.doc_memo"
+				Case "DocSum"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.doc_sum"
+				Case "AccDb"
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.acc_db"	
+				Case "AccCr"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.acc_cr"
+				Case "AgTo"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.j_ag1"
+				Case "AgFrom"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.j_ag2"
+				Case "Entity"
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.j_ent"	
+				Case "TranSum"	
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "j.j_sum"
+				Case "Form"
+					GetWhereStr = GetWhereStr & iif(GetWhereStr = "", "", " and ") & "d.frm_id"
+				Case Else 
+					NoFind = True
+			End Select
+
+			If Not NoFind Then
+				GetWhereStr = GetWhereStr & " " & aItem(1) & " " & GetStringValue(aItem(2))
+			End If
+		Next
+
+		If FindDeleted And FindDone Then 
+			' искать все проведенные
+			DocDone = "(doc_done = 102 or doc_done = 2)"
+		ElseIf FindDeleted And Not FindDone Then
+			' искать все вообще
+			DocDone = ""
+		ElseIf Not FindDeleted And FindDone Then
+			' искать не удаленные и проведеные
+			DocDone = "doc_done = 2"
+		ElseIf Not FindDeleted And Not FindDone Then
+			' искать все не удаленные
+			DocDone = "doc_done < 100"
+		End If
+
+		If GetWhereStr <> "" Then
+			GetWhere = "where " & GetWhereStr & iif(DocDone <> "", " And ", "") & DocDone
+		Else
+			GetWhere = iif(DocDone <> "", "where ", "") & DocDone
+		End If
+
+	End Function
+
+	Private Function GetStringValue(Value)
+		Select Case VarType(Value)
+			Case vbDate
+				If App.AppType = "DAO" Then
+					GetStringValue = Formatdate2(Value, "#mm/dd/yyyy#")
+				Else
+					GetStringValue = Replace(Formatdate2(Value, "'yyyy/mm/dd'"), "/", "")
+				End If
+
+			Case vbString
+				GetStringValue = Value
+
+			Case vbDouble, vbCurrency
+				GetStringValue = Replace(CStr(Value), ",", ".")
+
+			Case Else
+				GetStringValue = CStr(Value)
+		End Select
+	End Function
+
+End Class
+
+Class Documents
+	Private Ops
+
+	Private Sub Class_initialize
+		Set Ops = CreateObject("Scripting.Dictionary")
+	End Sub
+
+	Public Property Get Count
+		Count = Ops.Count
+	End Property
+
+	Public Property Get Item(Index)
+		Set Item = Ops.Item(Index)
+	End Property
+
+	Public Sub LoadFromArray(aData)
+		Dim i, Op
+
+		Ops.RemoveAll
+
+		For i = 0 To UBound(aData, 2)
+			Set Op = workarea.operation(aData(0, i))
+
+			If Not Op Is Nothing Then	
+				Set Ops.Item(Ops.Count + 1) = Op
+			End If
+		Next
+
+	End Sub
+
+End Class
+
+Dim Finder
+
+'Set Finder = New DocFinder
+'finder.AddCriteria "DocDate", "<", CDate("28/08/2016")
+'finder.AddCriteria "AccCr"	, "=", 224
+'finder.AddCriteria "AgFrom",	"=", 1096
+'finder.AddCriteria "Form", "=",	 611
+'
+'finder.Sort -3
+'finder.Count = 1
+'
+'If Finder.Find Then
+'	MsgBox Finder.Operations.Count
+'Else
+'	MsgBox "Not found"
+'End If
+

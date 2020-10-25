@@ -1,0 +1,421 @@
+'----
+'	модуль списания в рознице
+'----
+Option Explicit
+
+'-----
+'
+'-----
+Function GetTtansaction(Op, TrNoFrom, TrNoTo, ByRef NewTrNoTo)
+
+	If TrNoFrom <> TrNoTo Then
+		Set GetTtansaction = Op.TransList(TrNoTo)
+	Else
+		With Op
+			' добавлям проводку в конец списка
+			NewTrNoTo = .TransCount + 1
+			.TransCount = NewTrNoTo
+
+			With Op.TransList(NewTrNoTo)
+				' копируем информацию из проводки - основания
+				.SetAccDb Op.Trans(TrNoTo).AccDbID
+				.SetAccCr Op.Trans(TrNoTo).AccCrID
+				.SetAgFrom Op.Trans(TrNoTo).AgFromID
+				.SetAgTo Op.Trans(TrNoTo).AgToID
+			End With
+
+			Set GetTtansaction = Op.TransList(NewTrNoTo)
+		End With
+	End If
+End Function
+'-----
+'
+'-----
+Sub MoveTransList(Op, TrNoDst, TrNoSrc)
+	Dim i, nRows
+	Dim TrDstRow, TrSrcRow
+
+	nRows = Op.TransList(TrNoSrc).Rows
+	Op.TransList(TrNoDst).Rows = nRows
+
+	For i = 1 To nRows
+		Set TrDstRow = Op.Trans(TrNoDst, i)
+		Set TrSrcRow = Op.Trans(TrNoSrc, i)
+
+		TrDstRow.AccDBID = TrSrcRow.AccDBID
+		TrDstRow.AccCRID = TrSrcRow.AccCRID
+
+		TrDstRow.AgFromID = TrSrcRow.AgFromID
+		TrDstRow.AgToID = TrSrcRow.AgToID
+
+		TrDstRow.EntID = TrSrcRow.EntID
+		TrDstRow.SeriesID = TrSrcRow.SeriesID
+
+		TrDstRow.Qty = TrSrcRow.Qty
+		TrDstRow.Sum = TrSrcRow.Sum
+
+	Next
+
+End Sub
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Function ChargeOffRetail(Op, TrNoTo, TrNoFrom, ChargeMode, flWrite, IsViewError, flBalAccount, flAgFrom, BasAccCode, BasAccMode, TrNoRetail)
+	Dim Mt, i, mc, CurrPrice, NewTrNoTo
+	Dim AgID, AccID, DocID, OnDate, AccIDRetail
+	Dim Errors, DicSeries, IsError
+	Dim TrLstFrom, TrLstTo, TrLstRetail
+
+	If Not TestData(Op, TrNoTo, TrNoFrom, TrNoRetail) Then
+		ChargeOffRetail = False
+		Exit Function
+	End If
+
+	' создали объект для хранения ошибок
+	Set Errors = CreateObject("Scripting.Dictionary")
+	
+	' создали объект для хранения списанного кол-ва по определенной партии
+	Set DicSeries = CreateObject("Scripting.Dictionary")
+
+	Set TrLstFrom = Op.TransList(TrNoFrom)
+	Set TrLstTo = GetTtansaction(Op, TrNoFrom, TrNoTo, NewTrNoTo)
+	Set TrLstRetail = Op.TransList(TrNoRetail)
+
+	Clear TrLstTo
+	Clear TrLstRetail
+
+	'индикатор процесса
+	Set Mt =	Meter
+	Mt.Open "Списание ...", 0, TrLstFrom.Rows
+
+	MC = WorkArea.MyCompany.ID
+	OnDate = Op.Date
+	DocID = Op.ID
+	AgID = TrLstTo.Item(1).AgFromID
+	AccID = TrLstTo.Item(1).AccCrID
+	AccIDRetail = TrLstRetail.Item(1).AccDBID
+	
+	If ChargeMode = 3 Then
+		' ручное списание
+		IsError = Not DoHeadChargeRetail(Op, TrLstTo, TrLstFrom, TrLstRetail, MC)
+	Else
+		For i = 1 To TrLstFrom.Rows
+			With TrLstFrom.Item(i)
+				If .EntId <> 0 Then
+					If .Qty > 0 And .Entity.Type > 1002 Then
+
+						If flBalAccount Then AccID = .Entity.AccID
+						If flAgFrom Then AgID = .AgFromID
+
+						CurrPrice = 0
+						DoChargeRetail .EntID, .Qty, CurrPrice, TrLstTo, TrLstRetail, AccID, AgID, OnDate, DocID, ChargeMode, flWrite, DicSeries, Errors, i, MC, AccIDRetail
+						.Price = CurrPrice
+					End If
+				End If
+			End With
+
+			Mt.Pos = Mt.Pos + 1 		' нарастили индикатор
+		Next
+
+		' если возникли ошибки, то необходимо их отобразить
+		IsError = (Errors.Count <> 0)
+
+		If IsError <> 0 And IsViewError Then 
+			Set WorkArea.Map.Item("ErrorOp") = Op
+			ViewError Errors
+		End If
+
+	End If
+
+	If TrNoTo = TrNoFrom Then 
+		MoveTransList Op, TrNoFrom, NewTrNoTo
+		Op.DeleteTransList NewTrNoTo
+	End If
+
+	ChargeOffRetail = Not IsError
+	Mt.Close
+
+End Function
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Function DoHeadChargeRetail(Op, TrLstTo, TrLstFrom, TrLstRetail, MC)
+	Dim Dlg, i
+	Dim AccID, AgID
+
+	With TrLstTo.Item(1)
+		AccID = .AccCrID
+		AgID = .AgFromId
+	End With
+
+	For i = 1 To TrLstFrom.Rows
+		With TrLstFrom.Item(i)
+			If .EntID <> 0 And .Price = 0 Then
+				.Price = GetEntRetailPrice2(AccID, .EntID, AgID, Op.Date, Op.ID, MC)
+			End If
+		End With
+	Next
+
+	Set Dlg = App.CreateDialog("ST7_HeadChargeRetail.adg")
+
+	With Dlg.Map
+		Set .Item("Op") = Op
+		Set .Item("TrLstFrom") = TrLstFrom
+		Set .Item("TrLstTo") = TrLstTo
+		Set .Item("TrLstRetail") = TrLstRetail
+	End With
+
+	Dlg.DoModal
+	DoHeadChargeRetail = Dlg.Map("Done")
+
+End Function
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub DoChargeRetail(EntID, Qty, ByRef CurrPrice, ByRef TrLstTo, ByRef TrLstRetail, AccID, AgID, OnDate, DocID, ChargeMode, flWrite, DicSeries, Errors, TrRowNo, MC, AccIDRetail)
+	Dim TotalQty
+	Dim aSeries
+	Dim i, RowNo, Key
+	Dim aOneSeries
+	Dim RowSum, RowAddSum
+
+	TotalQty = Qty
+	CurrPrice = GetEntRetailPrice2(AccID, EntID, AgID, OnDate, DocID, MC)
+
+	If CurrPrice= 0 Then
+		Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TotalQty, TrRowNo, AccID, AgID)
+		Exit Sub
+	End If
+
+	aSeries = GetEntSeriesRestRetail(AccID, AgID, EntID, AccIDRetail, OnDate, DocID, MC, ChargeMode)
+	
+	If UBound(aSeries) = -1 Then
+		' нет серий на остатке
+		Errors.Add Errors.Count + 1, Array(acErrorNoSeries, EntID, TotalQty, TrRowNo, AccID, AgID)
+	Else
+		For i = 0 To UBound(aSeries, 2)
+			If TotalQty = 0 Then Exit For
+			Key = EntID & "|" & aSeries(0, i)
+
+			If Not DicSeries.Exists(Key) Then DicSeries.Add Key, Array(aSeries(2, i), aSeries(3, i), aSeries(4, i))
+			aOneSeries = DicSeries.Item(Key)
+
+			If aOneSeries(0) > 0 Then
+
+				If TotalQty > aOneSeries(0) Then 
+					RowSum = aOneSeries(1) - aOneSeries(2)
+					AddRowToTransRetail TrLstTo, EntID, AccID, AgID, aOneSeries(0), aSeries(0, i), RowSum, True
+					AddRowToTransRetail TrLstRetail, EntID, AccIDRetail, AgID, 0, aSeries(0, i), aOneSeries(2), False
+					TotalQty = TotalQty - aOneSeries(0)
+					aOneSeries(0) = 0
+					aOneSeries(1) = 0
+					aOneSeries(2) = 0
+				Else
+					RowSum = (aOneSeries(1) - aOneSeries(2)) / aOneSeries(0)
+					RowAddSum = aOneSeries(2) / aOneSeries(0)
+					AddRowToTransRetail TrLstTo, EntID, AccID, AgID, TotalQty, aSeries(0, i), RowSum * TotalQty, True
+					AddRowToTransRetail TrLstRetail, EntID, AccIDRetail, AgID, 0, aSeries(0, i), RowAddSum * TotalQty, False
+					aOneSeries(0) = aOneSeries(0) - TotalQty
+					aOneSeries(1) = aOneSeries(1) - (RowSum + RowAddSum) * TotalQty
+					aOneSeries(2) = aOneSeries(2) - RowAddSum * TotalQty
+					TotalQty = 0
+				End If
+
+				DicSeries.Item(Key) = aOneSeries
+				
+			End If
+		Next
+
+		If TotalQty <> 0 Then
+			Errors.Add Errors.Count + 1, Array(acErrorNoQuant, EntID, TotalQty, TrRowNo, AccID, AgID)
+		End If
+
+	End If
+
+End Sub
+'---
+'
+'---
+Function GetEntSeriesRestRetail(AccID, AgID, EntID, AccIDRetail, OnDate, DocID, MC, ChargeMode)
+	Dim QD, RS, RsCount
+
+	Set QD = Workarea.DAODAtaBase.CreateQueryDef("")
+	If ChargeMode <> 4 Then
+		QD.SQL = 	"PARAMETERS AccID Long, AgID Long, EntID Long, AddAccID long, OnDate DateTime, DocID Long, AccStartID long, MC Long;" & _
+						"Select iif(IsNull(journal.SER_ID), 0, journal.SER_ID) AS seriesID, Ser_Date1 as SeriesDate, " & _ 
+						"Sum(J_QTY*(IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0))) AS RestQty, " & _ 
+						"Sum(J_SUM*(IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0))) AS RestSum, " & _ 
+						"Sum(J_SUM*(IIf(([AddAccID]=ACC_CR And ACC_DB = 69  And J_AG2=[AgID]) Or  " & _
+						" ([AccID]=ACC_DB And ACC_CR = [AddAccID] And J_AG1=[AgID]),1,0)-IIf(([AddAccID]=ACC_DB And ACC_CR = 69  And J_AG1=[AgID]) Or " & _
+						" ([AccID]=ACC_CR And ACC_DB = [AddAccID] And J_AG2=[AgID]),1,0))) AS RestAddSum " & _ 
+						"FROM SERIES Right Join JOURNAL On SERIES.SER_ID = JOURNAL.SER_ID " & _ 
+						"WHERE J_DONE = 2 And DOC_ID <> [DocID] And MC_ID = [MC] And J_DATE <= [OnDate] And J_ENT = [EntID] And " & _ 
+						"((IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0)) <> 0 Or " & _ 
+						"(IIf(([AddAccID]=ACC_DB And ACC_CR = [AccStartID]  And J_AG1=[AgID]) Or  " & _
+						"([AccID]=ACC_DB And ACC_CR = [AddAccID] And J_AG1=[AgID]),1,0)-IIf(([AddAccID]=ACC_CR And  " & _
+						"ACC_DB = [AccStartID]  And J_AG2=[AgID]) Or ([AccID]=ACC_CR And ACC_DB = [AddAccID] And J_AG2=[AgID]),1,0)) <> 0) " & _ 
+						"GROUP BY journal.SER_ID, Ser_Date1 " & _ 
+						"ORDER BY Ser_Date1"
+
+		If ChargeMode = 2 Then QD.SQL = QD.SQL & " DESC"
+	Else
+		QD.SQL = 	"PARAMETERS AccID Long, AgID Long, EntID Long, AddAccID long, OnDate DateTime, DocID Long, MC Long;" & _
+						"Select 0 AS seriesID, 0 as SeriesDate, " & _
+						"Sum(J_QTY*(IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0))) AS RestQty, " & _
+						"Sum(J_SUM*(IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0))) AS RestSum, " & _ 
+						"Sum(J_SUM*(IIf(([AddAccID]=ACC_CR And ACC_DB = 69  And J_AG2=[AgID]) Or  " & _
+						" ([AccID]=ACC_DB And ACC_CR = [AddAccID] And J_AG1=[AgID]),1,0)-IIf(([AddAccID]=ACC_DB And ACC_CR = 69  And J_AG1=[AgID]) Or " & _
+						" ([AccID]=ACC_CR And ACC_DB = [AddAccID] And J_AG2=[AgID]),1,0))) AS RestAddSum " & _ 
+						"FROM JOURNAL " & _
+						"WHERE J_DONE = 2 And DOC_ID <> [DocID] And MC_ID = [MC] And J_DATE <= [OnDate] And J_ENT = [EntID] And " & _ 
+						"((IIf([AccID]=ACC_DB And J_AG1=[AgID],1,0)-IIf([AccID]=ACC_CR And J_AG2=[AgID],1,0)) <> 0 Or " & _ 
+						"(IIf(([AddAccID]=ACC_DB And ACC_CR = [AccStartID]  And J_AG1=[AgID]) Or  " & _
+						"([AccID]=ACC_DB And ACC_CR = [AddAccID] And J_AG1=[AgID]),1,0)-IIf(([AddAccID]=ACC_CR And  " & _
+						"ACC_DB = [AccStartID]  And J_AG2=[AgID]) Or ([AccID]=ACC_CR And ACC_DB = [AddAccID] And J_AG2=[AgID]),1,0)) <> 0) "
+	End If
+
+	QD.Parameters(0).Value = AccID
+	QD.Parameters(1).Value = AgID
+	QD.Parameters(2).Value = EntID
+	QD.Parameters(3).Value = AccIDRetail
+	QD.Parameters(4).Value = OnDate
+	QD.Parameters(5).Value = DocID
+	QD.Parameters(6).Value = workarea.GetAccID("00")
+	QD.Parameters(7).Value = MC
+
+	Set Rs = QD.OpenRecordSet
+
+	If Rs.EOF Then
+		GetEntSeriesRestRetail = Array(0)
+	Else
+		Rs.MoveLast
+		RsCount = Rs.RecordCount
+		Rs.MoveFirst
+		GetEntSeriesRestRetail = Rs.GetRows(RsCount)
+	End If
+
+End Function
+'---
+'
+'---
+Function GetEntRetailPrice2(AccID, EntID, AgToID, OnDate, DocID, MC)
+	Dim QD, Rs
+	Dim Qty, Sum
+
+	Set QD = WorkArea.DAODataBase.CreateQueryDef("")
+	QD.SQL = "Select Qty, Sum from ST7_oddments_of_the_goods where EntID=[Ent_ID] and Qty <> 0 and Sum <> 0"
+
+	QD.Parameters(0).Value = AgToID
+	QD.Parameters(1).Value = AccID
+	QD.Parameters(2).Value = DocID
+	QD.Parameters(3).Value = OnDate
+	QD.Parameters(4).Value = ""
+	QD.Parameters(5).Value = MC
+	QD.Parameters(6).Value = EntID
+
+	Set Rs = QD.OpenRecordSet()
+
+	If Rs.EOF Then
+		GetEntRetailPrice2 = 0
+	Else
+		Qty = Rs.Fields(0).Value
+		Sum = Rs.Fields(1).Value
+
+		GetEntRetailPrice2 = Sum / Qty
+	End If
+
+End Function
+
+'-----------------------------------------------
+'
+'-----------------------------------------------
+Sub AddRowToTransRetail(ByRef TrLst, EntID, AccID, AgID, ByRef Qty, SeriesID, RowSum, Mode)
+	Dim RowNo
+
+	If TrLst.Item(TrLst.Rows).EntID <> 0 Then
+		RowNo = TrLst.Rows + 1
+	Else
+		RowNo = TrLst.Rows
+	End If
+
+	With TrLst.Item(RowNo)
+		.EntID = EntID
+
+		If Mode Then
+			.Qty = Qty
+			.AgFromId = AgID
+			.AccCrId = AccID
+		Else
+			.Qty = 0
+		End If
+
+		.Sum = RowSum
+		.SeriesID = SeriesID
+	End With
+End Sub
+
+'---
+'
+'---
+Sub GetEntityRestRetail(EntID, AccID, AgID, OnDate, DocID, MyCoID, ByRef Qty, ByRef Sum, ByRef ExtraSum)
+	Dim RecSet
+
+	With WorkArea.DAODataBase.CreateQueryDef("")
+		.SQL = "PARAMETERS EntID Long, AccID Long, AgID Long, OnDate DateTime, DocID Long, MyCoID Long; " & _
+		       "Select Sum(IIF(ACC_DB = [AccID], J_QTY, 0) - IIF(ACC_CR = [AccID], J_QTY, 0)), " & _
+		       "Sum(IIF(ACC_DB = [AccID], J_SUM, 0) - IIF(ACC_CR = [AccID], J_SUM, 0)), " & _
+		       "Sum((IIF(ACC_DB = [AccID], J_SUM, 0) - IIF(ACC_CR = [AccID], J_SUM, 0))*IIF(IsNull(J_QTY) Or J_QTY = 0, 1, 0)) " & _
+		       "From JOURNAL " & _
+		       "Where J_ENT = [EntID] And J_DONE = 2 And DOC_ID <> [DocID] And " & _
+		       "(ACC_DB = [AccID] And J_AG1 = [AgID] Or ACC_CR = [AccID] And J_AG2 = [AgID]) And " & _
+		       "J_DATE <= [OnDate] And MC_ID = [MyCoID] " & _
+		       "Group By J_ENT " & _
+		       "Having Sum(IIF(ACC_DB = [AccID], J_QTY, 0) - IIF(ACC_CR = [AccID], J_QTY, 0)) <> 0 And " & _
+		       "       Sum(IIF(ACC_DB = [AccID], J_SUM, 0) - IIF(ACC_CR = [AccID], J_SUM, 0)) <> 0 "
+
+		.Parameters(0).Value = EntID
+		.Parameters(1).Value = AccID
+		.Parameters(2).Value = AgID
+		.Parameters(3).Value = OnDate
+		.Parameters(4).Value = DocID
+		.Parameters(5).Value = MyCoID
+
+		Set RecSet = .OpenRecordSet
+		.Close
+	End With
+
+	If RecSet.EOF Then
+		Qty = 0
+		Sum = 0
+		ExtraSum = 0
+	Else
+		Qty = RecSet.Fields(0).Value
+		Sum = RecSet.Fields(1).Value
+		ExtraSum = RecSet.Fields(2).Value
+	End If
+End Sub
+'---
+'
+'---
+Sub Clear(TrList)
+	TrList.Rows = 1
+
+	With TrList(1)
+		.EntID = 0
+		.SeriesID = 0
+		.Qty = 0
+		.Sum = 0
+		.Price = 0		
+	End With
+End Sub
+'---
+'
+'---
+Function TestData(Op, TrNoTo, TrNoFrom, TrNoRetail)
+	TestData = Not ((TrNoTo = TrNoRetail) Or (TrNoFrom = TrNoRetail))
+End Function
+'---
+'
+'---

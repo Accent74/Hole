@@ -1,0 +1,109 @@
+Option Explicit
+
+Class AssetsBind
+	Public AgID
+	Public OnDate
+	Public DocID
+
+	Private EntAsset
+	Private BalSum, AmortSum
+	Private BalAcc
+	Private BalSumCalc, AmortSumCalc
+	Private MC
+
+	Private Sub Class_initialize
+		Set EntAsset = Nothing
+		BalSum = 0
+		AmortSum = 0
+		BalSumCalc = False
+		AmortSumCalc = False
+		AgID = 0
+		OnDate = Date
+		DocID = 0 
+		MC = Workarea.MyCompany.ID
+		BalAcc = 0
+	End Sub
+
+	Private Sub Class_terminate
+	End Sub
+	
+	Public Property Let ID(IDValue)
+		If IDValue <> 0 Then
+			Set EntAsset = Workarea.Entity(IDValue)
+		Else
+			Set EntAsset = Nothing
+		End If
+	
+		BalSum = 0
+		AmortSum = 0
+		
+		BalSumCalc = False
+		AmortSumCalc = False
+	End Property
+
+	Public Property Get BalanceCost
+		If Not EntAsset Is Nothing And Not BalSumCalc Then
+			BalSum = CalcSum(Me.BalAccID)
+			BalSumCalc = True
+		End If
+
+		BalanceCost = BalSum
+	End Property
+
+	Public Property Get AmortAccID
+		Dim AccID, Acc
+	
+		AmortAccID = 0
+		AccID = Me.BalAccID 
+
+		If AccID <> 0 Then
+			Set Acc = Workarea.Account(AccID)
+			
+			If Not Acc Is Nothing Then
+				AmortAccID = com_getparamvalue(Acc, prmAccAmort, 0)
+			End If	
+		End If
+
+		BalSumCalc = False
+		AmortSumCalc = False
+
+	End Property
+
+	Public Property Get AmortCost
+		If Not EntAsset Is Nothing  And Not AmortSumCalc Then
+			AmortSum = CalcSum(Me.AmortAccID)
+			AmortSumCalc = True
+		End If
+
+		AmortCost = AmortSum
+	End Property
+
+	Public Property Let BalAccID(AccID)
+		BalAcc = AccID
+		BalSumCalc = False
+		AmortSumCalc = False
+	End Property
+
+	Public Property Get BalAccID
+		If Not EntAsset Is Nothing Then
+			If BalAcc = 0 Then
+				BalAcc = EntAsset.AccID
+			End If
+		End If
+			
+		BalAccID = BalAcc
+	End Property 
+
+	Private Function CalcSum(AccID)
+		Dim aPrm, aData
+
+		aPrm = Array(AgID, AccID, EntAsset.ID, OnDate, DocID, MC)
+		If Query("ST7_Assets_CalcTotalSum", aPrm, aData) Then
+			CalcSum = checknull(aData(0, 0), 0)
+		Else
+			CalcSum = 0
+		End If
+
+	End Function
+
+End Class
