@@ -17,12 +17,11 @@ Dim WinHttp, XMLHTTP, sURL
 
 Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
 
-sURL = "https://acp.privatbank.ua/api/proxy/transactions?acc=26003052915835&startDate=01-11-2019&endDate=01-12-2019"
+sURL = "https://api.turbosms.ua/ping?token=3f55b23a1608c35a4f9dc02ab4d90be0959434ad&{""response_code"": 1,""response_status"": ""PONG"", ""response_result"": Null}"
 Call XMLHTTP.Open("GET", sURL, False)
 Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
-Call XMLHTTP.setRequestHeader("User-Agent", "application/json; charset=utf-8")
-Call XMLHTTP.setRequestHeader("id", "cd2c32c7-4ef6-4adf-bb4f-54ad51dd3708")
-Call XMLHTTP.setRequestHeader("token", "fu3AYaVRHYBEq0Jdm38hWkvMTikuTVPpc12wikpO7o95M8H1XAeZXGEKEMNka6aUKG8Yl4TSi2DCsrE3pYgHaqXx332o9Tpgvg4523IIHlxHSNm4seRPHVieVSIW84vAK0vsnCFVdK6XyFOwdVAm+ekZVU1gpVjsibGaggKgqnDLs/HVkQfNvfnpiI+B5Kpbcv7tBTqs5K4Rs/lAXY4/46tLtNPeXBN0BnFMSUWtJ1RC+QZ37na1bkFNU3S105g=")
+Call XMLHTTP.setRequestHeader("Authorization", "Basic")
+Call XMLHTTP.setRequestHeader("token", "3f55b23a1608c35a4f9dc02ab4d90be0959434ad")
 
 'On Error Resume Next
 

@@ -17,7 +17,7 @@ Dim WinHttp, XMLHTTP, sURL
 
 Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
 
-sURL = "https://accent.bitrix24.ua/rest/1/p6r0g2zhjsk8v6jh/tasks.task.list.json/';"
+sURL = "https://auto-comfort.bitrix24.ua/rest/10511/2m7mpmtpajmq9igp/crm.deal.list.json"
 Call XMLHTTP.Open("GET", sURL, False)
 Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
 Call XMLHTTP.setRequestHeader("User-Agent", "application/json; charset=utf-8")
@@ -41,3 +41,7 @@ Err.Clear
 
 'id:"local.5da9c129553275.61248786"
 'key:"z4E5ZNky2y5yuWG8JXaSpFKyGHkBXyINL7tQ40p4p5YDx6L1zH"
+
+
+'https://auto-comfort.bitrix24.ua/rest/10511/fwwnq2eu1d7sgwya/
+'https://auto-comfort.bitrix24.ua/rest/10511/fwwnq2eu1d7sgwya/profile.json

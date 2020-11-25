@@ -359,12 +359,12 @@ End Function
 '---
 '
 '---
-Function GetEntID(EntFildField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
+Function GetEntID(EntFindField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
 	Dim SQL, aData, NewEnt, EntName, EntFindFieldValue
-	Dim EntCode, aPrm
+	Dim EntCode, aPrm, aCodes, i, EntCodeNew
 
 	GetEntID = 0
-	EntFindFieldValue = dFields(EntFildField)
+	EntFindFieldValue = dFields(EntFindField)
 
 	If EntFindFieldLen <> "" Then
 		EntCode = com_strzero(EntFindFieldValue, str2long(EntFindFieldLen))
@@ -372,13 +372,13 @@ Function GetEntID(EntFildField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
 		EntCode = EntFindFieldValue
 	End If
 
-	SQL = "select ent_id from entities where ent_" & EntFildField & " = '" & EntCode & "'"
+	SQL = "select ent_id from entities where ent_" & EntFindField & " = '" & EntCode & "'"
 	
 	If GetRs2(SQL, aData) Then
 		GetEntID = aData(0, 0)
 	Else
 		EntName = Replace(dFields("name"), "'", "''")
-		EntName = Replace(EntName, Chr(34), Chr(34) & Chr(34))
+'		EntName = Replace(EntName, Chr(34), Chr(34) & Chr(34))
 
 		SQL = "select ent_id from entities where ent_name = '" & EntName & "'"
 		Set NewEnt = Nothing
@@ -400,13 +400,31 @@ Function GetEntID(EntFildField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
 			Exit Function
 		End If
 
-		NewEnt.Art = iif(EntFildField = "art", EntCode, checknull(dFields("art"), ""))
-		NewEnt.nom = iif(EntFildField = "nom", EntCode, checknull(dFields("nom"), ""))
-		NewEnt.bar = iif(EntFildField = "bar", EntCode, checknull(dFields("bar"), ""))
-		NewEnt.cat = iif(EntFildField = "cat", EntCode, checknull(dFields("cat"), ""))
-		NewEnt.tag = iif(EntFildField = "tag", EntCode, checknull(dFields("tag"), ""))
-		NewEnt.Save
+		' check and set entity codes
+		aCodes = Array("art", "nom", "cat", "tag")
 
+		For i = 0 To UBound(aCodes)
+			If EntFindField = aCodes(i) Then 
+				EntCodeNew = EntCode
+			Else
+				EntCodeNew = checknull(dFields(aCodes(i)), "")
+			End If
+
+			If EntCodeNew <> "" Then
+				Select Case aCodes(i)
+					Case "art"
+						NewEnt.Art = EntCodeNew
+					Case "nom"
+						NewEnt.Nom = EntCodeNew
+					Case "cat"
+						NewEnt.Cat = EntCodeNew
+					Case "tag"
+						NewEnt.Tag = EntCodeNew
+				End Select
+			End If
+		Next
+
+		NewEnt.Save
 		GetEntID = NewEnt.ID
 	End If
 

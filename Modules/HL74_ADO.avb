@@ -67,7 +67,7 @@ Function GetRs(SQLString)
 		Set GetRS = db.openrecordset(SQLString)
 	Else
 
-		SQLString = Replace(SQLString, Chr(34), "'")
+		'SQLString = Replace(SQLString, Chr(34), "'")
 
 		Set Cn = WorkArea.AdoConnection
 		Cn.CursorLocation = 3 'курсор на нашей стороне
