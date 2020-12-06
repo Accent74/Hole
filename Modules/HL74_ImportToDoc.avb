@@ -361,10 +361,12 @@ End Function
 '---
 Function GetEntID(EntFindField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
 	Dim SQL, aData, NewEnt, EntName, EntFindFieldValue
-	Dim EntCode, aPrm, aCodes, i, EntCodeNew
+	Dim EntCode, aCodes, i, EntCodeNew
 
 	GetEntID = 0
+
 	EntFindFieldValue = dFields(EntFindField)
+	EntName = Replace(dFields("name"), "'", "''")
 
 	If EntFindFieldLen <> "" Then
 		EntCode = com_strzero(EntFindFieldValue, str2long(EntFindFieldLen))
@@ -372,62 +374,85 @@ Function GetEntID(EntFindField, EntFindFieldLen, dFields, EntRoot, ErrorMsg)
 		EntCode = EntFindFieldValue
 	End If
 
-	SQL = "select ent_id from entities where ent_" & EntFindField & " = '" & EntCode & "'"
+	SQL = "select ent_id from entities where ent_type > 999 and ent_" & EntFindField & " = '" & EntCode & "'"
 	
 	If GetRs2(SQL, aData) Then
+		' нашли по ключевому полю, выходим
 		GetEntID = aData(0, 0)
-	Else
-		EntName = Replace(dFields("name"), "'", "''")
-'		EntName = Replace(EntName, Chr(34), Chr(34) & Chr(34))
-
-		SQL = "select ent_id from entities where ent_name = '" & EntName & "'"
-		Set NewEnt = Nothing
-
-		If GetRs2(SQL, aData) Then
-			Set NewEnt = workarea.Entity(aData(0, 0))
-		ElseIf EntName <> "" Then
-			Set NewEnt = EntRoot.Create(1004, EntName)
-
-			If NewEnt Is Nothing Then
-				ErrorMsg = "Ошибка создания объекта учета: " & EntName
-				Exit Function
-			End If
-
-			aPrm = Array("AfterCreate", acEntity, NewEnt.ID, Empty)
-			app.RunModule Workarea.Map(mapWAWorkareaPath), "RunEventsApp", aPrm
-
-		Else
+		Exit Function
+	ElseIf EntCode <> "" Then
+		' по коду не нашли, но код есть, создаем
+		If Not CreateNewEnt(NewEnt, EntName, EntRoot, ErrorMsg) Then 
+			'	ошибка создания, выходим
 			Exit Function
 		End If
+	Else
+		If EntName <> "" Then
+			'	имя не пустое, ищем
+			SQL = "select ent_id from entities where ent_type > 999 and ent_name = '" & EntName & "'"
+			Set NewEnt = Nothing
 
-		' check and set entity codes
-		aCodes = Array("art", "nom", "cat", "tag")
-
-		For i = 0 To UBound(aCodes)
-			If EntFindField = aCodes(i) Then 
-				EntCodeNew = EntCode
+			If GetRs2(SQL, aData) Then
+			'	нашли, загрузили свойства
+				Set NewEnt = workarea.Entity(aData(0, 0))
 			Else
-				EntCodeNew = checknull(dFields(aCodes(i)), "")
+				'	не нашли, создаем
+				If Not CreateNewEnt(NewEnt, EntName, EntRoot, ErrorMsg) Then 
+					'	ошибка создания, выходим
+					Exit Function
+				End If
 			End If
-
-			If EntCodeNew <> "" Then
-				Select Case aCodes(i)
-					Case "art"
-						NewEnt.Art = EntCodeNew
-					Case "nom"
-						NewEnt.Nom = EntCodeNew
-					Case "cat"
-						NewEnt.Cat = EntCodeNew
-					Case "tag"
-						NewEnt.Tag = EntCodeNew
-				End Select
-			End If
-		Next
-
-		NewEnt.Save
-		GetEntID = NewEnt.ID
+		Else
+			ErrorMsg = "Наименование объекта учета не должно быть пустым."
+			Exit Function
+		End If
 	End If
 
+	' check and set entity codes
+	aCodes = Array("art", "nom", "cat", "tag")
+
+	For i = 0 To UBound(aCodes)
+		If EntFindField = aCodes(i) Then 
+			EntCodeNew = EntCode
+		Else
+			EntCodeNew = checknull(dFields(aCodes(i)), "")
+		End If
+
+		If EntCodeNew <> "" Then
+			Select Case aCodes(i)
+				Case "art"
+					NewEnt.Art = EntCodeNew
+				Case "nom"
+					NewEnt.Nom = EntCodeNew
+				Case "cat"
+					NewEnt.Cat = EntCodeNew
+				Case "tag"
+					NewEnt.Tag = EntCodeNew
+			End Select
+		End If
+	Next
+
+	NewEnt.Save
+	GetEntID = NewEnt.ID
+
+End Function
+'---
+'
+'---
+Function CreateNewEnt(NewEnt, EntName, EntRoot, ErrorMsg)
+	Dim aPrm
+
+	Set NewEnt = EntRoot.Create(1004, EntName)
+
+	If NewEnt Is Nothing Then
+		ErrorMsg = "Ошибка создания объекта учета: " & EntName
+		CreateNewEnt = False
+		Exit Function
+	End If
+
+	aPrm = Array("AfterCreate", acEntity, NewEnt.ID, Empty)
+	app.RunModule Workarea.Map(mapWAWorkareaPath), "RunEventsApp", aPrm
+	CreateNewEnt = True
 End Function
 '---
 '
