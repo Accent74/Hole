@@ -1,0 +1,105 @@
+Option Explicit
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_EAN13.avb"
+
+Sub SetNextCodes
+	Dim Ent 
+
+	Set Ent = workarea.entity(workarea.map("KindID"))
+	CheckCode Ent, "art", prmDBArtNewCode
+	CheckCode Ent, "nom", prmDBNomNewCode
+	CheckCode Ent, "cat", prmDBCatNewCode
+	CheckCode Ent, "bar", prmDBBarNewCode
+End Sub
+'---
+'
+'---
+Sub CheckCode(Ent, Kind, prmKind)
+	Dim Rules, aRules, NewCode, cNewCode
+
+	Rules = com_getparamvalue(Workarea, prmKind, "")
+	cNewCode = ""
+
+	If Rules <> "" Then
+		aRules = Split(Rules, ";")
+
+		Select Case str2long(aRules(0))
+			Case 2		' EAN8
+				NewCode = com_GetNextCode(Kind, aRules(3), 8, True)
+				If str2Dbl(NewCode) > 0 Then cNewCode = EAN8_MakeCode("", NewCode)
+
+			Case 3		' EAN13
+				NewCode = com_GetNextCode(Kind, aRules(3), 13, True)
+				If str2Dbl(NewCode) > 0 Then cNewCode = EAN13_MakeCode("", NewCode)
+
+			Case 4		' Manual
+				NewCode = com_GetNextCode(Kind, aRules(3), str2long(aRules(1)), False)
+				If aRules(3) = "" And aRules(2) = "1" And str2Dbl(NewCode) > 0 Then
+					cNewCode = com_strzero(NewCode, str2long(aRules(1)))
+				Else
+					cNewCode = CStr(NewCode)
+				End If
+			Case Else
+				Exit Sub
+		End Select
+
+		Execute "Ent." & Kind & " = " & Chr(34) & cNewCode & Chr(34)
+		Ent.Save
+	End If
+End Sub
+'---
+'
+'---
+Function com_GetNextCode(ByVal Mode, ByVal CodePrefix, ByVal CodeLen, ByVal IsCRC)
+	Dim SQL, aData, HasAnyCode
+
+	SQL = "Select top 1 ent_" & Mode & " from entities " & _
+				"where IsNumeric(ent_" & Mode &") = 1 " & _
+					iif(CodePrefix <> "", "And Left(ent_" & Mode & ", " & Len(CodePrefix) & ") = '" & CodePrefix & "' ", "") & _
+					"And Len(ent_" & Mode & ") = " & CodeLen
+
+	HasAnyCode = GetRs2(SQL, aData)
+	
+	If App.AppType = "OLEDB" Then
+		If IsCRC Then CodeLen = CodeLen - 1
+
+		SQL =	"declare  " & vbNewLine & _
+					"	@CodeLen Int = " & CodeLen & ", " & vbNewLine & _
+					"	@prefix nvarchar(255) = N'" & CodePrefix & "' " & vbNewLine & _
+					"	set @prefix = @prefix + N'%' " & vbNewLine & _
+					"	set nocount on ;" & vbNewLine & _
+					"	Select convert(bigint, Left(e2.ent_" & Mode & ", @CodeLen)) as ent_" & Mode & vbNewLine & _
+					"	into #tmp " & vbNewLine & _
+					"	from entities e2 " & vbNewLine & _
+					"	where  " & vbNewLine & _
+					"	not try_cast(Left(e2.ent_" & Mode & ", @CodeLen) as bigint) is null " & vbNewLine & _
+					"										And e2.ent_" & Mode & " like @prefix " & vbNewLine & _
+					" create index code1 on #tmp(ent_" & Mode & ") " & vbNewLine & _
+					"	Select top 1 convert(bigint, Left(e.ent_" & Mode & ", @CodeLen)) + 1 " & vbNewLine & _
+					"	from entities e " & vbNewLine & _
+					"	where  " & vbNewLine & _
+					"		not try_cast(Left(e.ent_" & Mode & ", @CodeLen) as bigint) is null " & vbNewLine &_
+					"		And e.ent_" & Mode & " like @prefix " & vbNewLine & _
+					"		And Not exists (Select n.ent_" & Mode & "  " & vbNewLine & _
+					"							from #tmp as n " & vbNewLine & _
+					"							where n.ent_" & Mode & " = convert(bigint, Left(e.ent_" & Mode & ", @CodeLen)) + 1) "  & vbNewLine & _
+					" drop table #tmp"
+	Else
+		com_GetNextCode = -1
+		Exit Function
+	End If
+	
+	If GetRs2(SQL, aData) Then
+		com_GetNextCode = aData(0, 0)
+	ElseIf Not HasAnyCode Then
+		com_GetNextCode = str2long(CodePrefix & String(CodeLen - Len(CodePrefix) - 1, "0") & "1")
+	Else
+		com_GetNextCode = 0
+	End If
+	
+End Function
+'---
+'
+'---

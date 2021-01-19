@@ -1,0 +1,131 @@
+'#include "HL74_XML.avb"
+Option Explicit
+
+MakeXMLFrom 320
+
+Sub MakeXMLFrom(FormID)
+	Dim oXml, xmlRoot, xmlFileName, Frm
+
+	Set Frm = App.CreateForm(FormID)
+	If Frm Is Nothing Then Exit Sub
+stop
+	Set oXml = New XML
+
+	If oXML.Create() Then
+		Set xmlRoot = oXml.xml.CreateElement("form")
+		xmlRoot.SetAttribute "filename", Frm.FileName
+		xmlRoot.SetAttribute "caption", Frm.Caption
+		xmlRoot.SetAttribute "guid", Frm.GUID
+
+		xmlRoot.AppendChild xmlGetToolbar(Frm.ToolBar, oXml.xml)
+		xmlRoot.AppendChild xmlGetPages(Frm, oXml.xml)
+		xmlRoot.AppendChild xmlGetModule(Frm, oXml.xml)
+
+		oXml.xml.InsertBefore xmlRoot, Null
+		xmlFileName = createLibObject("Redirect").GetFullPath(Frm.FileName)
+		
+		oXml.xmlFileName = Left(xmlFileName, InStrRev(xmlFileName, ".")) + "afx"
+		oXml.SaveAll
+	End If
+
+	Frm.Close	
+End Sub
+
+Function xmlGetToolBar(ToolBar, xml)
+	Dim xmlToolBar, i, tbb, xmlButton
+
+	Set xmlToolBar = xml.CreateElement(ToolBar.typename)
+	Set xmlGetToolBar = xmlToolBar
+	xmlToolBar.SetAttribute "visible", ToolBar.visible
+
+	For i = 1 To ToolBar.Count
+		Set tbb = ToolBar.Item(i)
+		Set xmlButton = xml.CreateElement(tbb.typename)
+		xmlButton.SetAttribute "caption", tbb.caption
+		xmlButton.SetAttribute "command", tbb.command
+		xmlButton.SetAttribute "enabled", tbb.enabled
+		xmlButton.SetAttribute "image", tbb.image
+		xmlButton.SetAttribute "tooltip", tbb.Tooltip
+		xmlButton.SetAttribute "dropdown", tbb.dropdown
+		xmlButton.SetAttribute "group", tbb.group
+		xmlButton.SetAttribute "popup", tbb.popup
+		xmlButton.SetAttribute "tag", tbb.tag
+		xmlButton.SetAttribute "visible", tbb.visible
+
+		xmlToolBar.AppendChild xmlButton
+	Next
+End Function
+
+
+Function xmlGetModule(Frm, xml)
+	Dim xmlModule
+
+	Set xmlModule = xml.CreateElement("module")
+	Set xmlGetModule = xmlModule
+	xmlModule.Text = Frm.GetScript
+
+End Function
+
+Function xmlGetPages(Frm, xml)
+	Dim xmlPages, i, xmlPage, aControls, xmlCtrl, Ctrl, j
+
+	Set xmlPages = xml.CreateElement("formpages")
+	Set xmlGetPages = xmlPages
+	
+	For i = 1 To Frm.PageCount
+		Set xmlPage = xml.CreateElement("formpage")
+		aControls = Frm.Page(i).ControlArray
+
+		For j = 0 To UBound(aControls)
+			Set Ctrl = aControls(j)
+			Set xmlCtrl = xml.CreateElement(Ctrl.TypeName)
+
+			AddProps Ctrl, xmlCtrl, xml
+			xmlPage.AppendChild xmlCtrl
+		Next
+
+		xmlPages.AppendChild xmlPage
+
+	Next
+
+End Function
+
+Sub AddProps(Ctrl, xmlCtrl, xml)
+	Dim aPropsName, i, PropsValue
+
+
+	aPropsName = Array(_
+		"alignment", "backcolor", "caption", "font", "forecolor", "multiline", _
+		"bordercolor", "borderstyle", "checked", "datasource", "flat", "printback", _
+		"printborder", "printtext", "combocontents2", "count", "allowtime", "format",_
+		"Date", "datatype", "maxlength", "text", "alinkcolor", "columns", "displaygrin",_
+		"flat", "gridcolor", "inherit", "rows", "autosize", "hlink", "vertical", "linecolor",_
+		"linestyle", "printline", "x1", "x2", "y1", "y2", "picture", "printpicture",_
+		"stretch", "rowheight", "custombind", "datasourcecheck", _
+		"name", "layout", "visible", "tag", "height", _
+		"left", "tabindex", "tabstop", "tooltip", "top", "width")
+
+	For i = 0 To UBound(aPropsName)
+		If GetPropValue(Ctrl, aPropsName(i), PropsValue) Then
+			xmlCtrl.SetAttribute aPropsName(i), PropsValue
+		End If
+	Next
+	
+	Select Case Ctrl.TypeName
+		Case "FrmComboBox"
+			'FrmComboBox_addItems()
+		Case "FrmGrid"
+			'FrmGrid_AddCells()
+	End Select
+
+End Sub
+
+Function GetPropValue(Ctrl, PropName, PropsValue)
+	On Error Resume Next
+	PropsValue = Eval("Ctrl." & PropName)
+
+	If Err.Number <> 0 Then	PropsValue = Empty
+	GetPropValue = (Err.Number = 0)
+	Err.Clear
+
+End Function

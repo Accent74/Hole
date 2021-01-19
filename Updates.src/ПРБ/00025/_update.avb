@@ -1,0 +1,130 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	025
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "hl74_AssistantLog.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "025"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	Add2021
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'---
+'
+'---
+Sub Add2021()
+	Dim MscID, Msc, MscRoot, i, SQL, ErrorMsg
+
+	MscID = Com_GetParamValue(Workarea, prmDBCalendar, 0)
+
+	If MscID = 0 Then
+		If MsgBox("Не указана аналитика для календаря рабочего времени. Желаете выбрать ?", vbQuestion + vbOKCancel, "Установка обновления") = vbOK Then 
+			MscID = Workarea.Browse(acMisc,,,, "Выберите аналитику для календаря рабочего времени")
+
+			If MscID = 0 Then
+				writelog Array("Календарь рабочего времени не установлен. Укажите аналитику в свойствах базы данных")
+				Exit Sub
+			Else
+				Com_SetParamValue Workarea, prmDBCalendar, MscID
+			End If
+		End If
+	End If	
+
+	Set MscRoot = Nothing
+
+	With Workarea.Misc(MscID).Children
+		For i = 1 To .Count
+			Set Msc = .Item(i)
+			If Msc.Name = "2021" Then
+				Set MscRoot = Msc
+				Exit For
+			End If
+		Next
+
+		If MscRoot Is Nothing Then Set MscRoot = .Create(0, "2021")
+	End With
+	
+	SQL = "update MISC_ATTR Set MSC_VISIBLE = 1985, MS1_NAME = 'График рабочего времени', " & _
+				"MC1_NAME = 'Часов', MC2_NAME = 'Дней', MC3_NAME = 'Часов в день', MD1_NAME = 'Дата начала'," & _
+				" MD2_NAME = 'Дата окончания' where msc_no =" & MscRoot.MscNo
+
+	ExecQuery SQL, ErrorMsg
+
+	Set MscRoot = MscRoot.Children
+
+	AddMonthCalendar MscRoot, "8/1/2021",  "8/31/2021",  "Август 2021",   "В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" , 176, 22, 8
+	AddMonthCalendar MscRoot, "4/1/2021",  "4/30/2021",  "Апрель 2021",   "8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8" ,   175, 22, 8
+	AddMonthCalendar MscRoot, "12/1/2021", "12/31/2021", "Декабрь 2021",  "8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8" , 176, 22, 8
+	AddMonthCalendar MscRoot, "7/1/2021",  "7/31/2021",  "Июль 2021",     "8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В" , 176, 22, 8
+	AddMonthCalendar MscRoot, "6/1/2021",  "6/30/2021",  "Июнь 2021",     "8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8" ,   159, 20 , 8
+	AddMonthCalendar MscRoot, "5/31/2021", "5/31/2021",  "Май 2021",      "В;В;8;8;8;8;8;В;В;8;В;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8" , 136, 17 , 8
+	AddMonthCalendar MscRoot, "3/1/2021",  "3/31/2021",  "Март 2021",     "8;8;8;8;8;В;В;В;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8" , 176, 22 , 8
+	AddMonthCalendar MscRoot, "11/1/2021", "11/30/2021", "Ноябрь 2021",   "8;8;8;П;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8" ,   159, 20 , 8
+	AddMonthCalendar MscRoot, "10/1/2021", "10/31/2021", "Октябрь 2021",  "8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В" , 168, 21 , 8
+	AddMonthCalendar MscRoot, "9/1/2021",  "9/30/2021",  "Сентябрь 2021", "8;8;8;В;В8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8",     176, 22 , 8
+	AddMonthCalendar MscRoot, "2/1/2021",  "2/28/2021",  "Февраль 2021",  "8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;В;8;8;8;В;В",        151, 19, 8
+	AddMonthCalendar MscRoot, "1/1/2021",  "1/31/2021",  "Январь 2021",   "В;В;В;8;8;8;В;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В",  120, 15, 8
+End Sub
+
+'---
+'
+'---
+Sub AddMonthCalendar(Root, Date1, Date2, MscName, String1, Sum1, Sum2,  Sum3)
+	Dim MscID, Msc
+
+	MscID = Root.Find(MscName, 0, 2)
+
+	If MscID = 0 Then
+		Set Msc = Root.Create(1, MscName)
+
+		If Not Msc Is Nothing Then
+			Msc.Date1 = cDate(Date1)
+			Msc.Date2 = cDate(Date2)
+			Msc.String1 = String1
+			Msc.Sum1 = Sum1
+			Msc.Sum2 = Sum2
+			Msc.Sum3 = Sum3
+	
+			Msc.Save
+'			writelog Array("Сообщение:", "Добавлена аналитика", Msc.Name), updater
+'		Else
+'			writelog Array("Ошибка:", "Ошибка добавления аналитики:", MscName), updater
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+
+

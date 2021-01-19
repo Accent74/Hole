@@ -1,0 +1,50 @@
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+
+If App.CreateDialog("DocsExchange.acp#imp_main.adg").DoModal Then AgAddrr_path
+
+'---
+'
+'---
+Sub AgAddrr_path
+	Dim SQL, aData, i, Ag, dAgAddr, fctHistory, j
+	Dim fctItem, fDate, Keys
+
+	Set dAgAddr = CreateLibOBject("Map")
+	SQL = "Select Count(*), ag_facts.EL_ID, ag_facts.FA_ID, ag_facts.FA_STRING " & _
+				"FROM ag_facts " & _
+				"WHERE (((ag_facts.FA_STRING)<>'')) " & _
+				"GROUP BY ag_facts.EL_ID, ag_facts.FA_ID, ag_facts.FA_STRING " & _
+				"HAVING (((Count(*))>1))"
+
+	If GetRs2(SQL, aData) Then
+
+		For i = 0 To UBound(aData, 2)
+			Set Ag = Workarea.Agent(aData(1, i))
+			dAgAddr.RemoveAll
+
+			Set fctItem = Ag.Facts.Item(fctAgAddress)
+			fctHistory = fctItem.History
+			
+			For j = 0 To UBound(fctHistory, 2)
+				If dAgAddr.Exists(fctHistory(1, j)) Then
+					fctItem.SetNull
+				Else
+					dAgAddr(fctHistory(1, j)) = fctHistory(1, j)
+				End If
+			Next
+
+			Keys = dAgAddr.Keys
+			Com_ClearFacts Ag, fctAgAddress
+			fDate = CDate("01/01/1900")
+
+			For j = 0 To UBound(Keys)
+				Ag.Facts(fDate + j).Item(fctAgAddress).Value = keys(j)
+			Next
+		Next
+	End If
+
+End Sub

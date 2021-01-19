@@ -1,0 +1,221 @@
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Печать чека на ЭККА"
+Const MSG_ERROR_NO_PROCEDURE = "Не указана процедура для печати чека"
+
+Dim PrintCash_MscNo, PrintCash_MscID, MSG_ERROR_NOSET
+
+MSG_ERROR_NOSET = "Проверьте настройки кассового регистратора." & vbNewLine & _
+							"Не указан порт принтера, скорость соединения или модуль обработки"
+
+
+'	PrintCash_MscNo = Form_GetMscNoByDBPrm(prmDBCashPrint)
+'	PrintCash_CheckToolBar Op.Trans(1), Toolbar, PrintCash_MscNo
+'	PrintCash_PrintCheck Op, 1, Op.Trans(1).Misc(PrintCash_MscNo)
+
+'---
+'
+'	prmPrinter
+'	0	- 	Msc
+'	1 	-	кассир
+'	2	-	пароль кассира
+'	3 	-	прочее, если нужно
+'
+'	prmData для печати чеков
+'	0 	-	операция
+'	1	-	номер проводки
+'	2	-	тип платежа
+'	3	-	признак платежа со скидкой. в качестве значений Price или Sum будут использоваться параметры prmTrPrice и prmTrSum
+'
+'---
+
+
+'---
+'
+'---
+Sub PrintCash_PrintCheck2(Op, TrNo, Msc, IsDiscount)
+	Dim prm, prmData, prmPrinter
+
+	If not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1, IsDiscount)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_DoPrintCheck", prm
+		Op.Done = True
+		Op.Save 8 + 16
+
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckRet2(Op, TrNo, Msc, IsDiscount)
+	Dim prm, prmData, prmPrinter
+
+	If not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1, IsDiscount)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_DoPrintCheckRet", prm
+		Op.Done = True
+		Op.Save 8 + 16
+
+	End If
+
+End Sub
+
+'---
+'
+'---
+Sub PrintCash_PrintCheck(Op, TrNo, Msc)
+	Dim prm, prmData, prmPrinter
+
+	If not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1, False)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_DoPrintCheck", prm
+		Op.Done = True
+		Op.Save 8 + 16
+
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckRet(Op, TrNo, Msc)
+	Dim prm, prmData, prmPrinter
+
+	If not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1, False)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_DoPrintCheckRet", prm
+		Op.Done = True
+		Op.Save 8 + 16
+
+	End If
+
+End Sub
+
+'---
+'
+'---
+Sub PrintCash_CheckToolBar(Tr, Toolbar, PrintCash_MscNo)
+	Dim Btn
+
+	Set Btn  = Toolbar.ItemByCommand(9)
+
+	If Not Btn Is Nothing Then
+		Btn.Enabled = False
+
+		If PrintCash_MscNo <> 0 Then
+			If Tr.MiscID(PrintCash_MscNo) <> 0 Then
+				Btn.Enabled = True
+			End If
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_CheckToolBar2(Tr, Toolbar, PrintCash_MscNo)
+	Dim Btn
+
+	Set Btn  = Toolbar.ItemByCommand(9)
+
+	If Not Btn Is Nothing Then
+		Btn.Visible = False
+		btn.Group = False
+
+		If PrintCash_MscNo <> 0 Then
+			If Tr.MiscID(PrintCash_MscNo) <> 0 Then
+				Btn.Visible = True
+				btn.Group = True
+			End If
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_MakeReport(RepType, RepPeriod, IsFullPeriod, IsFullView, StartNo, EndNo, Msc)
+	Dim prm
+
+	If not IsFileExists(Msc.String1) Then
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(RepType, IsFullView, IsFullPeriod, RepPeriodStart, StartNo, EndNo)
+
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_PrintReport", prm
+	Else
+		MsgBox MSG_ERROR_NO_PROCEDURE, vbCritical, MSG_BOX_CAPTION
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintNullCheck(Msc)
+	Dim prmPrinter
+
+	If Msc.String1 <> "" Then
+		prmPrinter = Array(Msc, "", 0)
+		App.RunModule Msc.String1, "PrintCash_PrintNullCheck", prmPrinter
+	End If
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckOut(Op, TrNo, Msc)
+	Dim prm, prmData, prmPrinter
+
+	If not not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_PrintCheckOut", prm
+	End If
+
+End Sub
+'---
+'
+'---
+Sub PrintCash_PrintCheckIn(Op, TrNo, Msc)
+	Dim prm, prmData, prmPrinter
+
+	If not IsFileExists(Msc.String1) Or Msc.String2 = "" Or Msc.Long1 = 0 Then
+		MsgBox MSG_ERROR_NOSET, vbExclamation, Op.Name 
+	Else
+		prmPrinter = Array(Msc, "", 0)
+		prmData = Array(Op, TrNo, 1)
+		prm = Array(prmPrinter, prmData)
+
+		App.RunModule Msc.String1, "PrintCash_PrintCheckIn", prm
+	End If
+
+End Sub
+'---
+'
+'---
+

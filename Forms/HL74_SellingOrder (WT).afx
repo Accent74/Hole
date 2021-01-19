@@ -1,0 +1,1070 @@
+<form filename="HL74_SellingOrder (WT).afm" caption="Товары. Расходная накладная" guid="{GUID {C3C131E9-72BA-401B-A1AD-DAD5E93FF859}}"><FrmToolbar visible="-1"><FrmToolbarButton caption="Новый" command="5" enabled="-1" image="2" tooltip="Создать новый документ на основании текущего" dropdown="-1" group="0" popup="1:Копия текущего:100|1:-" tag="CreateNewDoc" visible="-1"/><FrmToolbarButton caption="Сохранить" command="1" enabled="0" image="4" tooltip="Сохранить документ" dropdown="0" group="-1" popup="" tag="SaveOperation" visible="-1"/><FrmToolbarButton caption="Печать" command="3" enabled="-1" image="5" tooltip="Печать документа" dropdown="-1" group="-1" popup="1:Печать:301|1:Просмотр перед печатью:302" tag="Print False" visible="-1"/><FrmToolbarButton caption="Импорт" command="13" enabled="-1" image="51" tooltip="Импорт информации из файла Excel " dropdown="0" group="-1" popup="" tag="Form_Import2Doc Op, Op.Trans(1).AgFromBind.ParamString(prmAgXLSTemplate)" visible="-1"/><FrmToolbarButton caption="Excel" command="11" enabled="-1" image="76" tooltip="Экспортировать в Excel/Word/HTML" dropdown="-1" group="0" popup="1:Экспорт в Word:501|1:Экспорт в HTML:502" tag="Form_ExportToHTML Op, ExpFileName, 2" visible="-1"/><FrmToolbarButton caption="Проводки" command="8" enabled="-1" image="14" tooltip="Показать проводки по документу" dropdown="-1" group="-1" popup="1:Выбрать шаблон:401" tag="op.ShowTrans True" visible="-1"/><FrmToolbarButton caption="Подобрать" command="10" enabled="0" image="42" tooltip="Подобрать товар из остатков" dropdown="0" group="-1" popup="" tag="DoAddEntFromRest" visible="-1"/><FrmToolbarButton caption="ТСД" command="23" enabled="-1" image="51" tooltip="Работа с ТСД" dropdown="-1" group="0" popup="1:Проверить накладную:601|1:Загрузить в ТСД:602|1:Импортировать из ТСД:603" tag="" visible="0"/><FrmToolbarButton caption="Печать чека" command="9" enabled="-1" image="36" tooltip="Печать чека на кассовом регистраторе. Сохраните предварительно документ" dropdown="0" group="0" popup="" tag="PrintCash_PrintCheck Op, 1, Op.Trans(1).Misc(PrintCash_MscNo)" visible="0"/><FrmToolbarButton caption="Связи" command="19" enabled="-1" image="78" tooltip="Показать связанные документы" dropdown="0" group="-1" popup="" tag="Form_ShowReplations Op" visible="-1"/><FrmToolbarButton caption="Закрыть" command="7" enabled="-1" image="65" tooltip="Закрыть документ" dropdown="0" group="-1" popup="" tag="Close" visible="-1"/></FrmToolbar><formpages><formpage><FrmEdit alignment="2" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.DocNo" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="" name="edDocNo" layout="1" visible="-1" tag="" height="60" left="581" tabindex="1" tabstop="-1" tooltip="Номер документа" top="23" width="196"/><FrmDate alignment="2" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.Date" printback="0" printborder="-1" printtext="-1" allowtime="0" format="dd mmmm yyyy г." Date="11/14/2020" name="edDocDate" layout="1" visible="-1" tag="" height="60" left="845" tabindex="2" tabstop="-1" tooltip="Дата документа" top="23" width="370"/><FrmLabel alignment="0" backcolor="-1" caption="Расходная накладная №" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Расходная накладная №" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="22" tabindex="3" tabstop="0" tooltip="" top="23" width="554"/><FrmLabel alignment="2" backcolor="-1" caption="от" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="от" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="778" tabindex="4" tabstop="0" tooltip="" top="23" width="46"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="30" tabindex="5" tabstop="0" tooltip="" top="1697" width="109"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="11" gridcolor="0" inherit="-1" rows="3" name="tblTotal" layout="3" visible="-1" tag="" height="184" left="21" tabindex="6" tabstop="0" tooltip="Итоговые данные по списку товара" top="1343" width="1919"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="879" tabindex="7" tabstop="0" tooltip="" top="1697" width="149"/><FrmLine linecolor="12623485" linestyle="1" printline="-1" x1="21" x2="1920" y1="98" y2="98" name="Line1" layout="1" visible="-1" tag=""/><FrmLine linecolor="12623485" linestyle="1" printline="-1" x1="20" x2="1920" y1="580" y2="580" name="Line3" layout="1" visible="-1" tag=""/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(2).AgFromBind" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAgFrom" layout="1" visible="-1" tag="check" height="60" left="237" tabindex="10" tabstop="-1" tooltip="Наименование отправителя" top="115" width="978"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).AgToBind" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAgTo" layout="1" visible="-1" tag="check" height="60" left="237" tabindex="11" tabstop="-1" tooltip="Наименование получателя" top="189" width="978"/><FrmEdit alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="ExMap(&quot;Дов.№&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="" name="DoverNo" layout="1" visible="-1" tag="" height="60" left="1385" tabindex="12" tabstop="-1" tooltip="Номер доверенности" top="283" width="545"/><FrmLabel alignment="0" backcolor="-1" caption="Отправитель" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Отправитель" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="19" tabindex="13" tabstop="0" tooltip="" top="115" width="212"/><FrmLabel alignment="0" backcolor="-1" caption="Получатель" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Получатель" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="20" tabindex="14" tabstop="0" tooltip="" top="190" width="212"/><FrmLabel alignment="0" backcolor="-1" caption="Через кого" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Через кого" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="19" tabindex="15" tabstop="0" tooltip="" top="283" width="212"/><FrmLabel alignment="0" backcolor="-1" caption="№ дов." font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="№ дов." alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1235" tabindex="16" tabstop="0" tooltip="" top="283" width="126"/><FrmLabel alignment="0" backcolor="-1" caption="Договор" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Договор" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="lbAgree" layout="1" visible="-1" tag="" height="58" left="1235" tabindex="17" tabstop="0" tooltip="" top="115" width="140"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.Trans(1).MiscBind(Agree.AgreeMscNo)" printback="0" printborder="0" printtext="0" text="" custombind="0" datasourcecheck="" name="slAgree" layout="1" visible="-1" tag="check" height="60" left="1235" tabindex="18" tabstop="-1" tooltip="" top="189" width="695"/><FrmCheckBox alignment="1" backcolor="-1" caption="Показать все" font="Verdana" forecolor="0" multiline="0" checked="-1" datasource="" flat="0" printback="0" printborder="0" printtext="0" name="chkAllAgree" layout="1" visible="-1" tag="" height="60" left="1616" tabindex="19" tabstop="-1" tooltip="" top="120" width="310"/><FrmSelector alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="SlParentDoc" layout="1" visible="-1" tag="" height="61" left="316" tabindex="20" tabstop="-1" tooltip="Наименование поставщика" top="355" width="899"/><FrmLabel alignment="0" backcolor="-1" caption="Основание" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Основание" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="19" tabindex="21" tabstop="0" tooltip="" top="356" width="212"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.Name" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAg1" layout="1" visible="-1" tag="" height="58" left="316" tabindex="22" tabstop="-1" tooltip="" top="284" width="899"/><FrmSelector alignment="1" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.FullName" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAg2" layout="3" visible="-1" tag="" height="50" left="130" tabindex="23" tabstop="-1" tooltip="" top="1697" width="639"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1029" tabindex="24" tabstop="0" tooltip="" top="1697" width="545"/><FrmLabel alignment="0" backcolor="-1" caption="Валюта" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Валюта" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="1235" tabindex="25" tabstop="0" tooltip="" top="356" width="126"/><FrmSelector alignment="2" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.Trans(1).TransCurs(1).CurBind.NameRate" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slCurrency" layout="1" visible="-1" tag="" height="60" left="1385" tabindex="26" tabstop="-1" tooltip="" top="356" width="206"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="com_displayrate(Op.Trans(1), 1)" printback="0" printborder="-1" printtext="-1" format="(&amp;p)" datatype="6" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1636" tabindex="27" tabstop="0" tooltip="" top="356" width="294"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="12" gridcolor="12632256" rows="1" rowheight="50" name="sgrdEnts" layout="0" visible="-1" tag="" height="650" left="21" tabindex="28" tabstop="-1" tooltip="Список товаров и материалов" top="693" width="1899"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="12" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader" layout="2" visible="-1" tag="" height="89" left="21" tabindex="29" tabstop="0" tooltip="" top="605" width="1899"/><FrmLabel alignment="0" backcolor="-1" caption="Форма оплаты:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Форма оплаты:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="22" tabindex="30" tabstop="0" tooltip="" top="500" width="263"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).MiscBind(PayTypeMscNo)" printback="0" printborder="0" printtext="-1" text="" custombind="0" datasourcecheck="" name="slMscPayType" layout="1" visible="-1" tag="check" height="58" left="316" tabindex="31" tabstop="-1" tooltip="Форма оплаты" top="500" width="294"/><FrmLabel alignment="0" backcolor="-1" caption="Адрес доставки:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Адрес доставки:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="22" tabindex="32" tabstop="0" tooltip="" top="430" width="263"/><FrmLine linecolor="12623485" linestyle="1" printline="-1" x1="20" x2="1920" y1="264" y2="264" name="Line2" layout="1" visible="-1" tag=""/><FrmLabel alignment="1" backcolor="-1" caption="Условия поставки:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Условия поставки:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="625" tabindex="34" tabstop="0" tooltip="" top="500" width="316"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).MiscBind(DeliveryTypeMscNo)" printback="0" printborder="0" printtext="-1" text="" custombind="0" datasourcecheck="" name="slDelivType" layout="1" visible="-1" tag="check" height="58" left="951" tabindex="35" tabstop="-1" tooltip="Форма оплаты" top="500" width="264"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="AgAddr.Addr" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAgAddrs" layout="1" visible="-1" tag="" height="58" left="316" tabindex="36" tabstop="-1" tooltip="" top="430" width="899"/><FrmLabel alignment="0" backcolor="-1" caption="Менеджер" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Менеджер" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1235" tabindex="37" tabstop="0" tooltip="" top="23" width="175"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).MiscBind(ManagerMscNo).Name(MyCo.ID)" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slManager" layout="1" visible="-1" tag="check" height="60" left="1430" tabindex="38" tabstop="-1" tooltip="" top="23" width="500"/><FrmLabel alignment="0" backcolor="-1" caption="00021" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="00021" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="lbVersion" layout="1" visible="0" tag="" height="60" left="10" tabindex="39" tabstop="0" tooltip="" top="1830" width="212"/><FrmLabel alignment="0" backcolor="-1" caption="Прайс лист:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Прайс лист:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="1235" tabindex="40" tabstop="0" tooltip="" top="426" width="346"/><FrmLabel alignment="0" backcolor="-1" caption="Вид цены:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Вид цены:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="1235" tabindex="41" tabstop="0" tooltip="" top="500" width="346"/><FrmComboBox alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" printback="0" printborder="-1" printtext="-1" combocontents2="222|Уценка|Основной" count="3" name="cbPriceList" layout="0" visible="-1" tag="" height="60" left="1636" tabindex="42" tabstop="-1" tooltip="" top="430" width="294"/><FrmComboBox alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" printback="0" printborder="-1" printtext="-1" combocontents2="Уценка2|Уценка 2|Прайс-лист РОЗНИЦА|Прайс-лист ПЕРЕМЕЩЕНИЕ|Прайс-лист ОПТ|Прайс-лист МОЦ|Оптовая|Дилерская|Базовая" count="9" name="cbPriceKind" layout="0" visible="-1" tag="" height="58" left="1636" tabindex="43" tabstop="-1" tooltip="" top="500" width="294"/><FrmCheckBox alignment="0" backcolor="-1" caption=" Запретить дубликаты" font="Verdana" forecolor="0" multiline="0" checked="0" datasource="ExMap(&quot;Dup&quot;)" flat="0" printback="0" printborder="0" printtext="0" name="chkDup" layout="3" visible="-1" tag="" height="60" left="21" tabindex="44" tabstop="-1" tooltip="" top="1559" width="430"/><FrmLabel alignment="0" backcolor="-1" caption="Маршрут:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Маршрут:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="60" left="852" tabindex="45" tabstop="0" tooltip="" top="1558" width="156"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).MiscBind(mscNoPath)" printback="0" printborder="0" printtext="0" text="" custombind="0" datasourcecheck="" name="slDeliveryPath" layout="3" visible="-1" tag="check" height="60" left="1029" tabindex="46" tabstop="-1" tooltip="" top="1558" width="545"/><FrmLabel alignment="0" backcolor="-1" caption="Отсрочка, дн.:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Отсрочка, дн.:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1950" tabindex="47" tabstop="0" tooltip="" top="120" width="247"/><FrmEdit alignment="2" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="ExMap(&quot;DaysDalay&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="2" name="edDaysDelay" layout="1" visible="-1" tag="check" height="60" left="1959" tabindex="48" tabstop="-1" tooltip="Номер документа" top="189" width="220"/><FrmLabel alignment="0" backcolor="-1" caption="Водитель:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Водитель:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1950" tabindex="49" tabstop="0" tooltip="" top="283" width="247"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Ag3.Name" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slAg3" layout="1" visible="-1" tag="" height="60" left="2200" tabindex="50" tabstop="-1" tooltip="" top="283" width="650"/><FrmLabel alignment="0" backcolor="-1" caption="Автомобиль:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Автомобиль:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1950" tabindex="51" tabstop="0" tooltip="" top="356" width="247"/><FrmLabel alignment="0" backcolor="-1" caption="Прицеп:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Прицеп:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1950" tabindex="52" tabstop="0" tooltip="" top="430" width="247"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Ven1.Name" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slEnt1" layout="1" visible="-1" tag="" height="60" left="2200" tabindex="53" tabstop="-1" tooltip="" top="356" width="650"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Ven2.Name" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="slEnt2" layout="1" visible="-1" tag="" height="60" left="2200" tabindex="54" tabstop="-1" tooltip="" top="430" width="650"/><FrmLabel alignment="0" backcolor="-1" caption="Способ оплаты:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Способ оплаты:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1940" tabindex="55" tabstop="0" tooltip="" top="23" width="255"/><FrmSelector alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="Op.TransList(1).MiscBind(PayKindMscNo)" printback="0" printborder="0" printtext="-1" text="" custombind="0" datasourcecheck="" name="slPayKind" layout="1" visible="-1" tag="check" height="58" left="2200" tabindex="56" tabstop="-1" tooltip="Форма оплаты" top="23" width="650"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="2" gridcolor="15790320" inherit="-1" rows="3" name="grdDSC" layout="0" visible="-1" tag="" height="180" left="1620" tabindex="57" tabstop="-1" tooltip="" top="1559" width="570"/><FrmEdit alignment="0" backcolor="14745599" font="Verdana" forecolor="0" multiline="0" datasource="ExMap(&quot;Город&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="Донецк" name="edCity" layout="1" visible="-1" tag="check" height="60" left="2200" tabindex="58" tabstop="-1" tooltip="Номер документа" top="189" width="650"/><FrmLabel alignment="0" backcolor="-1" caption="Город:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="0" printtext="0" format="" datatype="8" text="Город:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="44" left="2200" tabindex="59" tabstop="0" tooltip="" top="120" width="117"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="6" gridcolor="0" inherit="-1" rows="1" name="" layout="2" visible="-1" tag="" height="92" left="8" tabindex="1" tabstop="0" tooltip="" top="171" width="1962"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="6" gridcolor="12632256" rows="1" rowheight="50" name="sgrdAddCost" layout="0" visible="-1" tag="" height="1050" left="8" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="262" width="1962"/><FrmLabel alignment="0" backcolor="-1" caption="Дополнительная затраты" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Дополнительная затраты" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="0" tabindex="3" tabstop="0" tooltip="" top="10" width="742"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="6" gridcolor="0" inherit="-1" rows="1" name="" layout="3" visible="-1" tag="" height="92" left="8" tabindex="4" tabstop="0" tooltip="" top="1302" width="1962"/><FrmEdit alignment="2" backcolor="-1" font="Verdana" forecolor="0" multiline="0" datasource="Op.DocNo" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="60" left="779" tabindex="5" tabstop="-1" tooltip="Номер документа." top="70" width="230"/><FrmLabel alignment="2" backcolor="-1" caption="от" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="от" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="1031" tabindex="6" tabstop="0" tooltip="" top="70" width="46"/><FrmDate alignment="2" backcolor="-1" font="Verdana" forecolor="0" multiline="0" datasource="Op.Date" printback="0" printborder="-1" printtext="-1" allowtime="0" format="dd mmmm yyyy г." Date="12:00:00 AM" name="" layout="1" visible="-1" tag="" height="60" left="1092" tabindex="7" tabstop="-1" tooltip="Дата документа" top="70" width="520"/><FrmLabel alignment="0" backcolor="-1" caption="к расходной накладной №" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="к расходной накладной №" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="0" tabindex="8" tabstop="0" tooltip="" top="70" width="472"/><FrmLine linecolor="12623485" linestyle="1" printline="-1" x1="8" x2="1970" y1="148" y2="148" name="" layout="1" visible="-1" tag=""/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="6" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader4" layout="2" visible="-1" tag="" height="90" left="21" tabindex="1" tabstop="0" tooltip="" top="287" width="1850"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="6" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEnts4" layout="0" visible="-1" tag="" height="572" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="376" width="1850"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="3" visible="-1" tag="" height="250" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="948" width="1879"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1277" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1277" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1311" tabindex="6" tabstop="0" tooltip="" top="1278" width="559"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="7" tabstop="0" tooltip="" top="1278" width="179"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="1" visible="-1" tag="" height="290" left="20" tabindex="8" tabstop="-1" tooltip="" top="0" width="1850"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="9" tabstop="0" tooltip="" top="1340" width="703"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="10" tabstop="0" tooltip="" top="1410" width="720"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="12632256" inherit="-1" rows="1" name="grdHeaderPrint" layout="2" visible="-1" tag="" height="90" left="21" tabindex="1" tabstop="0" tooltip="" top="937" width="1850"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="7" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEntsPrint" layout="0" visible="-1" tag="" height="572" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="1026" width="1850"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="3" visible="-1" tag="" height="250" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1598" width="1879"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1887" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1887" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1261" tabindex="6" tabstop="0" tooltip="" top="1888" width="599"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="7" tabstop="0" tooltip="" top="1888" width="129"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="16" name="" layout="1" visible="-1" tag="" height="910" left="21" tabindex="8" tabstop="-1" tooltip="" top="0" width="1859"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false), iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="lbAgWStamp" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="9" tabstop="0" tooltip="" top="1948" width="709"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="10" tabstop="0" tooltip="" top="2010" width="720"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="3" name="" layout="3" visible="-1" tag="" height="152" left="29" tabindex="1" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1676" width="1361"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="3" name="" layout="3" visible="-1" tag="" height="152" left="1480" tabindex="2" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1676" width="1380"/><FrmSelector alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource=" Form_GetAgAlterName(Op.Trans(1).AgTo, Op.Date) &amp; &quot; &quot; &amp; Form_GetAgDetails(Op.Trans(1).AgTo)" printback="0" printborder="0" printtext="-1" text=" " custombind="0" datasourcecheck="" name="" layout="1" visible="-1" tag="" height="135" left="320" tabindex="3" tabstop="-1" tooltip="Наименование плательщика" top="337" width="1058"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="7" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEnts1" layout="0" visible="-1" tag="" height="936" left="29" tabindex="4" tabstop="-1" tooltip="Список товаров и материалов" top="740" width="1352"/><FrmLabel alignment="0" backcolor="-1" caption="Получатель:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Получатель:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="29" tabindex="5" tabstop="0" tooltip="" top="341" width="183"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader1" layout="2" visible="-1" tag="" height="90" left="29" tabindex="6" tabstop="0" tooltip="" top="651" width="1352"/><FrmLine linecolor="0" linestyle="2" printline="-1" x1="30" x2="1382" y1="340" y2="340" name="" layout="1" visible="-1" tag=""/><FrmLine linecolor="0" linestyle="25" printline="-1" x1="1397" x2="1400" y1="48" y2="1990" name="" layout="0" visible="-1" tag=""/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="7" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEnts2" layout="0" visible="-1" tag="" height="936" left="1480" tabindex="9" tabstop="-1" tooltip="Список товаров и материалов" top="740" width="1371"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader2" layout="2" visible="-1" tag="" height="90" left="1480" tabindex="10" tabstop="0" tooltip="" top="651" width="1371"/><FrmLabel alignment="0" backcolor="-1" caption="Расходная накладная №" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Расходная накладная №" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="29" tabindex="11" tabstop="0" tooltip="" top="20" width="617"/><FrmEdit alignment="2" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="Op.DocNo" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="60" left="661" tabindex="12" tabstop="-1" tooltip="Номер документа" top="20" width="196"/><FrmLabel alignment="2" backcolor="-1" caption="от" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="от" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="897" tabindex="13" tabstop="0" tooltip="" top="20" width="54"/><FrmDate alignment="2" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="Op.Date" printback="0" printborder="-1" printtext="-1" allowtime="0" format="dd mmmm yyyy г." Date="12:00:00 AM" name="" layout="1" visible="-1" tag="" height="61" left="987" tabindex="14" tabstop="-1" tooltip="Дата документа" top="19" width="391"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(MyCo.ID &lt;&gt; Op.Trans(2).AgFromID, &quot;Склад:&quot;, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="29" tabindex="15" tabstop="0" tooltip="" top="281" width="109"/><FrmSelector alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="iif(MyCo.ID &lt;&gt; Op.Trans(2).AgFromID, Op.Trans(2).AgFromBind.Name, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="" layout="1" visible="-1" tag="" height="61" left="318" tabindex="16" tabstop="-1" tooltip="Наименование отправителя" top="265" width="1054"/><FrmLabel alignment="0" backcolor="-1" caption="Поставщик:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Поставщик:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="29" tabindex="17" tabstop="0" tooltip="" top="85" width="178"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource=" Form_GetAgAlterName(MyCo, Op.Date)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="71" left="318" tabindex="18" tabstop="0" tooltip="" top="79" width="534"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource="Form_GetAgDetails(MyCo)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="73" left="29" tabindex="19" tabstop="0" tooltip="Реквизиты поставщика" top="180" width="1355"/><FrmLabel alignment="0" backcolor="-1" caption="Через кого:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Через кого:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="44" left="29" tabindex="20" tabstop="0" tooltip="" top="480" width="199"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Ag1.Name" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="320" tabindex="21" tabstop="-1" tooltip="Ф.И.О. через кого идет груз" top="480" width="538"/><FrmLabel alignment="0" backcolor="-1" caption="№ довер.:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="№ довер.:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="865" tabindex="22" tabstop="0" tooltip="" top="480" width="218"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="ExMap(&quot;Дов.№&quot;)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="1081" tabindex="23" tabstop="-1" tooltip="Номер доверенности" top="480" width="297"/><FrmSelector alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource=" Form_GetAgAlterName(Op.Trans(1).AgTo, Op.Date) &amp; &quot; &quot; &amp; Form_GetAgDetails(Op.Trans(1).AgTo)" printback="0" printborder="0" printtext="-1" text=" " custombind="0" datasourcecheck="" name="" layout="1" visible="-1" tag="" height="135" left="1770" tabindex="24" tabstop="-1" tooltip="Наименование плательщика" top="337" width="1077"/><FrmLabel alignment="0" backcolor="-1" caption="Получатель:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Получатель:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="1479" tabindex="25" tabstop="0" tooltip="" top="341" width="183"/><FrmLine linecolor="0" linestyle="2" printline="-1" x1="1481" x2="2853" y1="340" y2="340" name="" layout="1" visible="-1" tag=""/><FrmLabel alignment="0" backcolor="-1" caption="Расходная накладная №" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Расходная накладная №" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="58" left="1479" tabindex="27" tabstop="0" tooltip="" top="20" width="617"/><FrmEdit alignment="2" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="Op.DocNo" printback="0" printborder="-1" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="60" left="2111" tabindex="28" tabstop="-1" tooltip="Номер документа" top="20" width="196"/><FrmLabel alignment="2" backcolor="-1" caption="от" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="от" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="2345" tabindex="29" tabstop="0" tooltip="" top="20" width="54"/><FrmDate alignment="2" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="Op.Date" printback="0" printborder="-1" printtext="-1" allowtime="0" format="dd mmmm yyyy г." Date="12:00:00 AM" name="" layout="1" visible="-1" tag="" height="61" left="2457" tabindex="30" tabstop="-1" tooltip="Дата документа" top="19" width="391"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(MyCo.ID &lt;&gt; Op.Trans(2).AgFromID, &quot;Склад:&quot;, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="1479" tabindex="31" tabstop="0" tooltip="" top="281" width="109"/><FrmSelector alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="0" datasource="iif(MyCo.ID &lt;&gt; Op.Trans(2).AgFromID, Op.Trans(2).AgFromBind.Name, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" text="" custombind="0" datasourcecheck="" name="" layout="1" visible="-1" tag="" height="61" left="1770" tabindex="32" tabstop="-1" tooltip="Наименование отправителя" top="268" width="1077"/><FrmLabel alignment="0" backcolor="-1" caption="Поставщик:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Поставщик:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="1479" tabindex="33" tabstop="0" tooltip="" top="85" width="178"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource=" Form_GetAgAlterName(MyCo, Op.Date)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="71" left="1770" tabindex="34" tabstop="0" tooltip="" top="80" width="527"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource="Form_GetAgDetails(MyCo)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="73" left="1479" tabindex="35" tabstop="0" tooltip="Реквизиты поставщика" top="180" width="1355"/><FrmLabel alignment="0" backcolor="-1" caption="Через кого:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Через кого:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="61" left="1480" tabindex="36" tabstop="0" tooltip="" top="463" width="199"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Ag1.Name" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="1770" tabindex="37" tabstop="-1" tooltip="Ф.И.О. через кого идет груз" top="480" width="552"/><FrmLabel alignment="0" backcolor="-1" caption="№ довер.:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="№ довер.:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="44" left="2335" tabindex="38" tabstop="0" tooltip="" top="480" width="212"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="ExMap(&quot;Дов.№&quot;)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="2548" tabindex="39" tabstop="-1" tooltip="Номер доверенности" top="480" width="297"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1479" tabindex="40" tabstop="0" tooltip="" top="1867" width="93"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="51" left="2250" tabindex="41" tabstop="0" tooltip="" top="1866" width="156"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="941" tabindex="42" tabstop="0" tooltip="" top="1868" width="433"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="817" tabindex="43" tabstop="0" tooltip="" top="1868" width="129"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2409" tabindex="44" tabstop="0" tooltip="" top="1867" width="443"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="29" tabindex="45" tabstop="0" tooltip="" top="1867" width="103"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="120" tabindex="46" tabstop="0" tooltip="" top="1867" width="569"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1560" tabindex="47" tabstop="0" tooltip="" top="1867" width="569"/><FrmLabel alignment="0" backcolor="-1" caption="Условия поставки:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Условия поставки:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="44" left="29" tabindex="48" tabstop="0" tooltip="" top="540" width="300"/><FrmLabel alignment="0" backcolor="-1" caption="Форма оплаты:" font="Verdana" forecolor="0" multiline="-1" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Форма оплаты:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="865" tabindex="49" tabstop="0" tooltip="" top="540" width="218"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Op.Trans(1).MiscBind(PayTypeMscNo)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="1081" tabindex="50" tabstop="-1" tooltip="Номер доверенности" top="540" width="297"/><FrmLabel alignment="0" backcolor="-1" caption="Адрес дост.:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Адрес дост.:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="54" left="29" tabindex="51" tabstop="0" tooltip="" top="598" width="210"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="ExMap(prmAgDeliveryAddr)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="54" left="320" tabindex="52" tabstop="-1" tooltip="Номер доверенности" top="598" width="1058"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="ExMap(prmAgDeliveryAddr)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="54" left="1770" tabindex="53" tabstop="-1" tooltip="Номер доверенности" top="598" width="1077"/><FrmLabel alignment="0" backcolor="-1" caption="Адрес дост.:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Адрес дост.:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="54" left="1480" tabindex="54" tabstop="0" tooltip="" top="598" width="210"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Op.Trans(1).MiscBind(PayTypeMscNo)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="2551" tabindex="55" tabstop="-1" tooltip="Номер доверенности" top="540" width="297"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Op.Trans(1).MiscBind(DeliveryTypeMscNo)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="320" tabindex="56" tabstop="-1" tooltip="Номер доверенности" top="540" width="538"/><FrmLabel alignment="0" backcolor="-1" caption="Форма оплаты:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Форма оплаты:" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="2335" tabindex="57" tabstop="0" tooltip="" top="540" width="218"/><FrmLabel alignment="0" backcolor="-1" caption="Условия поставки:" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Условия поставки:" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="44" left="1480" tabindex="58" tabstop="0" tooltip="" top="540" width="300"/><FrmEdit alignment="0" backcolor="16777215" font="Verdana" forecolor="0" multiline="-1" datasource="Op.Trans(1).MiscBind(DeliveryTypeMscNo)" printback="0" printborder="0" printtext="-1" format="" datatype="8" maxlength="0" text="" name="" layout="1" visible="-1" tag="" height="44" left="1770" tabindex="59" tabstop="-1" tooltip="Номер доверенности" top="540" width="552"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="941" tabindex="60" tabstop="0" tooltip="" top="1918" width="433"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2419" tabindex="61" tabstop="0" tooltip="" top="1918" width="433"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(Trim(ExMap(&quot;Город&quot;)) &lt;&gt; &quot;&quot;, &quot;место составления:&quot;, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="29" tabindex="62" tabstop="0" tooltip="" top="140" width="269"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource="iif(ExMap(&quot;Город&quot;) &lt;&gt; &quot;&quot;, ExMap(&quot;Город&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="318" tabindex="63" tabstop="0" tooltip="" top="140" width="1054"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(Trim(ExMap(&quot;Город&quot;)) &lt;&gt; &quot;&quot;, &quot;место составления:&quot;, &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="-1" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="1479" tabindex="64" tabstop="0" tooltip="" top="140" width="269"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="-1" datasource="iif(ExMap(&quot;Город&quot;) &lt;&gt; &quot;&quot;, ExMap(&quot;Город&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="42" left="1770" tabindex="65" tabstop="0" tooltip="" top="140" width="1077"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="817" tabindex="66" tabstop="0" tooltip="" top="1970" width="550"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2250" tabindex="67" tabstop="0" tooltip="" top="1970" width="550"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="10" gridcolor="12632256" inherit="-1" rows="1" name="grdHeaderA4L" layout="2" visible="-1" tag="" height="90" left="21" tabindex="1" tabstop="0" tooltip="" top="928" width="1860"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="10" gridcolor="12632256" rows="0" rowheight="52" name="sgrdPrintA4L" layout="0" visible="-1" tag="" height="572" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="1017" width="1860"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="11" gridcolor="0" inherit="-1" rows="4" name="tblTotalA4L" layout="3" visible="-1" tag="" height="247" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1591" width="1888"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1847" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1847" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1291" tabindex="6" tabstop="0" tooltip="" top="1848" width="589"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1167" tabindex="7" tabstop="0" tooltip="" top="1848" width="129"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="16" name="grdTopA4L" layout="1" visible="-1" tag="" height="910" left="21" tabindex="8" tabstop="-1" tooltip="" top="10" width="1860"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1958" tabindex="9" tabstop="0" tooltip="" top="1838" width="703"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1167" tabindex="10" tabstop="0" tooltip="" top="1950" width="720"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader3" layout="2" visible="-1" tag="" height="90" left="21" tabindex="1" tabstop="0" tooltip="" top="537" width="1850"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="7" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEnts3" layout="0" visible="-1" tag="" height="572" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="626" width="1850"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="3" visible="-1" tag="" height="250" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1198" width="1879"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1487" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1487" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1261" tabindex="6" tabstop="0" tooltip="" top="1488" width="589"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="7" tabstop="0" tooltip="" top="1488" width="129"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="7" name="" layout="1" visible="-1" tag="" height="522" left="20" tabindex="8" tabstop="-1" tooltip="" top="0" width="1850"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1140" tabindex="9" tabstop="0" tooltip="" top="1560" width="703"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="10" tabstop="0" tooltip="" top="1610" width="720"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="5" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader5" layout="2" visible="-1" tag="" height="90" left="21" tabindex="1" tabstop="0" tooltip="" top="167" width="1850"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="5" gridcolor="12632256" rows="0" rowheight="52" name="sgrdEnts5" layout="0" visible="-1" tag="" height="572" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="256" width="1850"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="5" gridcolor="0" inherit="-1" rows="5" name="" layout="3" visible="-1" tag="" height="302" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="828" width="1879"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1117" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1117" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1311" tabindex="6" tabstop="0" tooltip="" top="1118" width="559"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="7" tabstop="0" tooltip="" top="1118" width="179"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="1" name="" layout="1" visible="-1" tag="" height="72" left="21" tabindex="8" tabstop="-1" tooltip="" top="0" width="1850"/><FrmLabel alignment="0" backcolor="-1" caption="Получатель" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Получатель" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="1" visible="-1" tag="" height="60" left="20" tabindex="9" tabstop="0" tooltip="" top="90" width="212"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Form_GetAgAlterName(Op.Trans(1).AgTo, Op.Date)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="0" visible="-1" tag="" height="60" left="347" tabindex="10" tabstop="0" tooltip="" top="90" width="1527"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="11" tabstop="0" tooltip="" top="1178" width="703"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1137" tabindex="12" tabstop="0" tooltip="" top="1240" width="720"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="12632256" inherit="-1" rows="1" name="" layout="2" visible="-1" tag="" height="130" left="21" tabindex="1" tabstop="0" tooltip="" top="847" width="1760"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="7" gridcolor="12632256" rows="1" rowheight="52" name="sgrdEntsLst" layout="0" visible="-1" tag="" height="468" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="976" width="1760"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="3" name="" layout="3" visible="-1" tag="" height="203" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1445" width="1779"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1737" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1737" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1191" tabindex="6" tabstop="0" tooltip="" top="1738" width="589"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1057" tabindex="7" tabstop="0" tooltip="" top="1738" width="139"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="16" name="" layout="1" visible="-1" tag="" height="830" left="21" tabindex="8" tabstop="-1" tooltip="" top="0" width="1760"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false), iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1057" tabindex="9" tabstop="0" tooltip="" top="1808" width="703"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1057" tabindex="10" tabstop="0" tooltip="" top="1870" width="710"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="6" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader51" layout="2" visible="-1" tag="" height="80" left="21" tabindex="1" tabstop="0" tooltip="" top="330" width="1300"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="6" gridcolor="12632256" rows="1" rowheight="52" name="sgrdEnts51" layout="0" visible="-1" tag="" height="884" left="21" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="409" width="1300"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="3" visible="-1" tag="" height="250" left="21" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1293" width="1329"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1600" width="119"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="142" tabindex="5" tabstop="0" tooltip="" top="1600" width="499"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="819" tabindex="6" tabstop="0" tooltip="" top="1601" width="499"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="698" tabindex="7" tabstop="0" tooltip="" top="1601" width="159"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="1" visible="-1" tag="" height="302" left="20" tabindex="8" tabstop="-1" tooltip="" top="0" width="1301"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="697" tabindex="9" tabstop="0" tooltip="" top="1661" width="613"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="1" visible="-1" tag="" height="302" left="1360" tabindex="10" tabstop="-1" tooltip="" top="0" width="1301"/><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="6" gridcolor="12632256" inherit="-1" rows="1" name="grdHeader52" layout="2" visible="-1" tag="" height="80" left="1360" tabindex="11" tabstop="0" tooltip="" top="330" width="1300"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="6" gridcolor="12632256" rows="1" rowheight="52" name="sgrdEnts52" layout="0" visible="-1" tag="" height="884" left="1360" tabindex="12" tabstop="-1" tooltip="Список товаров и материалов" top="409" width="1300"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="3" visible="-1" tag="" height="250" left="1360" tabindex="13" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1293" width="1329"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1360" tabindex="14" tabstop="0" tooltip="" top="1600" width="139"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1492" tabindex="15" tabstop="0" tooltip="" top="1600" width="499"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2170" tabindex="16" tabstop="0" tooltip="" top="1600" width="499"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2048" tabindex="17" tabstop="0" tooltip="" top="1601" width="139"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_getlogicparamvalue(workarea, prmDBWStampShow, false) and Op.Trans(1).AgToID &lt;&gt; 0,iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2050" tabindex="18" tabstop="0" tooltip="" top="1660" width="613"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="698" tabindex="19" tabstop="0" tooltip="" top="1770" width="610"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="&quot;По доверенности № &quot; &amp;ExMap(&quot;Дов.№&quot;) &amp; iif(ExMap(&quot;Дов.№&quot;) &lt;&gt; &quot;&quot;, &quot;&quot;, space(20) &amp; &quot;от&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="2048" tabindex="20" tabstop="0" tooltip="" top="1770" width="610"/></formpage><formpage><FrmGrid flat="0" printback="0" printborder="0" printtext="-1" allowtime="0" alinkcolor="-1" columns="5" gridcolor="12632256" inherit="-1" rows="1" name="" layout="2" visible="-1" tag="" height="90" left="20" tabindex="1" tabstop="0" tooltip="" top="231" width="1761"/><FrmScrollGrid printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="0" columns="5" gridcolor="12632256" rows="0" rowheight="52" name="sgrdSer" layout="0" visible="-1" tag="" height="1040" left="20" tabindex="2" tabstop="-1" tooltip="Список товаров и материалов" top="320" width="1761"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="5" gridcolor="0" inherit="-1" rows="3" name="" layout="3" visible="-1" tag="" height="203" left="20" tabindex="3" tabstop="0" tooltip="Итоговые данные по списку материалов" top="1360" width="1790"/><FrmLabel alignment="0" backcolor="-1" caption="Сдал  " font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Сдал  " alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="21" tabindex="4" tabstop="0" tooltip="" top="1736" width="109"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag2.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="130" tabindex="5" tabstop="0" tooltip="" top="1736" width="649"/><FrmLabel alignment="1" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="Ag1.SignName" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1181" tabindex="6" tabstop="0" tooltip="" top="1737" width="589"/><FrmLabel alignment="0" backcolor="-1" caption="Принял" font="Verdana" forecolor="0" multiline="0" datasource="" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="Принял" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1047" tabindex="7" tabstop="0" tooltip="" top="1737" width="139"/><FrmGrid flat="0" printback="0" printborder="-1" printtext="-1" allowtime="0" alinkcolor="-1" columns="7" gridcolor="0" inherit="-1" rows="4" name="" layout="1" visible="-1" tag="" height="201" left="20" tabindex="8" tabstop="-1" tooltip="" top="-1" width="1760"/><FrmLabel alignment="0" backcolor="-1" caption="" font="Verdana" forecolor="0" multiline="0" datasource="iif(com_GetLogicParamValue(Workarea, prmDBWStampShow, false), iif(com_getfactvalue(Op.Trans(1).AgTo, fctAgIsNoStamp, Op.Date, false), &quot;Без печати&quot;, &quot;С печатью&quot;), &quot;&quot;)" printback="0" printborder="-1" printtext="-1" format="" datatype="8" text="" alinkcolor="-1" autosize="0" hlink="0" vertical="0" name="" layout="3" visible="-1" tag="" height="50" left="1047" tabindex="9" tabstop="0" tooltip="" top="1797" width="703"/></formpage></formpages><module>'==============================================='
+' Расходная накладная товар ДНР         	'
+'
+'	1-я проводка - список товара по цене реализации
+'	3-я проводка - список товара со склада
+'==============================================='
+' 17-May-2015                                  	'  
+' Copyright (c) 2004-16 ООО "Импакт".             	'
+'==============================================='
+Option Explicit
+
+'#include "HL74_Forms.avb"
+'#include "HL74_CustomBind.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_AgBind.avb"
+'#include "HL74_EntBind.avb"
+'#include "HL74_FormAgree.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_ADO.avb"
+'#include "HL74_FileDlg.avb"
+'#include "HL74_AgAddrBind.avb"
+'#include "HL74_PrintCash.avb"
+'#include "HL74_Libra.avb"
+'#include "HL74_Users.avb"
+
+Const TrNoSer = 10
+
+'---------------------------------------------------
+
+Dim Ag1, Ag2, Ag3, Ven1, Ven2, Agree, CustBind
+Dim AgAddr
+Dim IsFormModified, EntDict, DefPriceList
+Dim PathRootID, mscNoPath, LastPagePrint, LastPageActive
+Dim LibraModule, LibraPortName
+
+Dim dEnts
+'---------------------------------------------------
+' сохранение хозяйственной операции
+'---------------------------------------------------
+Sub SaveOperation
+	Agree.SetAgree Array(1)
+	Form_Save Op, Form
+
+	If Not Op.IsNew Then 
+		Form_SaveExtData Op, Array(Ag1, Ag2, Ag3), ExMap
+		Form_SaveExtData2 Op, "Ent", Array(Ven1, Ven2), ExMap, True
+	End If
+	
+	dEnts.RemoveAll
+	Op.TransList(2).EnumTrans GetRef("AddOneRow"), dEnts
+	CheckAllGrid Op.TRansList(1), dEnts, sgrdEnts
+
+	Op.TransList(TrNoSer).EnumTrans GetRef("CreateSeriesRow"), dEnts
+
+	recalc
+End Sub
+'---
+'
+'---
+Function CreateSeriesRow(Tr, ByRef prm)
+	Dim SQL, aData, NewSeries
+
+	CreateSeriesRow = True
+
+	If Tr.SeriesID = 0 And Tr.Params(prmTrCode).Value2 &lt;&gt; "" Then
+		SQL = "select top 1 ser_id from series where ent_id=" &amp; Tr.EntID &amp; " and ser_code=" &amp; Chr(34) &amp; Tr.Params(prmTrCode).Value2 &amp; Chr(34)
+		If GetRs2(SQL, aData) Then
+			Tr.SeriesID = aData(0, 0)
+		Else
+			Set NewSeries = Tr.Entity.SeriesColl.Create(Tr.EntBind.Name  &amp; " SN:" &amp; Tr.Params(prmTrCode).Value2,,Tr.Params(prmTrCode).Value2, Tr.Date, Tr.Date + 365)
+			If Not NewSeries Is Nothing Then 
+				Tr.SeriesID = NewSeries.ID
+				NewSeries.AgFromID = Op.Trans(1).AgFromID
+				NewSeries.Save
+			End If
+		End If
+	End If
+End Function
+'---
+'
+'---
+Sub EntInit
+	Set Ven1 = New EntBind
+	Set Ven2 = New EntBind
+
+	Form_LoadElems Op, "Ent", Array(Ven1, Ven2), Array(slEnt1, slEnt2), ExMap
+
+End Sub
+'---
+'
+'---
+Sub AgInit
+	Set Ag1 = New AgBind
+	Set Ag2 = New AgBind
+	Set Ag3 = New AgBind
+
+	Form_LoadAgents Op, Array(Ag1, Ag2, Ag3), Array(slAg1, slAg2, slAg3), ExMap
+
+	Ag1.SetStdSignValues
+	Ag2.SetStdSignValues
+	Ag2.FolderID = MyCo.ID
+	Ag3.SetStdSignValues
+End Sub
+'---
+'
+'---
+Sub CopyEntToDict(TrList, EntDict)
+	EntDict.RemoveAll
+	TrList.EnumTrans GetRef("CopyEntToDictRow"), EntDict
+	If TrList.Rows &gt; 1 Then TrList.Pack
+End Sub
+'---
+'
+'---
+Function CopyEntToDictRow(Tr, ByRef EntDict)
+	Dim TrRowNo, Tr2, TrSum
+
+	CopyEntToDictRow = True
+
+	If Tr.EntID &lt;&gt; 0 Then
+		If Not EntDict.Exists(Tr.EntID) Then
+			EntDict.Add Tr.EntID, Tr.RowNo2 	
+		Else
+			TrRowNo = EntDict(Tr.EntID)
+			Set Tr2 = Tr.Parent(TrRowNo)
+			TrSum = Tr2.Sum
+			Tr2.Qty = Tr2.Qty + Tr.Qty
+			Tr.Sum = TrSum + Tr2.Sum
+	
+			Tr.EntID = 0
+		End If
+	End If
+End Function
+'---------------------------------------------------
+' Вызывается после загрузки формы
+'---------------------------------------------------
+Sub Form_OnLoad
+	Dim flModified, prm
+
+ 	Set op = Form_GetCurrentOperation(Form, flModified)
+
+	FormOptions = form_getcolumnwidtharray(Op.FormID, 4)
+	Form_ColumnWidthInit Form, sgrdEnts, grdHeader, tblTotal, FormOptions, 4
+	Form_ColumnWidthInit Form, sgrdPrintA4L, grdHeaderA4L, tblTotalA4L, FormOptions, 4
+	Forms_sgrdSetRights sgrdEnts, Array(9, 10), "Редактирование цен в документах (запрет)"
+
+	Form_PrepareNewButton TmlArray, Op, ToolBar.ItemByCommand(btnNewDoc)
+	Form_SetCaption Op, Form
+
+	Op.TransList(1).Inherit 2 + 4 + 8 + 16 + 32 + 128 + 256
+	SlParentDoc.Text = Form_GetParentDocName(Op.Link)
+
+	Set EntDict = CreateObject("Scripting.Dictionary")
+	Set dEnts = CreateObject("Scripting.Dictionary")
+
+	AgInit
+	EntInit
+	AgreeInit
+	CustomBindInit
+	AgAddrInit
+
+	cbPriceList.ComboContents2 = Workarea.PriceLists.ComboString2
+	cbPriceKind.ComboContents2 = Workarea.PriceKinds.ComboString2
+
+	If Op.IsNew Then
+		Form_LoadPriceList Op.Trans(1).AgTo, Op.Trans(1).AgFrom
+		If defPrice Is Nothing Then Form_LoadPriceList Op.Trans(1).AgTo, MyCo
+
+		ExMap("Dup") = CLng(False)
+		ExMap("PriceListID") = Workarea.DefPriceList
+		ExMap("DaysDalay") = com_getparamvalue(workarea, prmDBPayDelay, 0)
+		SetDatePay Op
+	Else
+		If Not ExMap.Exists("PriceKindID") Then ExMap("PriceKindID") = workarea.PriceKinds.Item(1).ID
+ 		If Not ExMap.Exists("PriceListID") Then ExMap("PriceListID") = Workarea.DefPriceList
+
+		If ExMap("PriceKindID") &lt;&gt; 0 And ExMap("PriceListID") &lt;&gt; 0 Then
+			Set DefPrice = Workarea.PriceKind(ExMap("PriceKindID"))
+		Else
+			Set DefPrice = Nothing
+		End If
+
+		Op.TransList(2).EnumTrans GetRef("AddOneRow"), dEnts
+	End If
+
+	If Not defPrice Is Nothing Then 
+		ExMap("PriceKindID") = DefPrice.ID
+	Else
+		ExMap("PriceKindID") = 0
+	End If
+
+	cbPriceList.Value = ExMap("PriceListID")
+	cbPriceKind.Value = ExMap("PriceKindID")
+
+	com_CurrencyInit Op, 1
+
+	SetTabAreaWidth 700
+	Page(1).SetScreenMode 3000, Page(1).Height
+
+	LastPagePrint = checknull(workarea.userparam(Op.FormID &amp; ":LastPagePrint"), 2)
+	LastPageActive = 0
+
+	PrintCash_MscNo = Form_GetMscNoByDBPrm(prmDBCashPrint)
+	Form_CheckLibra Op, sgrdEnts.Column(8), LibraModule, LibraPortName
+
+	Form_CalcWeight2 Op.TransList(1)
+	ExMap("Вес брутто") = TotalWeightBrutto
+	Op.TransList(1).EnumTrans GetRef("SetWeightRow"), prm
+
+	lbAgWStamp.Visible = com_GetPAramValue(Workarea, prmDBWStampShow, False)
+	SetFormRights
+
+	IsFormModified = True
+	op.Modified = flModified
+
+End Sub
+'---
+'
+'---
+Sub AgAddrInit
+	Set AgAddr = New AgAddrBind
+	AgAddr.AgID = Op.Trans(1).AgToID
+	slAgAddrs.DisableBindClick True
+	AgAddr.Addr = ExMap(prmAgDeliveryAddr)
+
+	mscNoPath = Com_GetMscNoByDBPrm(prmDBDeliveryPath)
+End Sub
+'---
+'
+'---
+Sub CustomBindInit
+	sgrdEnts.Column(6).CustomBind = True
+	Set CustBind = New CustomBind
+	Set CustBind.Op = Op
+	CustBind.TypeQuery = com_GetPItemParam(Op.FormID, prmPItemCustomBMode, 3)
+
+	sgrdEnts.Column(8).DisableBindClick True
+End Sub
+'---
+'
+'---
+Sub AgreeInit
+	Set Agree = New Form_Agree
+	Set Agree.slAgree = slAgree
+	Set Agree.chkAllAgree = chkAllAgree
+	Set Agree.Op = Op
+	Set Agree.RefVisibleCheck = GetRef("AgreeVisibleCheck")
+	Agree.AgFrom = False '	Op.Trans(1).AgToBind
+	Agree.AgreeMscNo = Form_GetMscNoByDBPrm(prmDBAgree)
+End Sub
+'---
+'
+'---
+Function AgreeVisibleCheck(Tr, ByRef Prm)
+	Prm = 1
+	AgreeVisibleCheck = True
+End Function
+'---------------------------------------------------
+' Вызывается после любых изменений в связанных элементах
+'---------------------------------------------------
+Sub Form_AfterRecalc
+ 	Toolbar(2).Enabled = op.Modified
+
+	Agree.AfterRecalc 0
+	Form_StabilizeGrid3 sgrdEnts, Op.TransList(1)
+	CheckAllGrid Op.TransList(1), dEnts, sgrdEnts
+
+	With Op.Trans(2)	
+		ToolBar.ItemByCommand(btnRestsDlg).Enabled = (.AgFromID &lt;&gt; 0 And .AccCrID &lt;&gt; 0 And Not DefPrice Is Nothing)
+		PrintCash_CheckToolBar2 Op.Trans(1), Toolbar, PrintCash_MscNo
+	End With
+
+	grdDSC.Visible = (DscMscNo &lt;&gt; 0)
+
+	If IsFormModified Then SetFormMode (Op.Trans(1).TransCurs(1).CurID &lt;&gt; 1)
+End Sub
+'---
+'
+'---
+Sub SetFormMode(Mode)
+	Dim PageMode, ColWidth
+
+	If Mode Then
+		PageMode = 2
+		ColWidth = 200
+	Else
+		PageMode = 1
+		ColWidth = 0
+	End If
+
+	grdHeader.Cell(1, 12).ColumnWidth = ColWidth
+	sgrdEnts.Column(12).ColumnWidth = ColWidth
+	tblTotal.Cell(1, 10).ColumnWidth = ColWidth * 2
+
+	grdHeader.Cell(1, 11).ColumnWidth = ColWidth
+	sgrdEnts.Column(11).ColumnWidth = ColWidth
+
+	RefreshScreen
+'	DoEvent	
+
+	If (sgrdEnts.Width + sgrdEnts.left) &lt;= (slAgree.Width + slAgree.Left) Then
+		sgrdEnts.Column(6).ColumnWidth = 1210
+		grdHeader.Cell(1, 6).ColumnWidth = 1210
+		tblTotal.Cell(1, 6).ColumnWidth = 1060
+	Else
+		sgrdEnts.Column(6).ColumnWidth= 940
+		grdHeader.Cell(1, 6).ColumnWidth = 940
+		tblTotal.Cell(1, 6).ColumnWidth = 790
+	End If
+
+	Line1.X2 = sgrdEnts.Left + sgrdEnts.Width
+	Line2.X2 = Line1.X2
+	Line3.X2 = Line1.X2
+
+	RefreshScreen
+	IsFormModified = False
+End Sub
+'---------------------------------------------------
+' Вызывается при нажатии кнопки на панели инструментов
+'---------------------------------------------------
+Sub Form_OnBarClick(Command)
+	ResetFocus ' уберем фокус со всех элементов
+	' Выполним команду, которая записана в свойстве Tag кнопки
+ 	ExecBarTag Command
+	Recalc  ' обновить номер документа и разрешить кнопку Save
+End Sub
+
+'---------------------------------------------------
+' Вызывается при попытке закрытия формы
+'---------------------------------------------------
+Sub Form_CanClose(ByRef Cancel)
+	workarea.userparam(Op.FormID &amp; ":LastPagePrint") = LastPagePrint
+	op.CanClose GetRef("SaveOperation"), Cancel
+End Sub
+
+'---------------------------------------------------
+' вызывается перед перерасчетом формы
+'---------------------------------------------------
+Sub Form_BeforeRecalc(ByRef Cancel)
+	Dim prm
+
+	If ExMap("Город") = "" Then ExMap("Город") = Form_SetDefCityNamePost(MyCo)
+
+	If Op.Modified Then
+		Form_CalcWeight2 Op.TransList(1)
+		ExMap("Вес брутто") = TotalWeightBrutto
+
+		Agree.CheckAgree
+		Op.TransList(1).SetAgTo Agree.Ag.ID
+
+		Op.TransList(1).EnumTrans GetRef("SetWeightRow"), prm
+
+		If Op.Trans(1).MiscID(DscMscNo) &lt;&gt; 0 Then
+			ExMap("DSC_DocSum") = Int(Op.TransList(1).Sum * Op.Trans(1).MiscBind(DscMscNo).Sum2 / 100)
+		Else
+			ExMap("DSC_DocSum") = 0
+		End If
+
+		op.TemplateInvoker2.FireOnReCalc
+	End If
+End Sub
+
+'---------------------------------------------------
+' процедура вызывается после редактирования в таблице
+'---------------------------------------------------
+Sub sgrdEnts_OnBound(ByRef Lock)
+	Dim tr, Qty, Tr2, CurrPrice
+
+	Set tr = op.Trans(1, sgrdents.Row)
+
+	If Tr.EntID = 0 Then 
+		If Op.TransList(1).Rows &gt; 1 Then Op.TransList(1).Pack
+	End If
+
+	If sgrdEnts.Col &lt; 7 Then
+		Tr.Price = 0
+		Tr.Sum = 0
+	End If
+
+	Select Case sgrdEnts.Col 
+		Case 5
+			If Tr.Params(prmTrCode).Value2 &lt;&gt; "" Then 
+				Com_FindEntSeriesCode Tr, Tr.Params(prmTrCode).Value2
+			Else
+				Tr.SeriesID = 0
+			End If
+
+	End Select
+
+	If ExMap("Dup") Then 
+		EntsPack Tr, sgrdents, EntDict
+	End If
+
+	With Op.TransList(1)	
+		If .Rows &gt; 1 Then .Pack
+	End With
+
+	If Op.TransList(1).Rows = 1 Then 
+		If Op.Trans(1).TransCurs(1).CurID = 0 Then 
+			com_CurrencyInit Op, 1
+		End If
+	End If
+
+	If Not defPrice Is Nothing And Tr.EntID &lt;&gt; 0 Then 
+		Set Tr2 = Op.Trans(2)
+		CurrPrice = com_getentprice2(Tr.Entity, Tr2.AccCrID, Tr2.AgFromID, Op.Date, Op.ID, defPrice, ExMap("PriceListID"))
+
+		If Tr.Price = 0 Then
+			Tr.Price = CurrPrice
+		ElseIf IsCheckPrice And Tr.Price &lt; CurrPrice Then 
+			Tr.Price = CurrPrice
+		End If		
+	End If
+
+	Qty = Tr.Qty
+	Tr.Sum = Round2(Tr.Sum, 2)
+	Tr.Qty = Qty
+
+'	CheckOneRow Tr, dEnts, sgrdEnts, sgrdEnts.Row
+
+	recalc
+End Sub
+'---
+'
+'---
+Sub EntsPack(Tr, sgrdents, EntDict)
+	Dim RowNo
+
+	If Tr.EntID = 0 Then
+		If Tr.Parent.Rows &lt;&gt; 1 Then
+			CopyEntToDict Op.TransList(1), EntDict
+		End If
+
+		sgrdents.PackAutoGrow
+	ElseIf EntDict.Exists(Tr.EntID) Then
+		RowNo = EntDict(Tr.EntID)
+	
+		If RowNo &lt;&gt; Tr.RowNo2 Then
+			Tr.EntID = 0 
+			Op.TransList(1).Pack
+		End If
+	Else
+		EntDict.Add Tr.EntID, Tr.RowNo2
+	End If
+End Sub
+'---------------------------------------------------------
+'	Процедура выполняется после выбора пункта из выпадающего
+'	меню 
+'---------------------------------------------------------
+Sub Form_OnPopup(Command)
+	If Not Form_On_PopUp(Op, Form, TmlArray, Command, GetRef("SaveOperation"), GetRef("AfterCopy"), True) Then
+
+		If command &gt; 900 And command &lt; 920 Then
+			Form_SetColumnVisible Form, Command - 900, sgrdEnts, grdHeader, tblTotal, FormOptions
+			Form_SetColumnVisible Form, Command - 900, sgrdPrintA4L, grdHeaderA4L, tblTotalA4L, FormOptions
+			form_saveoption Op.FormID, FormOptions
+			IsFormModified = True
+		ElseIf command &gt; 920 Then
+			command = command - 921
+			FormOptions(4) = command
+			form_saveoption Op.FormID, FormOptions
+
+			Select Case ActivePage.Index
+				Case 2
+					Form_SetPrintColumnCode Form, Command, sgrdEntsPrint, grdHeaderPrint
+				Case 3
+					Form_SetPrintColumnCode Form, Command, sgrdEnts1, grdHeader1
+					Form_SetPrintColumnCode Form, Command, sgrdEnts2, grdHeader2
+					Form_SetPrintColumnCode Form, Command, sgrdEnts3, grdHeader3
+'					Form_SetPrintColumnCode Form, Command, sgrdEnts4, grdHeader4
+					Form_SetPrintColumnCode Form, Command, sgrdEnts5, grdHeader5
+				Case 4
+			End Select
+			IsFormModified = True
+		Else
+			Select Case Command
+				Case 601	' проверить накладную данными из ТСД
+					aPrm = Array(Op, Form, TrNoSer, prmTrQty, prmTrCode)
+					App.RunModule "HL74_TCD.avb", "CheckOpByTCD", aPrm
+
+				Case 602	' загрузить накладную в ТСД
+					aPrm = Array(Op, Form)
+					App.RunModule "HL74_TCD.avb", "LoadOpToTCD", aPrm
+
+				Case 604	' импорт заказа из ТСД
+					aPrm = Array(0, Op.TransList(1), Form, DefPrice, ExMap("PriceListID"))
+					App.RunModule "HL74_TCD.avb", "LoadDataOrderToOp", aPrm
+
+			End Select
+
+		End If
+	End If
+
+	Recalc
+End Sub
+'---
+'
+'---
+Function AfterCopy(Op, NewOp)
+	Dim prm
+
+'	Workarea.Map.Item(prmAgDeliveryAddr) = ExMap(prmAgDeliveryAddr)
+	Set Workarea.Map.Item("CurrentOperationMap") = ExMap
+	NewOp.TransList(1).EnumTrans GetRef("CopyWDiscountSumRow"), prm
+
+	AfterCopy = True
+End Function
+'---
+'
+'---
+Function CopyWDiscountSumRow(Tr, ByRef prm)
+	CopyWDiscountSumRow = True
+	' для ТТН
+	Tr.FUnitID = 0
+	Tr.FQty = com_getparamvalue(Tr.Entity, prmEntWeightBrt, 0)
+End Function
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Sub sgrdEnts_OnCustomBind(Command, Param, ByRef RetValue)
+	CustBind.OnCustomBind Command, Param, RetValue
+End Sub
+'-----------------------------------------------------------
+'	Процедура обработки события "До печати"
+'-----------------------------------------------------------
+Sub Form_BeforePrint
+
+	LastPageActive = ActivePage.Index
+
+	If LastPageActive = 1 Then
+		Page(LastPagePrint).Activate
+	Else
+		LastPagePrint = ActivePage.Index
+	End If
+
+	Select Case ActivePage.Index
+		Case 3
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEnts1
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEnts2
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEnts3
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEnts4
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEnts5
+		Case 2
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEntsPrint
+
+		Case 4
+			Form_sgrd_setrealrows Op.TransList(1), sgrdPrintA4L
+
+		Case 8
+			Form_sgrd_setrealrows Op.TransList(1), sgrdEntsLst
+
+	End Select
+
+	recalc
+	DoEvent
+
+End Sub
+
+'---------------------------------------------------
+'
+'---------------------------------------------------
+Sub Form_AfterPrint
+	Page(LastPageActive).Activate
+	recalc
+	DoEvent
+End Sub
+'------------------
+'
+'------------------
+
+Sub Form_OnHelp(Mode, Command, Control)
+	Form_ActivateHelp Mode, Command, Control, "6.5", Op.FormID
+End Sub
+
+'------------------
+'
+'------------------
+Sub slAgTo_OnBound(ByRef Lock)
+	Dim defAddress, MgrID
+
+	With Op.trans(1)
+		Form_LoadPriceList .AgTo, .AgFrom
+		If defPrice Is Nothing Then Form_LoadPriceList .AgTo, MyCo
+
+		If Not defPrice Is Nothing Then 
+			ExMap("PriceKindID") = defPrice.ID
+			cbPriceKind.Value = defPrice.ID
+		Else
+			ExMap("PriceKindID") = 0			
+			cbPriceKind.Value = 0
+		End If
+
+		AgAddr.AgID = .AgToID
+		defAddress = Trim(Replace(.AgToBind.Address, ";", " "))
+		
+		If AgAddr.Addr = "" Then AgAddr.Addr = com_GetFactValue(.AgTo, fctAgAddress, Op.Date, defAddress)
+		If AgAddr.Addr = "" Then AgAddr.Addr = com_GetParamValue(.AgTo, prmAgDeliveryAddr, defAddress)
+		If AgAddr.PathID &lt;&gt; 0 Then Op.TransList(1).SetMisc mscNoPath, AgAddr.PathID
+
+		MgrID = com_getparamvalue(.AgTo, prmAgManager, 0)
+		
+		If MgrID &lt;&gt; 0 Then Op.TransList(1).SetMisc ManagerMscNo, MgrID
+		ExMap(prmAgDeliveryAddr) = AgAddr.Addr
+		Agree.AgBound Lock
+	End With
+
+End Sub
+'---
+'
+'---
+Sub slAg1_OnClick
+	Ag1.OnClick
+	Op.Modified = True
+	recalc
+End Sub
+'---
+'
+'---
+Sub slAg1_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub slAg2_OnClick
+	Ag2.OnClick
+	Op.Modified = True
+	recalc
+End Sub
+'---
+'
+'---
+Sub slAg2_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub slAg3_OnClick
+	Ag3.OnClick
+	Op.Modified = True
+	recalc
+End Sub
+'---
+'
+'---
+Sub slAg3_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub slEnt1_OnClick
+	Ven1.OnClick
+	Op.Modified = True
+	recalc
+End Sub
+'---
+'
+'---
+Sub slEnt1_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub slEnt2_OnClick
+	Ven2.OnClick
+	Op.Modified = True
+	recalc
+End Sub
+'---
+'
+'---
+Sub slEnt2_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub chkAllAgree_OnBound(ByRef Lock)
+	recalc
+End Sub
+'---
+'
+'---
+Sub CreateNewDoc
+	Form_MakeNewDoc Op, GetRef("SaveOperation")
+End Sub
+'---
+'
+'---
+Sub slAgree_OnClick
+	Agree.ShowDlgAgree 0
+	recalc
+End Sub
+'---
+'
+'---
+Sub chkAllAgree_OnClick
+	recalc
+End Sub
+'---
+'
+'---
+Sub slCurrency_OnBound(ByRef Lock)
+	Com_SetDefCurRate 1, 1, Op
+	IsFormModified = True
+End Sub
+'---
+'
+'---
+Sub Page3_OnActivate
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEntsPrint, grdHeaderPrint
+	Form_StabilizeGrid sgrdEntsPrint, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub Page2_OnActivate
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts1, grdHeader1
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts2, grdHeader2
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts3, grdHeader3
+'	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts4, grdHeader4
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts5, grdHeader5
+	Form_StabilizeGrid sgrdEnts1, Op.TransList(1)
+	Form_StabilizeGrid sgrdEnts2, Op.TransList(1)
+	Form_StabilizeGrid sgrdEnts3, Op.TransList(1)
+	Form_StabilizeGrid sgrdEnts4, Op.TransList(1)
+	Form_StabilizeGrid sgrdEnts5, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub Page4_OnActivate
+'	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdPrintA4L, grdHeaderA4L
+	grdTopA4L.Width = sgrdPrintA4L.Width
+	Form_StabilizeGrid sgrdPrintA4L, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub edDocDate_OnBound(ByRef Lock)
+	If Op.Trans(1).TransCurs(1).CurID &gt; 1 Then Com_SetDefCurRate 1, 1, Op
+	SetDatePay Op
+	ExMap("DSC_Sum") = com_CalcRestDsc(Workarea.GetAccID("ДП"), Op.Trans(1).MiscID(DscMscNo), Op.ID, Op.Date + 1, MyCo.ID)
+End Sub
+'---
+'
+'---
+Sub DoAddEntFromRest
+	Form_AddEntFromRest Op, Op.TransList(1), Op.Trans(2).AccCrID, Op.Trans(2).AgFromID, DefPrice
+End Sub
+'---
+'
+'---
+Sub Page1_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_PRINT, FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Управление", "Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+Sub Page3_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_PRINT, FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Управление", "Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+Sub Page2_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_PRINT, FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Управление", "Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+Sub Page4_OnContextMenu(x, y)
+	'ShowPopup FORM_CTXT_MENU_SGRID &amp; FORM_CTXT_MENU_STD
+End Sub
+'---
+'
+'---
+Sub slAgree_OnBound(ByRef Lock)
+	Agree.AgreeBound Lock
+	slAgTo_OnBound Lock
+End Sub
+'---
+'
+'---
+Sub slAgAddrs_OnClick
+	If AgAddr.OnClick Then
+		ExMap(prmAgDeliveryAddr) = AgAddr.Addr
+		If AgAddr.PathID &lt;&gt; 0 Then Op.TransList(1).SetMisc mscNoPath, AgAddr.PathID
+		Op.Modified = True
+		recalc
+	End If
+End Sub
+'---
+'
+'---
+Sub DoverNo_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub cbPriceList_OnSelChanged
+	ExMap("PriceListID") = cbPriceList.Value
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub cbPriceKind_OnSelChanged
+	ExMap("PriceKindID") = cbPriceKind.Value
+	Set DefPrice = Workarea.PriceKind(ExMap("PriceKindID"))
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub chkDup_OnBound(ByRef Lock)
+	ExMap("Dup") = CInt(ExMap("Dup"))
+
+	If ExMap("Dup") Then CopyEntToDict Op.TransList(1), EntDict
+
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub Page5_OnActivate
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts3, grdHeader3
+	Form_StabilizeGrid sgrdEnts3, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub Page6_OnActivate
+'	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts4, grdHeader4
+	Form_StabilizeGrid sgrdEnts4, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub Page7_OnActivate
+	Form_SetPrintColumnCode Form, CInt(FormOptions(4)), sgrdEnts5, grdHeader5
+	Form_StabilizeGrid sgrdEnts5, Op.TransList(1)
+End Sub
+'---
+'
+'---
+Sub Page8_OnActivate
+	Form_sgrd_setrealrows Op.TransList(1), sgrdEntsLst
+End Sub
+'---
+'
+'---
+Function SetWeightRow(Tr, ByRef prm)
+	SetWeightRow = True
+	
+	Tr.Params(prmTrWeight).Value2 = com_GetParamValue(Tr.Entity, prmEntWeight, 0) * Tr.Qty
+	Tr.Params(prmTrQty).Value2 = com_GetParamValue(Tr.Entity, prmEntWeightBrt, 0) * Tr.Qty
+End Function
+'---
+'
+'---
+Sub Page5_OnContextMenu(x, y)
+	ShowPopup FORM_CTXT_MENU_STD &amp; "|" &amp; Forms_GetPageConextMenu(Form)
+End Sub
+'---
+'
+'---
+Sub Page6_OnContextMenu(x, y)
+	ShowPopup FORM_CTXT_MENU_STD &amp; "|" &amp; Forms_GetPageConextMenu(Form)
+End Sub
+'---
+'
+'---
+Sub Page7_OnContextMenu(x, y)
+	ShowPopup FORM_CTXT_MENU_STD &amp; "|" &amp; Forms_GetPageConextMenu(Form)
+End Sub
+'---
+'
+'---
+Sub Page8_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+Sub edDaysDelay_OnBound(ByRef Lock)
+	SetDatePay Op
+End Sub
+'---
+'
+'---
+Sub SetDatePay(Op)
+	If ExMap("DaysDalay") &lt;&gt; "" Then
+		If IsNumeric(ExMap("DaysDalay")) Then
+			Op.Date3 = DateAdd("d", CInt(ExMap("DaysDalay")), Op.Date)
+		Else
+			ExMap("DaysDalay") = ""
+			Op.Date3 = 0
+		End If
+	Else
+		Op.Date3 = 0
+	End If
+End Sub
+'---
+'
+'---
+Sub sgrdEnts_OnCellClick(Row, Column)
+	Dim tr, ErrorMsg, Qty
+
+	Set Tr = Op.Trans(1, sgrdEnts.Row)
+	Qty = GetWeightFromLibra(1, LibraPortName, ErrorMsg)
+
+	If ErrorMsg = "" Then 
+		Tr.Qty = Qty
+		CreateObject("WScript.Shell").SendKeys "{RIGHT}"
+	End If
+
+End Sub
+'---
+'
+'---
+Function CheckAllGrid(TrList, dEnts, sgrd)
+	Dim i
+
+	For i = 1 To TrList.Rows
+		CheckOneRow TrList.Item(i), dEnts, sgrd, i
+	Next
+
+End Function
+'---
+'
+'---
+Function CheckOneRow(Tr, dEnts, sgrd, Row)
+	Dim RowColor
+
+	CheckOneRow = True
+	RowColor = vbWhite
+
+	If dEnts.Exists(Tr.EntID) Then
+		If dEnts(Tr.EntID)(2) &gt; Tr.Price Then
+			RowColor = vbRed
+		ElseIf dEnts(Tr.EntID)(2) = Tr.Price Then
+			RowColor = vbYellow		
+		End If
+	End If
+
+	sgrd.Cell(Row, 1).SetBkColor RowColor
+
+End Function
+'---
+'
+'---
+Function AddOneRow(Tr, ByRef dEnts)
+	AddOneRow = True
+
+	If Tr.EntID &lt;&gt; 0 Then
+		If Not dEnts.Exists(Tr.EntID) Then
+			dEnts.Add Tr.EntID, CalcPrice(Array(Tr.Sum, Tr.Qty, 0))
+		Else
+			dEnts(Tr.EntID) = CalcPrice(Array(dEnts(Tr.EntID)(0) + Tr.Sum, dEnts(Tr.EntID)(1) + Tr.Qty, 0))
+		End If
+	End If
+
+End Function
+'---
+'
+'---
+Function CalcPrice(ByRef aData)
+	If aData(0) &lt;&gt; 0 And aDAta(1) &lt;&gt; 0 Then
+		aData(2) = aData(0) / aData(1)
+	Else
+		aData(2) = 0
+	End If
+
+	CalcPrice = aData
+End Function
+'---
+'
+'---
+Sub sgrdEnts_OnPosChanged
+	Dim Tr
+
+	Set Tr = Op.Trans(1, sgrdEnts.Row)
+	CheckOneRow Tr, dEnts, sgrdEnts, sgrdEnts.Row
+
+End Sub
+'---
+'
+'---
+Sub Page9_OnActivate
+	Form_sgrd_setrealrows Op.TransList(1), sgrdEnts51	
+	Form_sgrd_setrealrows Op.TransList(1), sgrdEnts52
+End Sub
+'---
+'
+'---
+Sub Page9_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Бухгалтерия", ""))
+
+End Sub
+'---
+'
+'---
+Sub grdDSC_OnBound(ByRef Lock)
+	ExMap("DSC_Sum") = com_CalcRestDsc(Workarea.GetAccID("ДП"), Op.Trans(1).MiscID(DscMscNo), Op.ID, Op.Date + 1, MyCo.ID)
+End Sub
+'---
+'
+'---
+Sub edCity_OnBound(ByRef Lock)
+	Op.Modified = True
+End Sub
+'---
+'
+'---
+Sub SetFormRights
+	Dim IsPriceEdit
+
+	IsPriceEdit = Not IsUserInGroup("Редактирование цен в документах (запрет)") Or IsUserInGroup("Admins")
+
+	If IsPriceEdit Then
+		sgrdEnts.Column(9).CellType = acEditor
+	Else
+		sgrdEnts.Column(9).CellType = acLabel
+	End If
+
+	sgrdEnts.Column(9).CellDataType = vbCurrency
+End Sub
+'---
+'
+'---
+Sub Page10_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+Sub Page11_OnActivate
+	Form_sgrd_setrealrows Op.TransList(TrNoSer), sgrdSer
+
+End Sub
+'---
+'
+'---
+Sub Page11_OnContextMenu(x, y)
+	ShowPopUp Form_PopUpMenu(Form, _
+												Array(FORM_CTXT_MENU_STD, Forms_GetPageConextMenu(Form)), _
+												Array("Формы.Бухгалтерия", ""))
+End Sub
+'---
+'
+'---
+
+</module></form>

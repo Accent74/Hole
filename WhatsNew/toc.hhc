@@ -16,9 +16,14 @@
 		</OBJECT>
 	<UL>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="&Acirc;&aring;&eth;&ntilde;&egrave;&yuml; 025 (20 &yuml;&iacute;&acirc;&agrave;&eth;&yuml; 2021 &atilde;.)">
+			<param name="Local" value="025.htm">
+			<param name="ImageNumber" value="12">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="&Acirc;&aring;&eth;&ntilde;&egrave;&yuml; 024 (3 &igrave;&agrave;&eth;&ograve;&agrave; 2020 &atilde;.)">
 			<param name="Local" value="024.htm">
-			<param name="ImageNumber" value="12">
+			<param name="ImageNumber" value="11">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="2019">

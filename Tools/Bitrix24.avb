@@ -1,0 +1,459 @@
+'#include "HL74_Json.avb"
+
+Option Explicit
+
+Class B24Reader
+	Public URL
+	Public Token
+
+	Private http
+	Private IsError
+
+	Private Sub Class_Initialize
+		URL = "https://auto-comfort.bitrix24.ua/rest/10511/"
+		Token = "56lb75okepxfgjnj/"
+		IsError = GetHttp(http)
+	End Sub
+
+	Private Function GetHttp(ByRef http)
+		On Error Resume Next
+		Set http = CreateObject("Msxml2.XMLHTTP")
+
+		GetHttp = (Err.Number = 0)
+	End Function
+
+	Public Function Command(cmd, aPrm)
+		Dim sURL, json, response
+
+		sURL = URL & Token & cmd & "?" & Join(aPrm, ",")
+
+		HTTP.Open "GET", sURL, False
+		HTTP.setRequestHeader "Content-type", "application/json; charset=utf-8"
+		HTTP.setRequestHeader "User-Agent", "application/json; charset=utf-8"
+
+		On Error Resume Next
+		HTTP.send Nothing
+
+		Set response = Nothing
+
+		If err.number = 0 Then
+			If HTTP.responseText <> "" Then 
+
+				Set json = New VbsJson
+				Set response = json.decode(HTTP.responseText)
+			End If
+		End If
+
+		Set Command = response
+		
+	End Function
+
+	Private Sub Terminate
+	End Sub
+
+End Class
+
+Class Product
+	Private cID
+	Private cName
+	Private cCode
+	Private cActive
+	Private cXMLID
+	Private cDescription
+	Private cDescriptionType
+	Private cCatalogID
+	Private cSectionID
+	Private cPrice
+	Private cDateCreated
+	Private cDateModified
+	Private cReader
+	Private Modified
+
+	Private Sub Class_Initialize
+		Set cReader = Nothing
+		Modified = False
+	End Sub
+
+	Public Property Let ID(value)
+		Dim response
+
+		cID = value
+
+		Set response = cReader.Command("crm.product.get.json", Array("ID=" & value))
+
+		If Not response Is Nothing Then
+			cName = response("result")("NAME")
+			cCode = response("result")("CODE")
+			cActive = response("result")("ACTIVE")
+			cXMLID = response("result")("XML_ID")
+			cDescription = response("result")("DESCRIPTION")
+			cDescriptionType = response("result")("DESCRIPTION_TYPE")
+			cSectionID = response("result")("SECTION_ID")
+			cCatalogID = response("result")("CATALOG_ID")
+			cPrice = response("result")("PRICE")
+			cDateCreated = CDate(Left(response("result")("DATE_CREATE"), 10))
+			cDateModified = CDate(Left(response("result")("TIMESTAMP_X"), 10))
+
+			Modified = True
+		End If
+	End Property
+
+	Public Property Get ID
+		ID = cID
+	End Property 
+
+	Public Property Get Name
+		Name = cName
+	End Property 
+
+	Public Property Get Code
+		Code = cCode
+	End Property 
+
+	Public Property Get Active
+		Active = cActive
+	End Property 
+
+	Public Property Get XMLID
+		XMLID = cXMLID
+	End Property 
+
+	Public Property Get Description
+		Description = cDescription
+	End Property 
+
+	Public Property Get DescriptionType
+		DescriptionType = cDescriptionType
+	End Property 
+
+	Public Property Get CatalogID
+		CatalogID = cCatalogID
+	End Property 
+
+	Public Property Get SectionID
+		SectionID = cSectionID
+	End Property
+ 
+	Public Property Get Price
+		Price = cPrice
+	End Property 
+
+	Public Property Get DateCreated
+		DateCreated = cDateCreated
+	End Property 
+
+	Public Property Get DateModified
+		DateModified = cDateModified
+	End Property 
+
+	Public Property Let Name(value)
+		cName = value
+	End Property 
+
+	Public Property Let Code(value)
+		cCode = value
+	End Property 
+
+	Public Property Let Active(value)
+		cActive = value
+	End Property 
+
+	Public Property Let XMLID(value)
+		cXMLID = value
+	End Property 
+
+	Public Property Let Description(value)
+		cDescription = value
+	End Property 
+
+	Public Property Let DescriptionType(value)
+		cDescriptionType = value
+	End Property 
+	Public Property Let CatalogID(value)
+		cCatalogID = value
+	End Property 
+
+	Public Property Let SectionID(value)
+		cSectionID = value
+	End Property
+ 
+	Public Property Let Price(value)
+		cPrice = value
+	End Property 
+
+	Public Property Let DateCreated(value)
+		cDateCreated = value
+	End Property 
+
+	Public Property Let DateModified(value)
+		cDateModified = value
+	End Property 
+
+	Public Property Set Reader(value)
+		Set cReader = value
+	End Property
+
+End Class
+
+Class Contact
+	Private cID
+	Private cLeadID
+	Private cName
+	Private cSecondName
+	Private cLastName
+	Private cEMail
+	Private cAddress 
+	Private cDateCreated
+	Private cDateModified
+	Private cReader
+	Private Modified
+
+	Public Property Let ID(value)
+		Dim response
+
+		cID = value
+
+		Set response = cReader.Command("crm.contact.get.json", Array("ID=" & value))
+
+		If Not response Is Nothing Then
+			cName = response("result")("NAME")
+			cSecondName = response("result")("SECOND_NAME")
+			cLastName = response("result")("LAST_NAME")
+			cAddress = response("result")("ADDRESS")
+			cEMail = response("result")("EMAIL")
+			cDateCreated = CDate(Left(response("result")("DATE_CREATE"), 10))
+			cDateModified = CDate(Left(response("result")("DATE_MODIFY"), 10))
+
+			Modified = True
+		End If
+	End Property
+
+	Public Property Get ID
+		ID = cID
+	End Property 
+
+	Public Property Get Name
+		Name = cName
+	End Property 
+
+	Public Property Get Address
+		Address = cAddress
+	End Property 
+
+	Public Property Get SecondName
+		SecondName = cSecondName
+	End Property 
+
+	Public Property Get LastName
+		LastName = cLastName
+	End Property 
+
+	Public Property Get EMail
+		EMail = cEMail
+	End Property 
+
+	Public Property Get DateCreated
+		DateCreated = cDateCreated
+	End Property 
+
+	Public Property Get DateModified
+		DateModified = cDateModified
+	End Property 
+
+	Public Property Get LeadID
+		LeadID = cLeadID
+	End Property 
+
+	Public Property Let Name(value)
+		cName = value
+	End Property 
+
+	Public Property Let SecondName(value)
+		cSecondName = value
+	End Property 
+
+	Public Property Let LastName(value)
+		cLastName = value
+	End Property 
+
+	Public Property Let EMail(value)
+		cEMail = value
+	End Property 
+
+	Public Property Let DateCreated(value)
+		cDateCreated = value
+	End Property 
+
+	Public Property Let DateModified(value)
+		cDateModified = value
+	End Property 
+
+	Public Property Let LeadID(value)
+		cLeadID = value
+	End Property 
+
+	Public Property Let Address(value)
+		cAddress = value
+	End Property 
+
+	Private Sub Class_Initialize
+		Set cReader = Nothing
+		Modified = False
+	End Sub
+
+	Public Property Set Reader(value)
+		Set cReader = value
+	End Property
+
+End Class
+
+Class Company
+	Private cID
+	Private cLeadID
+	Private cName
+	Private cAddress
+	Private cPhone
+	Private cEMail
+	Private cAccentID
+	Private cReader
+	Private cDateCreated
+	Private cDateModified
+	Private Modified
+
+	Public Property Set Reader(value)
+		Set cReader = value
+	End Property
+
+	Private Sub Class_Initialize
+		Set cReader = Nothing
+		Modified = False
+	End Sub
+
+	Private Sub Terminate
+	End Sub
+
+	Public Sub Save
+'		Dim response
+'
+'		If cID = 0 Or Not Modified Then Exit Sub
+'
+'		If cName <> "" Then prm.Add("FIELDS[TITLE]", this.Name);
+'     If cAccentID <> 0 Then 
+'          prm.Add("FIELDS[UF_CRM_ACCENT_ID]", this.AccentID.ToString());
+'          prm.Add("FIELDS[UF_CRM_ACCENT_ID]", "1");
+'        }
+'        If (this.Phones != Null)
+'          If (this.Phones[0].Value != "") {
+'            prm.Add("FIELDS[PHONE][0][VALUE]", this.Phones[0].Value);
+'          }
+'
+'        If (this.EMails != Null)
+'          If (this.EMails[0].Value != "") {
+'            prm.Add("FIELDS[EMAIL][0][VALUE]", this.EMails[0].Value);
+'          }
+'
+'        If (this.Address != "") {
+'          prm.Add("FIELDS[ADDRESS][0][VALUE]", this.Address);
+'        }
+'
+'        byte[] ResponseBytes = WebClient.UploadValues(url, prm);
+'        B24Response response = JsonConvert.DeserializeObject<B24Response>(Encoding.ASCII.GetString(ResponseBytes));
+'        return (response.result == "true");
+'
+'
+'		Set response = cReader.Command("crm.company.update.json", Array("ID=" & cID))
+'
+'		If Not response Is Nothing Then
+'			Modified = False
+'		End If
+	End Sub
+
+
+	Public Property Let ID(value)
+		Dim response
+
+		cID = value
+
+		Set response = cReader.Command("crm.company.get.json", Array("ID=" & value))
+
+		If Not response Is Nothing Then
+			cName = response("result")("TITLE")
+			cAddress = response("result")("ADDRESS")
+			cPhone = response("result")("PHONE")
+			cEMail = response("result")("EMAIL")
+			cAccentID = response("result")("UF_CRM_ACCENT_ID")
+		
+
+			cDateCreated = CDate(Left(response("result")("DATE_CREATE"), 10))
+			cDateModified = CDate(Left(response("result")("DATE_MODIFY"), 10))
+
+			Modified = True
+		End If
+	End Property
+
+	Public Property Get ID
+		ID = cID
+	End Property 
+
+	Public Property Get Name
+		Name = cName
+	End Property 
+
+	Public Property Get Address
+		Address = cAddress
+	End Property 
+
+	Public Property Get Phone
+		Phone = cPhone
+	End Property 
+
+	Public Property Get EMail
+		EMail = cEMail
+	End Property 
+
+	Public Property Get DateModified
+		DateModified = cDateModified
+	End Property 
+
+	Public Property Get DateCreated
+		DateCreated = cDateCreated
+	End Property 
+
+	Public Property Get AccentID
+		AccentID = cAccentID
+	End Property 
+
+	Public Property Let Name(value)
+		cName = value
+	End Property 
+
+	Public Property Let Address(value)
+		cAddress = value
+	End Property 
+
+	Public Property Let Phone(value)
+		cPhone = value
+	End Property 
+
+	Public Property Let EMail(value)
+		cEMail = value
+	End Property 
+
+	Public Property Let AccentID(value)
+		cAccentID = value
+	End Property 
+
+End Class
+
+Dim B24, Ag, Ent
+'
+Set B24 = New B24Reader
+Set Ag = New Contact
+
+Set Ag.Reader = B24
+Ag.ID = 117603
+stop
+'MsgBox Ag.Name
+'MsgBox Ag.Address
+'MsgBox Ag.DateCreated
+

@@ -1,0 +1,7 @@
+Option Explicit
+
+Dim B24
+Set B24 = CreateObject("B24.B24Class")
+
+B24.Company.ID = 95521
+Set B24 = Nothing 

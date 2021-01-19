@@ -1,3 +1,4 @@
+'#include "HL74_json.avb"
 Option Explicit
 
 Dim WinHttp, XMLHTTP, sURL
@@ -17,10 +18,11 @@ Dim WinHttp, XMLHTTP, sURL
 
 Set XMLHTTP = CreateObject("Msxml2.XMLHTTP")
 
-sURL = "https://auto-comfort.bitrix24.ua/rest/10511/2m7mpmtpajmq9igp/crm.deal.list.json"
+sURL = "https://auto-comfort.bitrix24.ua/rest/10511/8e77j52xhkmwlktx/crm.company.update.json?ID=106333&FIELDS[TITLE]=%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82"
+
 Call XMLHTTP.Open("GET", sURL, False)
-Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
-Call XMLHTTP.setRequestHeader("User-Agent", "application/json; charset=utf-8")
+'Call XMLHTTP.setRequestHeader("Content-type", "application/json; charset=utf-8")
+'Call XMLHTTP.setRequestHeader("User-Agent", "application/json; charset=utf-8")
 'On Error Resume Next
 
 Call XMLHTTP.send(Nothing)
@@ -28,6 +30,10 @@ Call XMLHTTP.send(Nothing)
 
 If err.number = 0 Then
 	If XMLHTTP.responseText <> "" Then 
+'		stop
+'		Dim json, d
+'		Set json = New VbsJson
+'		Set d = json.decode(XMLHTTP.responseText)
 		MsgBox XMLHTTP.responseText
 	End If
 Else

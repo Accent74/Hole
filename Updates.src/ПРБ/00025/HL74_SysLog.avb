@@ -1,0 +1,179 @@
+'#include "HL74_ADO.avb"
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Протокол действий пользователя"
+
+Sub Log_CreateItem()
+	If workarea.map("LOG") Then Log_AddEvent "I" 
+End Sub
+
+Sub Log_UpdateItem()
+	If workarea.map("LOG") Then Log_AddEvent "U" 
+End Sub
+
+Sub Log_AddEvent(EventAction)
+	Dim KindID, SQL, Kind, aKinds, ErrorMsg
+	Dim System
+
+	Set System = CreateLibObject("System")
+	Kind = CLng(workarea.map("Kind"))
+	KindID = CLng(workarea.map("KindID"))
+	Workarea.Map("Result") = True
+
+	aKinds = Array("", "F", "A", "G", "E", "M", "B", "T", "D")
+
+	If App.AppType = "DAO" Then
+		SQL = "insert into sys_log (log_date, uid, item, action, item_id, item_str2, item_str1, item_name) values (now(), '"
+		SQL = SQL & workarea.dbuser() & "', '" & aKinds(Kind) & "', '" & EventAction & "', " & KindID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						GetKindName(aKinds(Kind), KindID) & "')"
+	Else
+		SQL = "insert into sys_log (log_date, uid, item, sys_action, item_id, item_str2, item_str1, item_name) values (getdate(), "
+		SQL = SQL & "1 , '" & aKinds(Kind) & "', '" & EventAction & "', " & KindID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						GetKindName(aKinds(Kind), KindID) & "')"
+	End If
+
+	ExecQuery SQL, ErrorMsg
+
+End Sub
+
+Function GetKindName(ItemCode, ItemID)
+	Dim El
+
+	GetKindName = ""
+
+	If ItemID = 0 Then Exit Function
+		
+	Select Case ItemCode
+		Case "F"
+			Set El = workarea.folder(ItemID)
+		Case "A"
+			Set El = workarea.Account(ItemID)
+		Case "G"
+			Set El = workarea.Agent(ItemID)
+		Case "E"
+			Set El = workarea.Entity(ItemID)
+		Case "M"
+			Set El = workarea.Misc(ItemID)
+		Case "B"
+			Set El = workarea.Binder(ItemID)
+		Case "T"
+			Set El = workarea.template(ItemID)
+		Case "D"
+			Set El = workarea.Operation(ItemID)
+	End Select
+
+	If el Is Nothing Then
+		GetKindName = "ID: " & ItemID
+	Else
+		GetKindName = El.Name
+	End If
+
+End Function
+'---
+'
+'---
+Sub Log_AddReportStartEvent
+	Dim EventAction, ItemID, ItemName
+	Dim RepKind
+
+	RepKind = checknull(Workarea.Map("RepKind"), 0)
+	ItemID = checknull(Workarea.Map("RepID"), 0)
+	ItemName = Log_GetReportName(RepKind, ItemID, EventAction)
+
+	Log_AddProcessEvent EventAction, ItemID, ItemName
+
+End Sub
+
+'---
+'
+'---
+' X - запуск модуля, диалога, отчета. если запуск происходит не как отчета, то вызов процедуры нужно прописывать в коде
+'		ACTION :
+'		S - старт отчета	
+'		M - старт модуля
+'		D - старт диалога
+'		F - старт формы
+'		H - старт HTML страницы
+'		U - старт прочего файла
+'		
+'		если это запуск отчета, то у него есть ItemID
+'		можно записать доп. информацию в ItemName
+'
+Sub Log_AddProcessEvent(ByVal EventAction, ByVal ItemID, ByVal ItemName)
+	Dim SQL, ErrorMsg, RepKind, System
+
+	Set System = CreateLibObject("System")
+	ItemName = Log_GetReportKindName(EventAction) & "\" & ItemName
+
+	If App.AppType = "DAO" Then
+		SQL = "insert into sys_log (log_date, uid, item, action, item_id, item_str2, item_str1, item_name) values (now(), '"
+		SQL = SQL & workarea.dbuser() & "', 'X', '" & EventAction & "', " & ItemID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						ItemName & "')"
+	Else
+		SQL = "insert into sys_log (log_date, uid, item, sys_action, item_id, item_str2, item_str1, item_name) values (getdate(), "
+		SQL = SQL & "1 , 'X', '" & EventAction & "', " & ItemID & ", '" & System.UserName & "', '" & System.ComputerName & "', '" & _
+						ItemName & "')"
+	End If
+
+	ExecQuery SQL, ErrorMsg
+
+	If ErrorMsg <> "" Then
+		MsgBox "Ошибка записи в протокол действий пользователя." & vbNewLine & ErrorMsg, vbCritical, MSG_BOX_CAPTION
+	End If
+End Sub
+'---
+'
+'---
+Function Log_GetReportName(RepKind, ItemID, ByRef EventAction)
+	Dim SQL, aData
+
+	Select Case RepKind
+		Case 110
+			EventAction = "S"
+		Case 111	
+			EventAction = "M"
+		Case 112
+			EventAction = "F"
+		Case 113
+			EventAction = "D"
+		Case 114
+			EventAction = "H"
+		Case 115	
+			EventAction = "U"
+	End Select 
+
+	SQL = "select rep_name, rep_ps1 from reports where rep_id = " & ItemID
+
+	If GetRs2(SQL, aData) Then
+		Log_GetReportName = aData(0, 0) & "/" & checknull(aData(1, 0), "")
+	Else
+		Log_GetReportName = ""
+	End If
+
+End Function
+'---
+'
+'---
+Function Log_GetReportKindName(RepKind)
+	Select Case RepKind
+		Case "S"
+			Log_GetReportKindName = "Электронная таблица"
+		Case "M"
+			Log_GetReportKindName = "Модуль VBScript"
+		Case "F"
+			Log_GetReportKindName = "Форма Акцент"
+		Case "D"
+			Log_GetReportKindName = "Диалог Акцент"
+		Case "H"
+			Log_GetReportKindName = "HTML-файл"
+		Case "U"
+			Log_GetReportKindName = "Другой файл"
+		Case Else
+			Log_GetReportKindName = ""
+	End Select 
+
+End Function
+
+'---
+'
+'---

@@ -1,0 +1,64 @@
+'#include "HL74_common.avb"
+Option Explicit
+
+'	Dim prm
+'	prm = Array(Op.TransList(1), Op.TRansList(6), Op.TransList(7))
+'
+'	App.RunModule "HL74_Distribute.avb", "DustribTrans", prm
+
+Sub DustribTrans(aPrm)
+	Dim TrListFrom, TrListTo, k, TrListBase, prm, dEnts
+
+	Set TrListBase = aPrm(0)
+	Set TrListFrom = aPrm(1)
+	Set TrListTo = aPrm(2)
+
+	Set dEnts = CreateLibObject("Map")
+
+	com_clearTrans TrListTo
+	Prm = Array(TrListBase, TrListTo, dEnts)
+
+	TrListFrom.EnumTrans GetRef("DistribOneRow"), prm
+
+End Sub
+'---
+'	по каждой строке из проводки затрат
+'---
+Function DistribOneRow(Tr, ByRef prm)
+	Dim f, Itemprm
+
+	DistribOneRow = True
+	f = Tr.Sum / prm(0).Sum
+
+	Itemprm = Array(f, prm(1), prm(2))
+	prm(0).EnumTrans GetRef("DistribOneItem"), Itemprm
+	
+End Function
+'---
+'	создаем строки проводки для каждой строки товара
+'---
+Function DistribOneItem(Tr, ByRef prm)
+	Dim EntID, dEnts, TrListTo, f, RowNo, TrTo
+
+	DistribOneItem = True
+	
+	f = prm(0)	
+	Set TrListTo = prm(1)
+	Set dEnts = prm(2)
+
+	If dEnts.exists(Tr.EntID) Then
+		RowNo = dEnts(Tr.EntID)
+	Else
+		RowNo = TrListTo.Rows	
+		If TRListTo.Item(RowNo).EntID <> 0 Then RowNo = RowNo + 1
+		dEnts(Tr.EntID) = RowNo
+	End If
+
+	Set TrTo = TrListTo.Item(RowNo)
+	TrTo.EntID = Tr.EntID
+	TrTo.Sum = TrTo.Sum + Tr.Sum * f
+
+End Function
+'---
+'
+'---

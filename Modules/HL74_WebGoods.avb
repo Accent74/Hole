@@ -10,8 +10,9 @@ Sub HL74_OnShowGood
 		Set Ent = Workarea.Entity(EntID)
 
 		If Ent.Type = 0 Then
+MsgBox "@"
 			Set Workarea.Map.Item("EntFld") = Ent.Children
-			Workarea.Map("WebTabURL") = "HL74_GoodsList.htm"
+			Workarea.Map("WebTabURL") = "http://win10sql/Reports/browse/"'"HL74_GoodsList.htm"
 			Workarea.Map("Result") = True
 		End If
 

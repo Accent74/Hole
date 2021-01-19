@@ -1,0 +1,43 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs/>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums/>
+	<AccentWorkarea>
+		<scripts>
+		<query type="DAO" cmd="del" name="ST7_taxoutdocs"/>
+		<query type="DAO" cmd="del" name="ST7_taxindocs"/>
+		<query type="DAO" cmd="add" name="ST7_taxoutdocs">
+			PARAMETERS Acc361ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO, Sum(J.J_SUM) AS [Sum-J_SUM]
+			FROM AGENTS AS A INNER JOIN ((JRN_TAX AS JT 
+								INNER JOIN JOURNAL AS J ON JT.J_ID = J.J_ID) 
+									INNER JOIN DOCUMENTS AS D ON J.DOC_ID = D.DOC_ID) ON A.AG_ID = J.J_AG1
+			WHERE (((JT.TX_ID)=[TaxRepID]) AND ((JT.[JT_ADDR1])='Д.А.') AND ((J.MC_ID)=[MCID]) AND 
+				((J.[J_DATE])&gt;=[StartDate] And (J.[J_DATE])&lt;[EndDate]) AND ((J.[J_DONE])=2) 
+				AND ((J.[ACC_DB]) In (select id from acc_tree where Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))))
+			GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;			
+		</query>
+		<query type="DAO" cmd="add" name="ST7_taxindocs">		
+			PARAMETERS Acc631ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO, Sum(J.J_SUM) AS [Sum-J_SUM]
+			FROM AGENTS AS A INNER JOIN ((JRN_TAX AS JT INNER JOIN JOURNAL AS J ON JT.J_ID = J.J_ID) 
+							INNER JOIN DOCUMENTS AS D ON J.DOC_ID = D.DOC_ID) ON A.AG_ID = J.J_AG2
+			WHERE (((JT.TX_ID)=[TaxRepID]) AND ((JT.[JT_ADDR1])='Д.А.') AND ((J.MC_ID)=[MCID]) 
+					AND ((J.[J_DATE])&gt;=[StartDate] And (J.[J_DATE])&lt;[EndDate]) 
+					AND ((J.[J_DONE])=2) AND ((J.[ACC_CR]) In (select id from acc_tree where Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))))
+			GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;
+		</query>
+		
+		</scripts>
+	</AccentWorkarea>
+</AccentExportData>
