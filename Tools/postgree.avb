@@ -1,0 +1,612 @@
+Option Explicit
+'#include "ADO.inc"
+'#include "HL74_ADO.avb"
+'#include "HL74_EAN13.avb"
+
+'	ОУ
+'	параметр article_taxgrp целое
+'	Cat - ID артикула товара в Портале
+'	Nom - краткое наименование товара для чека
+'	Art - код артикула
+
+'	Единицы измерения
+'	Tag - ID единицы измерения в Портале
+
+Const ARTICLE_TAXGRP = "article_taxgrp"
+
+Class Postgree
+	Private IsErr, ErrMsg, oPeriod, IsOpen, ConnString
+	Private Conn, Rs, nCount
+	Private EntRoot, EntRootID 
+	Private pKindID, pListID, pKind
+
+	Public Sub SetPrice(prKindID, prListID)
+		pKindID = prKindID
+		pListID = prListID
+
+		If prKindID <> 0 And prListID <> 0 Then
+			Set pKind = Workarea.PriceKind(prKindID)
+		Else
+			Set pKind = Nothing
+		End If
+	End Sub
+
+	Private Sub Class_initialize
+		Set Conn = CreateObject("ADODB.Connection")
+
+		pKindID = 0
+		pListID = 0
+		Set pKind = Nothing
+
+		Set EntRoot = Workarea.Entities
+		EntRootID = 0
+
+		nCount = 0
+ 		IsOpen = False
+		IsErr = False	
+		ErrMsg = ""
+		Set oPeriod = Workarea.Period
+	End Sub
+
+	Public Sub SetRoot(eRoot, eRootID)
+		If Not eRoot Is Nothing Then
+			Set EntRoot = eRoot
+			EntRootID = eRootID
+		End If
+	End Sub
+
+	Public Property Let ConnectionString(cConnString)
+		ConnString = cConnString
+	End Property
+
+	Private Sub Class_terminate
+		If IsOpen Then Close()
+	End Sub
+
+	Public Property Get ErrorMsg
+		ErrorMsg = ErrMsg
+	End Property
+
+	Public Property Get IsError
+		IsError = IsErr
+	End Property
+
+	Private Function ReadChecks(aChecks)
+		Dim SQL 
+
+		If ConnString <> "" Then
+			If Connect() Then
+
+			SQL = "Select " & _
+					"s.id_pcheck, " & _
+					"c.num_kassa, " & _
+					"c.date_check, " & _
+					"c.num_check, " & _
+					"c.summa, " & _
+					"s.code_article, " & _
+					"s.barcode, " & _
+					"s.price, " & _
+					"s.count, " & _
+					"s.id_tax, 	 " & _
+					"s.name_tax, " & _
+					"s.value_tax, " & _
+					"s.name_unit, " & _
+					"s.name_article, " & _
+					"s.id_article, " & _
+					"s.id_unit " & _
+					"from " & _ 
+					"payed_check_sale as s " & _
+					"Left Join payed_check as c On c.id_pcheck = s.id_pcheck " & _
+					"order by " & _
+					"id_pcheck, " & _
+					"c.date_check, " & _
+					"c.num_check"
+
+				If OpenRecordset(SQL) Then
+					aChecks = Rs.GetRows()
+					Rs.Close
+				End If
+			End If
+		Else
+			MsgErr = "Не указана строка подключения."
+			IsErr = True
+		End If
+
+		ReadChecks = Not IsErr
+
+	End Function
+
+	Public Property Get Count()
+		Count = nCount
+	End Property
+
+	Public Function MakeSales(TmlID)
+		Dim aData, Op, CheckNo, i, Cancel, RowNo, Tr
+		Dim DocNo
+	
+		nCount = 0
+
+		If ReadChecks(aData) Then
+			CheckNo = ""
+			Set Op = Nothing
+
+			For i = 0 To UBound(aData, 2)
+				If CheckNo <> aData(3, i) Then
+					SaveOp Op
+					CheckNo = aData(3, i)
+					' нужно добавить поиск операции по ID чека, чтобы не было дублей
+					Set Op = Workarea.CreateOperation
+					Op.DocNo = CheckNo
+					Op.Date = aData(2, i)
+					Op.Sum = aData(4, i)
+					Op.TemplateID = TmlID
+					RowNo = 0
+				End If
+
+				RowNo = RowNo + 1
+				Set Tr = Op.Trans(1, RowNo)
+
+				Tr.EntID = GetEntID(aData(14, i), aData(5, i), aData(6, i), aData(13, i))
+				Tr.UnitID = GetUnitID(aData(15, i), aData(12, i))
+				Tr.Price = aData(7, i)
+				Tr.Qty = aData(8, i)
+				' открытый вопрос по ставке налога. куда писать суммму и как указать вид налога
+			Next
+
+			SaveOp Op
+
+		End If
+		
+	End Function
+
+	Private Sub SaveOp(Op)
+	
+		If Not Op Is Nothing Then
+			With Op.TemplateInvoker2
+				.FireAll
+				.FireBeforeSave Cancel
+			End With
+	
+			If Op.Save() Then
+				nCount = nCount + 1
+			End If
+		End If
+	End Sub
+	
+	Private Function GetEntID(ArtID, EntArt, EntBar, EntName)
+		Dim SQL, aData, Ent, EntID
+
+		EntID = 0
+
+	 	If IsNumeric(ArtID) Then
+			SQL = "select top 1 ent_id FROM entities INNER JOIN ENT_TREE ON entities.ENT_ID = ENT_TREE.ID where ent_type > 1000 and " & EntRootID & " in(p0, p1, p2, p3, p4, p5, p6, p7) and ent_cat='" & ArtID & "'"
+			If GetRs2(SQL, aData) Then
+				EntID = aData(0, 0)
+			End If
+		End If
+
+	 	If EntID = 0 And IsNumeric(EntBar) Then
+			SQL = "select top 1 ent_id FROM entities INNER JOIN ENT_TREE ON entities.ENT_ID = ENT_TREE.ID where ent_type > 1000 and " & EntRootID & " in(p0, p1, p2, p3, p4, p5, p6, p7) and ent_bar='" & EntBar & "'"
+			If GetRs2(SQL, aData) Then
+				EntID = aData(0, 0)
+			End If
+		End If
+
+	 	If EntID = 0 And IsNumeric(EntArt) Then
+			SQL = "select top 1 ent_id FROM entities INNER JOIN ENT_TREE ON entities.ENT_ID = ENT_TREE.ID where ent_type > 1000 and " & EntRootID & " in(p0, p1, p2, p3, p4, p5, p6, p7) and ent_art='" & EntArt & "'"
+			If GetRs2(SQL, aData) Then
+				EntID = aData(0, 0)
+			End If
+		End If
+
+		If EntID = 0 Then
+			Set Ent = EntRoot.Create(1004, EntName)
+			If Not Ent Is Nothing Then
+				Ent.Bar = EntBar
+				Ent.Art = EntArt
+				Ent.Save
+
+				EntID = Ent.ID
+			Else
+				IsErr = True
+				MsgErr = "Ошибка создания объекта учета: " & EntName
+			End If
+		End If
+
+		GetEntID = EntID
+	End Function
+
+	Private Function GetUnitID(UnitID, ByVal UnitShort)
+		Dim SQL, aData, Un
+
+		GetUnitID = 0
+
+		SQL = "select un_id from units where un_tag = '" & UnitID & "'"
+
+		If GetRs2(SQL, aData) Then
+			GetUnitID	 = aData(0, 0)
+			Exit Function
+		End If
+
+		If UnitShort <> "" Then
+			UnitShort = Replace(UnitShort, "'", "''")
+			SQL = "select un_id from units where un_short = '" & UnitShort & "'"
+
+			If GetRs2(SQL, aData) Then
+				GetUnitID = aData(0, 0)
+			Else
+				Set Un = Workarea.Units.Create(UnitShort)
+				If Not Un Is Nothing Then
+					GetUnitID = Un.ID
+				Else
+					IsErr = True
+					MsgErr = "Ошибка создания единицы измерения: " & UnitShort
+				End If 
+			End If
+		End If
+	End Function
+
+	Private Function OpenRecordset(SQL)
+		On Error Resume Next
+
+		Set Rs = CreateObject("ADODB.Recordset")
+		Rs.Open SQL, Conn, adOpenDynamic, adLockOptimistic
+		IsErr = (Err.Number <> 0)
+
+		If IsErr Then
+			ErrMsg = Err.Description & " (#" & Err.Number & ")"
+		Else
+			MsgErr = ""
+		End If
+
+		OpenRecordset = Not IsErr
+	End Function
+
+	Private Function ExecuteRecordset(SQL)
+		On Error Resume Next
+
+		If Connect() Then
+			Set Rs = Conn.Execute(SQL)
+			IsErr = (Err.Number <> 0)
+
+			If IsErr Then
+				ErrMsg = Err.Description & " (#" & Err.Number & ")"
+			Else
+				MsgErr = ""
+			End If
+		End If
+
+		ExecuteRecordset = Not IsErr
+	End Function
+
+	Private Function Connect()
+		On Error Resume Next
+		Conn.Open ConnString
+		IsErr = (Err.Number <> 0)
+	
+		If IsErr Then
+			ErrMsg = Err.Description & " (#" & Err.Number & ")"
+		Else
+			ErrMsg = ""
+		End If
+	
+		Connect = Not IsErr
+	End Function
+
+	Public Function Load()
+		Load = LoadArticles(EntRoot.Children)
+	End Function
+
+	Private Function LoadArticles(Ents)
+		Dim i, Ent
+	
+		For i = 1 To Ents.Count
+			Set Ent = Ents.Item(i)
+
+			If Ent.HasChildren Then
+				LoadArticleGrp Ent
+				If Not IsErr Then LoadArticles = LoadArticles(Ent.Children)
+			Else
+				LoadArticles = LoadArticle(Ent)
+			End If
+
+			If IsErr Then Exit For
+		Next
+	End Function
+
+	Private Function FindArtGrpID(AricleGrpID)
+		Dim SQL
+
+		FindArtGrpID = False
+		SQL = "select 1 from article_group where id_art_group = " & AricleGrpID
+
+		If ExecuteRecordset(SQL) Then
+			FindArtGrpID = Not Rs.eof
+			Rs.Close
+		End If
+
+		Conn.Close
+
+	End Function
+
+	Private Function FindArtID(AricleID)
+		Dim SQL
+
+		FindArtID = False
+		SQL = "select 1 from article where id_article = " & AricleID
+
+		If ExecuteRecordset(SQL) Then
+			FindArtID = Not Rs.eof
+			Rs.Close
+		End If
+
+		Conn.Close
+
+	End Function
+
+	Private Function FindArtUnitID(UnitID)
+		Dim SQL
+
+		FindArtUnitID = False
+		SQL = "select 1 from unit where id_unit = " & UnitID
+
+		If ExecuteRecordset(SQL) Then
+			FindArtUnitID = Not Rs.eof
+			Rs.Close
+		End If
+
+		Conn.Close
+
+	End Function
+
+	Private Sub LoadArticleGrp(EntGrp)
+		Dim ParentGrpID, ArticleGrpID, NeedAdd
+
+		NeedAdd = (str2long(EntGrp.Cat) = 0)
+		If Not NeedAdd Then NeedAdd = Not FindArtGrpID(EntGrp.Cat)
+
+		If NeedAdd Then
+			' добавляем группу
+			ParentGrpID = GetParentGrpID(EntGrp)
+			AddArticleGroup ParentGrpID, EntGrp
+		End If
+	End Sub
+
+	Private Function AddArticleGroup(ParentGrpID, EntGrp)
+		Dim SQL 
+
+		SQL = "insert into article_group " & _
+				"(name_art_group, id_parent, id_char_group) " & _
+				"values " & _
+				"('" & Replace(EntGrp.Name, "'", "''") & "', " & _	
+				iif(str2long(ParentGrpID) = 0, "Null", str2long(ParentGrpID)) & ", Null) " & _ 
+				"returning id_art_group"
+
+		If ExecuteRecordset(SQL) Then
+			EntGrp.Cat = Rs.Fields(0).Value
+			EntGrp.Save
+			Rs.Close
+			Conn.Close
+		End If
+
+		AddArticleGroup = Not IsErr
+	End Function
+
+	Private Function GetParentGrpID(EntGrp)
+		On Error Resume Next
+
+		GetParentGrpID = EntGrp.Parent.Cat
+
+		If Err.Number <> 0 Then 
+			' workarea.Entities
+			GetParentGrpID = -1
+		End If
+		
+		Err.Clear
+
+	End Function
+
+	Private Function LoadArticle(Ent)
+		Dim SQL, aData, NeedAdd
+
+		NeedAdd = (str2long(Ent.Cat) = 0)
+		If Not NeedAdd Then NeedAdd = Not FindArtID(Ent.Cat)
+
+		If NeedAdd Then
+			' нужно добавить артикул
+			LoadArticle = AddArticle(Ent, False)
+		Else
+			' проверяем свойства товара
+			LoadArticle = AddArticle(Ent, True)
+		End If
+
+		If Not pKind Is Nothing Then
+			' обновляем цену
+			LoadArticle = UpdatePriceArt(Ent)
+		End If
+	End Function
+
+	Public Function UpdatePriceArt(Ent)
+		Dim SQL
+
+		If pKind Is Nothing Then
+			IsErr = True
+			MsgErr = "Вид цены не указан"
+			UpdatePriceArt = False
+			Exit Function
+		End If
+
+		SQL = "update article_price " & _
+				"set art_price = " & pKind.GetEntPrice(Ent.ID, Date(), pListID) & " where id_article=" & Ent.Cat
+
+		If ExecuteRecordset(SQL) Then
+			Conn.Close
+			UpdatePriceArt = True
+		Else
+			UpdatePriceArt = False
+		End If
+	End Function
+
+	Private Function GetNewArt()
+		Dim SQL, aData, NewArt
+
+		If App.AppType = "DAO" Then
+			SQL = "Select Max(ent_art) " & _
+					"FROM entities INNER Join ENT_TREE On entities.ENT_ID = ENT_TREE.ID " & _
+					"WHERE IsNumeric([ent_art]) And " & EntRootID & " In ([p0],[p1],[p2],[p3],[p4],[p5],[p6],[p7])"
+		Else
+			SQL = "Select Max(ent_art) " & _
+					"FROM entities INNER Join ENT_TREE On entities.ENT_ID = ENT_TREE.ID " & _
+					"WHERE IsNumeric([ent_art]) = 1 And " & EntRootID & " In ([p0],[p1],[p2],[p3],[p4],[p5],[p6],[p7])"
+		End If
+
+		If GetRs2(SQL, aData) Then
+			NewArt = checknull(aData(0, 0), 0)
+
+			If NewArt < 10000 Then NewArt = NewArt + 10000
+			GetNewArt = NewArt + 1
+		End If
+		
+	End Function
+
+	Private Function FindUnitID(Ent)
+		On Error Resume Next
+
+		FindUnitID = 0
+
+		If Ent.UnitID = 0 Then
+			If Ent.Parent.ID <> EntRootID Then
+				FindUnitID = FindUnitID(Ent.Parent)
+			End If
+		Else
+			FindUnitID = Ent.UnitID
+		End If
+	End Function
+
+	Private Function AddArticle(Ent, Mode)
+		Dim Un, SQL, UnID, NeedAdd, NameArt
+
+		If Not IsNumeric(Ent.Art) Then Ent.Art = GetNewArt()
+		If Not IsNumeric(Ent.Bar) Then Ent.Bar = EAN13_MakeCode("20", Ent.ID)
+		If Ent.Params(ARTICLE_TAXGRP).value2 = 0 Then Ent.Params(ARTICLE_TAXGRP).value2 = 1
+		NameArt = Replace(iif(Ent.Nom = "", Ent.Name, Ent.Nom), "'", "''")
+
+		UnID = FindUnitID(Ent)
+
+		If UnID <> 0 Then
+			Set Un = Workarea.Unit(UnID)
+
+			NeedAdd = (str2long(Un.Tag) = 0)
+			If Not NeedAdd Then NeedAdd = Not FindArtUnitID(Ent.Cat)
+
+			If NeedAdd Then 
+				Un.Tag = AddUnit(Un)
+				Un.Save
+			End If
+
+			UnID = Un.Tag
+		End If
+
+		If Ent.Modified Then Ent.Save
+		UnID = iif(str2long(UnID) = 0, "null", UnID)
+
+		If Mode Then
+			' update
+			SQL = "update article set " & _
+				"code_article = '" & Ent.Art & "', " & _
+				"name_article = '" & NameArt & "', " & _
+				"id_art_group = " & GetParentGrpID(Ent) & "," & _ 
+				"id_unit = " & UnID & ", " & _
+				"id_tax_group = " & Ent.Params(ARTICLE_TAXGRP).value2 & " where id_article = " & Ent.Cat
+		Else
+			' insert
+			SQL = "insert into article " & _
+				"(code_article, name_article, id_art_group, id_unit, id_tax_group) " & _
+				"values " & _
+				"('" & Ent.Art & "'," & _
+				"'" & NameArt & "'," & _
+				GetParentGrpID(Ent) & "," & _
+				UnID & "," & _
+				Ent.Params(ARTICLE_TAXGRP).value2 & ") " & _
+				"returning id_article"
+		End If
+
+		If ExecuteRecordset(SQL) Then
+			If Not Mode Then
+				Ent.Cat = Rs.Fields(0).Value
+				Ent.Save
+				Rs.Close
+			End If
+
+			Conn.Close
+
+			If Not Mode Then			
+				SQL = "insert into article_barcode " & _
+							"(id_article, id_char_group_data, art_barcode) " & _
+							"values (" & _
+							Ent.Cat & ", null, '" & Ent.Bar & "')"
+	
+				If ExecuteRecordset(SQL) Then Conn.Close
+
+				SQL = "insert into article_price " & _
+							"(id_article, id_char_group_data, art_price) " & _
+							"values (" & _
+							Ent.Cat & ", null, 0)"
+
+				If ExecuteRecordset(SQL) Then Conn.Close
+
+			End If
+		End If
+
+		AddArticle = Not IsErr
+	End Function
+
+	Private Function AddUnit(Un)
+		Dim SQL, UnShortName
+
+		AddUnit = 0
+		UnShortName = Replace(Un.ShortName, "'", "''")
+
+		SQL = "select id_unit from unit where name_unit = '" & UnShortName & "' limit 1"
+
+		If ExecuteRecordset(SQL) Then
+			If Not Rs.eof Then
+				AddUnit = Rs.Fields(0).Value
+			Else
+				Conn.Close
+				SQL = "insert into unit (name_unit, cnt_unit) values ('" & UnShortName & "', 1) returning id_unit"
+
+				If ExecuteRecordset(SQL) Then 
+					AddUnit = Rs.Fields(0).Value
+				End If
+			End If
+		End If
+
+		Conn.Close
+
+	End Function
+
+End Class
+
+'connectionString = "Server=localhost;Port=5432;User=postgres;Password=123456;Database=Portal;";
+
+Dim pg, aData
+
+Set pg = New Postgree
+pg.ConnectionString = "DSN=PostgreSQL35W;" & _
+          					"UID=postgres;" & _
+          					"PWD=123;" & _
+          					"Database=Portal"
+'stop
+
+' Root, RootID
+pg.SetRoot workarea.entity(19927), 19927
+pg.SetPrice 5, 1
+pg.load
+
+'pg.ReadChecks aData
+'
+
+'pg.MakeSales 0
+If pg.iserror Then MsgBox pg.ErrorMsg
+'stop

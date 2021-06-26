@@ -1,0 +1,102 @@
+'#include "ado.inc"
+
+Option Explicit
+
+Sub ImportAgents
+
+	Dim ConnString, Conn, Rs, IsErr, SQL, AgRoot
+	Dim i, Dict, AgType, AgNew, ParentID, Root
+		
+		Set Dict = CreateObject("Scripting.Dictionary")
+		Set AgRoot = workarea.agent(3256).Children
+		ConnString = "DSN=Base1C;" & _
+	          					"UID=;" & _
+	          					"PWD=;" & _
+	          					"Database="
+	
+		Set Conn = CreateObject("ADODB.Connection")
+	
+		Conn.Open ConnString
+		IsErr = (Err.Number <> 0)
+	
+		Set Rs = CreateObject("ADODB.Recordset")
+	
+		SQL = "select * from SC172 order by ParentID, id"
+	
+		Rs.Open SQL, Conn, adOpenDynamic, adLockOptimistic
+		IsErr = (Err.Number <> 0)
+	
+		While Not Rs.eof
+			If str2long(Rs.Fields("ISFOLDER").Value) = 1 Then
+				AgType = 0
+			Else
+				AgType = 1
+			End If
+	
+			ParentID = Trim(Rs.Fields("PARENTID").Value)
+			If ParentID = "0" Then
+				Set Root = AgRoot
+			Else
+				Set Root = Dict(ParentID).Children
+			End If
+	
+			Set AgNew = Root.Create(AgType, Trim(Rs.Fields("DESCR").Value))
+			AgNew.Contact = Trim(Rs.Fields("SP162").Value)
+			AgNew.Memo = Trim(Rs.Fields("SP166").Value)
+			AgNew.Save
+			Set Dict(Trim(Rs.Fields("ID").Value)) = AgNew
+	
+			Rs.MoveNext
+	
+		Wend
+End Sub
+
+ImportEnts
+
+Sub ImportEnts
+	Dim ConnString, Conn, Rs, IsErr, SQL, EntRoot
+	Dim i, Dict, EntType, EntNew, ParentID, Root
+		
+		Set Dict = CreateObject("Scripting.Dictionary")
+		Set EntRoot = workarea.entity(30161).Children
+		ConnString = "DSN=Base1C;" & _
+	          					"UID=;" & _
+	          					"PWD=;" & _
+	          					"Database="
+	
+		Set Conn = CreateObject("ADODB.Connection")
+	
+		Conn.Open ConnString
+		IsErr = (Err.Number <> 0)
+	
+		Set Rs = CreateObject("ADODB.Recordset")
+	
+		SQL = "select * from SC302 order by ParentID, id"
+		'SQL = "select * from SC148 order by ParentID, id"
+	
+		Rs.Open SQL, Conn, adOpenDynamic, adLockOptimistic
+		IsErr = (Err.Number <> 0)
+	
+		While Not Rs.eof
+			If str2long(Rs.Fields("ISFOLDER").Value) = 1 Then
+				EntType = 0
+			Else
+				EntType = 1004
+			End If
+	
+			ParentID = Trim(Rs.Fields("PARENTID").Value)
+			If ParentID = "0" Then
+				Set Root = EntRoot
+			Else
+				Set Root = Dict(ParentID).Children
+			End If
+	
+			Set EntNew = Root.Create(EntType, Trim(Rs.Fields("DESCR").Value))
+			EntNew.Memo = Trim(Rs.Fields("SP276").Value)
+			EntNew.Save
+			Set Dict(Trim(Rs.Fields("ID").Value)) = EntNew
+	
+			Rs.MoveNext
+	
+		Wend
+End Sub

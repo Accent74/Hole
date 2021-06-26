@@ -1,0 +1,32 @@
+'#include "postgree_class.avb"
+'#include "ADO.inc"
+'#include "HL74_ADO.avb"
+'#include "HL74_EAN13.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Импорт продаж из Портала"
+Const TML_SALE_ID = 519
+Const TML_RET_ID = 520
+
+Dim pg
+
+'With workarea.site
+'	If .kind = acTemplate Then
+		If MsgBox("Импортировать данные из Портала ?", _
+			vbQuestion + vbOKCancel, MSG_BOX_CAPTION) = vbOK Then
+			Set pg = New Postgree
+			pg.ConnectionString = "DSN=PostgreSQL35W;" & _
+	     		     					"UID=postgres;" & _
+	          							"PWD=123;" & _
+	          							"Database=Portal"
+			pg.MakeSales TML_SALE_ID, TML_RET_ID
+	
+			If pg.iserror Then 
+				MsgBox pg.ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+			End If
+
+			MsgBox "Импорт окончен.", vbInformation, MSG_BOX_CAPTION
+		End If
+'	End If
+'End With

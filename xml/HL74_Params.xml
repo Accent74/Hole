@@ -73,7 +73,7 @@
 		
 		<param name="Адрес регистрации" nodetype="3" type="8" refkind="" guid="" id=""/>		
 		<param name="Адрес проживания" nodetype="3" type="8" refkind="" guid="" id=""/>		
-		
+		<param name="Копировать примечание в документы" nodetype="1" type="3" refkind="" guid="" id="" value=""/>
 	</agentparams>
 	<agentfacts>
 		<fact name="Адреса доставки" nodetype="1" type="8" refkind="" guid="" id="47"/>
@@ -254,7 +254,7 @@
 		<param name="Режим быстрого поиска" nodetype="0" type="3" refkind="" guid="{64D8B9B3-0177-4865-B01A-90EB37461404}" value="" id=""/>
 		<param name="Прайс лист" nodetype="2" type="3" refkind="30" guid="{08C90F24-751F-4CCF-AEBB-0B3CA61EB599}" id=""/>
 		<param name="Вид цены" nodetype="2" type="3" refkind="27" guid="{A56A567A-2AFC-44B8-8A11-35FCCE80A761}" id=""/>
-		
+		<param name="Копировать примечание в документ" nodetype="1" type="3" refkind="" guid="" id="" value=""/>
 
 	</formparams>
 	<transparams>

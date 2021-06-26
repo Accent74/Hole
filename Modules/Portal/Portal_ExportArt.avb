@@ -1,0 +1,33 @@
+'#include "postgree_class.avb"
+'#include "ADO.inc"
+'#include "HL74_ADO.avb"
+'#include "HL74_EAN13.avb"
+
+Option Explicit
+
+Const MSG_BOX_CAPTION = "Ёкспорт цен в ѕортал"
+
+Dim pg
+
+With workarea.site
+	If .kind = acEntity Then
+		If MsgBox("Ёкспортировать цены и артикулы в ѕортал ?", _
+			vbQuestion + vbOKCancel, MSG_BOX_CAPTION) = vbOK Then
+			Set pg = New Postgree
+			pg.ConnectionString = "DSN=PostgreSQL35W;" & _
+	     		     					"UID=postgres;" & _
+	          							"PWD=123;" & _
+	          							"Database=Portal"
+	
+			pg.SetRoot workarea.entity(.ID), .ID
+			pg.SetPrice 1, 1
+			pg.load
+	
+			If pg.iserror Then 
+				MsgBox pg.ErrorMsg, vbExclamation, MSG_BOX_CAPTION
+			End If
+
+			MsgBox "Ёкспорт окончен.", vbInformation, MSG_BOX_CAPTION
+		End If
+	End If
+End With

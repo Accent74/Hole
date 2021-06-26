@@ -57,7 +57,7 @@
 		<HL74 module="HL74_SysLog.avb" proc="Log_UpdateItem"/>
 	</OnChanged>
 	<OnShowWebTab>
-		<HL74 module="HL74_WebGoods.avb" proc="HL74_OnShowGood" />
+		<!--HL74 module="HL74_WebGoods.avb" proc="HL74_OnShowGood" /-->
 		
 	</OnShowWebTab>
 </Workarea>
