@@ -180,6 +180,7 @@
 	</accparams>
 	<dbfacts>
 		<fact name="ЕСВ" nodetype="0" type="6" refkind="" guid="" id="1"/>
+		<fact name="Подоходный налог" nodetype="0" type="6" refkind="" guid="" id="1"/>
 		<fact name="Транспортный учет лето / зима" nodetype="0" type="3" refkind="" guid="" id="2"/>
 	</dbfacts>
 	<dbparams>
@@ -237,6 +238,8 @@
 		<param name="Кодировка бар кодов" nodetype="0" type="8" refkind="" value="" guid="" id=""/>	
 
 		<param name="Проверять цены" nodetype="0" type="3" refkind="18" guid="" id="" value="Логика"/>
+
+		<param name="Ставка НДС" nodetype="0" type="3" refkind="5" guid="" id="" value="НДС 20%"/>
 	</dbparams>
 	<formparams>
 		<param name="Колонтитулы" nodetype="0" type="8" refkind="" guid="{4A210CC5-15C3-4C28-BF02-1BA64645EF1D}" id="12"/>
@@ -255,6 +258,7 @@
 		<param name="Прайс лист" nodetype="2" type="3" refkind="30" guid="{08C90F24-751F-4CCF-AEBB-0B3CA61EB599}" id=""/>
 		<param name="Вид цены" nodetype="2" type="3" refkind="27" guid="{A56A567A-2AFC-44B8-8A11-35FCCE80A761}" id=""/>
 		<param name="Копировать примечание в документ" nodetype="1" type="3" refkind="" guid="" id="" value=""/>
+		<param name="Наименование для отчета" nodetype="0" type="8" refkind="" guid="" id=""/>
 
 	</formparams>
 	<transparams>

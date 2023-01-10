@@ -1,0 +1,62 @@
+'#include "HL74_Const.avb"
+'#include "HL74_EAN13.avb"
+'#include "HL74_common.avb"
+
+Option Explicit
+'---
+'
+'---
+Sub EAN_SetEntBarCode
+	Dim KindID, Ent, Prefix
+
+	Prefix = com_getparamvalue(workarea, prmDBSetBarCode, "")
+	If Prefix = "" Then Exit Sub
+
+	KindID = workarea.map("KindID")
+
+	Set Ent = Workarea.Entity(KindID)
+
+	If Ent.Bar = "" Then
+		Ent.Bar = EAN13_MakeCode(Prefix, Ent.ID)
+		Ent.Save
+	End If
+
+End Sub
+'---
+'
+'---
+Function EAN_SetBarCodeEnabled()
+	EAN_SetBarCodeEnabled = (com_getparamvalue(workarea, prmDBSetBarCode, "") <> "")
+End Function
+'---
+'
+'---
+Sub EAN_TrList_CreateBarCodes(TrList)
+	Dim Prefix
+
+	Prefix = com_getparamvalue(workarea, prmDBSetBarCode, "")
+	If Prefix = "" Then Exit Sub
+
+	TrList.EnumTrans GetRef("EAN_SetCodeOneRow"), Prefix
+
+End Sub
+'---
+'
+'---
+Function EAN_SetCodeOneRow(Tr, ByRef Prefix)
+	Dim Ent
+
+	EAN_SetCodeOneRow = True
+
+	Set Ent = Tr.Entity
+
+	If Not Ent Is Nothing Then
+		If Ent.Bar = "" Then
+			Ent.Bar = EAN13_MakeCode(Prefix, Ent.ID)
+			Ent.Save
+		End If
+	End If
+End Function
+'---
+'
+'---

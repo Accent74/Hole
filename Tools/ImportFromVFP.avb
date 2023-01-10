@@ -2,14 +2,17 @@
 
 Option Explicit
 
-Sub ImportAgents
+stop
+ImportEmployers
 
+Sub ImportEmployers
 	Dim ConnString, Conn, Rs, IsErr, SQL, AgRoot
-	Dim i, Dict, AgType, AgNew, ParentID, Root
+	Dim i, Dict, AgType, AgNew, ParentID, Root, DepRoot, NewDepart
 		
 		Set Dict = CreateObject("Scripting.Dictionary")
-		Set AgRoot = workarea.agent(3256).Children
-		ConnString = "DSN=Base1C;" & _
+		Set DepRoot = workarea.agent(5693).Children
+
+		ConnString = "DSN=1CPayroll;" & _
 	          					"UID=;" & _
 	          					"PWD=;" & _
 	          					"Database="
@@ -21,7 +24,55 @@ Sub ImportAgents
 	
 		Set Rs = CreateObject("ADODB.Recordset")
 	
-		SQL = "select * from SC172 order by ParentID, id"
+		SQL = "select SC69.SP189, SC13.DESCR, SC13.Code, SC69.ID, SC69.Code, SC69.Descr, SC69.SP404, SC69.SP405 from SC69 left join SC13 on SC13.ID = SC69.SP189 order by SC69.SP189, SC69.ID"
+	
+		Rs.Open SQL, Conn, adOpenDynamic, adLockOptimistic
+		IsErr = (Err.Number <> 0)
+	
+		While Not Rs.eof
+			If Not Dict.Exists(Rs.Fields(0).Value) Then
+				Set NewDepart = DepRoot.Create(2, Trim(Rs.Fields(1).Value))
+				NewDepart.Tag = Trim(Rs.Fields(3).Value)
+				NewDepart.Save
+
+				Set Dict(Rs.Fields(0).Value) = NewDepart
+				Set AgRoot = NewDepart.Children
+			Else
+				Set AgRoot = Dict(Rs.Fields(0).Value).Children
+			End If
+
+			Set AgNew = AgRoot.Create(3, Trim(Rs.Fields(5).Value))
+			AgNew.Tag = Trim(Rs.Fields(4).Value)
+			AgNew.DateIn = Rs.Fields(6).Value
+			AgNew.DateOut = Rs.Fields(7).Value
+			AgNew.Save
+
+			Rs.MoveNext
+	
+		Wend
+End Sub
+
+
+Sub ImportAgents
+
+	Dim ConnString, Conn, Rs, IsErr, SQL, AgRoot
+	Dim i, Dict, AgType, AgNew, ParentID, Root
+		
+		Set Dict = CreateObject("Scripting.Dictionary")
+		Set AgRoot = workarea.agent(5052).Children
+		ConnString = "DSN=1CPayroll;" & _
+	          					"UID=;" & _
+	          					"PWD=;" & _
+	          					"Database="
+	
+		Set Conn = CreateObject("ADODB.Connection")
+	
+		Conn.Open ConnString
+		IsErr = (Err.Number <> 0)
+	
+		Set Rs = CreateObject("ADODB.Recordset")
+	
+		SQL = "select * from SC69 order by ParentID, id"
 	
 		Rs.Open SQL, Conn, adOpenDynamic, adLockOptimistic
 		IsErr = (Err.Number <> 0)
@@ -50,8 +101,6 @@ Sub ImportAgents
 	
 		Wend
 End Sub
-
-ImportEnts
 
 Sub ImportEnts
 	Dim ConnString, Conn, Rs, IsErr, SQL, EntRoot
