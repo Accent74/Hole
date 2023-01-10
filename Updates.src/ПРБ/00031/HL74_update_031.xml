@@ -1,0 +1,155 @@
+﻿<AccentExportData>
+	<AccentOperations/>
+	<AccentFolders/>
+	<AccentTemplates/>
+	<AccentEntities/>
+	<AccentMiscs/>
+	<AccentAgents/>
+	<AccentBanks/>
+	<AccentAccounts/>
+	<AccentUnits/>
+	<AccentCurs/>
+	<AccentForms/>
+	<AccentAutoNum/>
+	<AccentEnums/>
+	<AccentWorkarea>
+		<scripts>
+
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="del" name="HL74_TaxInDocs" type="DAO"/>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxInDocs" type="DAO">
+			PARAMETERS 
+				Acc631ID Long, 
+				StartDate DateTime, 
+				EndDate DateTime, 
+				MCID Long, 
+				TaxRepID Long;
+			SELECT 
+				A.AG_CODE, 
+				A.AG_NAME, 
+				J.J_DATE, 
+				D.DOC_NO, 
+				Sum(J.J_SUM) AS [Sum-J_SUM], 
+				Max((select top 1 prm_string from frm_params as p inner join frm_param_names as n on n.prm_id = p.prm_id where n.prm_name = "Наименование для отчета")) AS prmString
+			FROM (DOCUMENTS AS D INNER JOIN (AGENTS AS A INNER JOIN JOURNAL AS J ON A.AG_ID = J.J_AG2) ON D.DOC_ID = J.DOC_ID) INNER JOIN JRN_TAX AS JT ON J.J_ID = JT.J_ID
+			WHERE (((JT.TX_ID)=[TaxRepID]) AND ((JT.JT_ADDR1)='Д.А.') AND ((J.MC_ID)=[MCID]) AND ((J.J_DATE)&gt;=[StartDate] And (J.J_DATE)&lt;[EndDate]) AND ((J.J_DONE)=2) AND ((J.ACC_CR) In (select id from acc_tree where Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))))
+			GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;
+		
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="del" name="HL74_TaxOutDocs" type="DAO"/>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxOutDocs" type="DAO">
+			PARAMETERS Acc361ID Long, StartDate DateTime, EndDate DateTime, MCID Long, TaxRepID Long;
+			SELECT 
+				A.AG_CODE, 
+				A.AG_NAME, 
+				J.J_DATE, 
+				D.DOC_NO, 
+				Sum(J.J_SUM) AS [Sum-J_SUM], 
+				Max((select top 1 prm_string from frm_params as p inner join frm_param_names as n on n.prm_id = p.prm_id where n.prm_name = "Наименование для отчета")) AS prmString
+			FROM (DOCUMENTS AS D INNER JOIN (JOURNAL AS J LEFT JOIN AGENTS AS A ON J.J_AG1 = A.AG_ID) ON D.DOC_ID = J.DOC_ID) INNER JOIN JRN_TAX AS JT ON J.J_ID = JT.J_ID
+			WHERE (((JT.TX_ID)=[TaxRepID]) AND ((JT.JT_ADDR1)='Д.А.') AND ((J.MC_ID)=[MCID]) AND ((J.J_DATE)&gt;=[StartDate] And (J.J_DATE)&lt;[EndDate]) AND ((J.J_DONE)=2) AND ((J.ACC_DB) In (select id from acc_tree where Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))))
+			GROUP BY A.AG_CODE, A.AG_NAME, J.J_DATE, D.DOC_NO;
+		
+		</query>
+
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxOutDocs" type="OLEDB">
+			drop procedure if exists HL74_TaxOutDocs
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxOutDocs" type="OLEDB">
+			create procedure HL74_TaxOutDocs
+					@Acc361ID int, 
+					@StartDate DateTime, 
+					@EndDate DateTime, 
+					@MCID int, 
+					@TaxRepID int
+
+			as
+			begin
+			   set nocount on ;
+
+			   SELECT 
+				  AG_CODE, 
+				  AG_NAME, 
+				  J_DATE, 
+				  DOC_NO, 
+				  SUM(J_SUM),
+				  isnull(fp.PRM_STRING, '&lt;Не указано&gt;')
+				FROM JRN_TAX AS JT 
+				  INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID
+				  INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID
+				  INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG1
+				  left join forms as f on f.FRM_ID = d.FRM_ID
+				  left join FRM_PARAMS as fp on fp.FRM_ID = d.FRM_ID
+				  left join FRM_PARAM_NAMES as fpn on fpn.PRM_ID = fp.PRM_ID 
+					 
+			   WHERE JT.TX_ID = @TaxRepID 
+				   And JT_ADDR1 = 'Д.А.' 
+				   And J.MC_ID = @MCID 
+				   And ACC_DB in (select id  from acc_tree where @Acc361ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+				   And J_DATE &gt;= @StartDate 
+				   And J_DATE &lt; @EndDate 
+				   And  J_DONE = 2
+				  and fpn.PRM_NAME like 'Наименование для отчета'
+			   GROUP BY 
+				  AG_CODE, 
+				  AG_NAME, 
+				  J_DATE, 
+				  DOC_NO,
+				  isnull(fp.PRM_STRING, '&lt;Не указано&gt;')
+			   order by ag_name, isnull(AG_CODE, '999999999')
+			end	
+
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxOutDocs" type="OLEDB">
+			grant execute on HL74_TaxOutDocs to ap_public
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxInDocs" type="OLEDB">
+			drop procedure if exists HL74_TaxInDocs
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxInDocs" type="OLEDB">			
+			create procedure HL74_TaxInDocs
+					@Acc631ID int, 
+					@StartDate DateTime, 
+					@EndDate DateTime, 
+					@MCID int, 
+					@TaxRepID int
+			As
+			begin
+				set nocount on ;
+
+				SELECT 
+				  AG_CODE, 
+				  AG_NAME, 
+				  J_DATE, 
+				  DOC_NO, 
+				  SUM(J_SUM),
+				  isnull(fp.PRM_STRING, '&lt;Не указано&gt;')
+				FROM JRN_TAX AS JT 
+				  INNER JOIN JOURNAL AS J ON J.J_ID = JT.J_ID
+				  INNER JOIN DOCUMENTS AS D ON D.DOC_ID = J.DOC_ID
+				  INNER JOIN AGENTS AS A ON A.AG_ID = J.J_AG2
+				  left join forms as f on f.FRM_ID = d.FRM_ID
+				  left join FRM_PARAMS as fp on fp.FRM_ID = d.FRM_ID
+				  left join FRM_PARAM_NAMES as fpn on fpn.PRM_ID = fp.PRM_ID 
+				WHERE JT.TX_ID = @TaxRepID 
+						And JT_ADDR1 = 'Д.А.' 
+						And J.MC_ID = @MCID 
+						And ACC_CR in (select id  from acc_tree where @Acc631ID in (id, p0, p1, p2, p3, p4, p5, p6, p7))
+						And J_DATE &gt;= @StartDate 
+						And J_DATE &lt; @EndDate And  J_DONE = 2
+					 and fpn.PRM_NAME like 'Наименование для отчета'
+				GROUP BY 
+				  AG_CODE, 
+				  AG_NAME, 
+				  J_DATE, 
+				  DOC_NO,
+				  isnull(fp.PRM_STRING, '&lt;Не указано&gt;')
+				order by isnull(AG_CODE, '999999999'), ag_name
+			end
+		</query>
+		<query lastmodifieddate="15.07.2022 16:07:43" cmd="add" name="HL74_TaxInDocs" type="OLEDB">			
+			grant execute on HL74_TaxInDocs to ap_public
+		</query>
+		
+		</scripts>	
+	</AccentWorkarea>
+</AccentExportData>

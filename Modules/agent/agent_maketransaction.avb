@@ -1,0 +1,48 @@
+Option Explicit
+
+Const MOBILE_AGENT_TIMEOUT = 3000
+
+Sub MakeTransaction
+	Dim i, Cancel, fld, mtr
+
+	Workarea.SetTimer 0
+	Cancel = False
+
+	With workarea.site
+		If .kind = acFolder Then
+			Set fld = workarea.folder(.ID)
+
+			If fld.TemplateID <> 0 Then
+				With .Operations
+					Set mtr = Meter()
+					mtr.Open "Обработка ...", 1, .count
+					For i = 1 To .count
+						mtr.StepIt
+						With .Item(i)
+							If .TemplateID = 0 Then
+								.TemplateID = fld.TemplateID
+								With .TemplateInvoker2
+									.FireOnApply
+									.FireOnEdit
+									.FireOnRecalc
+									.Parent.Done = True
+									.FireBeforeSave Cancel
+									.FireAfterSave
+								End With
+							End If
+
+							If Not .Save(4) Then	
+								MsgBox "Ошибка сохранения операции. Процесс прерван", vbCritical, "Внимание !"
+								Exit For
+							End If
+						End With
+					Next
+					mtr.close
+				End With
+			End If
+
+		End If
+	End With
+
+	Workarea.SetTimer MOBILE_AGENT_TIMEOUT	
+End Sub

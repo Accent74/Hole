@@ -163,7 +163,8 @@ Function PrintCash_PrintCheck(CashPrn, ByRef prm)
 
 	If CashPrn.OpenCheck(1, False) Then
 		TrList.EnumTrans GetRef("PrintCash_PrintOneLine"), OneLinePrm
-if not isnumeric(CashPrn.GetErrorNo) and CashPrn.GetErrorNo <> "" then msgbox CashPrn.GetErrorNo
+		If Not IsNumeric(CashPrn.GetErrorNo) And CashPrn.GetErrorNo <> "" Then MsgBox CashPrn.GetErrorNo
+
 		If CashPrn.GetErrorNo = 0 Then
 			If Not CashPrn.CloseCheck(TrList.Sum, PaymentType) Then
 				MsgBox MSG_ERROR_PAYMENT & vbNewLine & CashPrn.ErrorMsg, vbCritical, MSG_BOX_CAPTION
@@ -230,10 +231,18 @@ End Function
 '
 '---
 Sub PrintCash_PrintReports(prm)
-	Dim CashPrn, prmPrinter, prmData, Msc, IsErr
+	Dim CashPrn, prmPrinter, prmData, Msc, IsErr, Passw
+	Dim sDate, eDate, sN, eN, RepMode
 
 	prmPrinter = prm(0)
 	prmData = prm(1)
+	Passw = "00000"
+
+	sDate = prmData(3)
+	eDate = prmData(4)
+	sN  = prmData(5)
+	eN  = prmData(6)
+	RepMode = IIf(prmData(2), 1, 0)
 
 	Set Msc = prmPrinter(0)
 
@@ -255,10 +264,10 @@ Sub PrintCash_PrintReports(prm)
 				MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION
 	
 			Case 5	'	report by Date
-				CashPrn.PrintFiscalReportByPeriod prm(3), prm(4), prm(2), "00000"
+				CashPrn.PrintFiscalReportByPeriod sDate, eDate, RepMode, Passw
 	
 			Case 6	'	report by no
-				CashPrn.PrintFiscalReportByNumber prm(3), prm(4), prm(2), "00000"
+				CashPrn.PrintFiscalReportByNumber sN, eN, RepMode, Passw
 
 			Case Else
 				MsgBox MSG_NO_SUPPPORT, vbInformation, MSG_BOX_CAPTION

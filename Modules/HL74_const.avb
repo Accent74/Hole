@@ -73,9 +73,12 @@ Const prmDBNomNewCode			=	"Кодировка номенкл. номеров"
 Const prmDBBarNewCode			=	"Кодировка бар кодов"
 
 Const prmDBCheckPrice			= "Проверять цены"
+
+Const prmDBVat						= "Ставка НДС"
 '---- Факты базы даннных
 
 Const fctDBSocialTax			= "ЕСВ"
+Const fctDBPersonalTax		= "Подоходный налог"
 Const fctDBSummerWinter		= "Транспортный учет лето / зима"
 	
 '---- Параметры корреспондентов
@@ -125,6 +128,8 @@ Const prmAgAgreeWordTemplate 	= "Шаблон договора"
 
 Const prmAgAddressReg			= "Адрес регистрации"
 Const prmAgAddressLife		= "Адрес проживания"
+
+Const prmAgCopyMemoToDoc	= "Копировать примечание в документы"
 
 '---- Факты корреспондентов
 
@@ -263,6 +268,8 @@ Const prmPItemExportXML		= "Шаблон для экспорта в XML"
 
 Const prmPItemValidate		= "Проверять целостность данных"
 Const prmPItemCustomBMode	= "Режим быстрого поиска"
+Const prmPItemCopyMemoToDoc	= "Копировать примечание в документ"
+Const prmPItemNameForRep	= "Наименование для отчета"
 
 '---- Параметры элемента проекта ОТЧЕТ
 

@@ -1,0 +1,136 @@
+'-------------------
+'	процедура установки окружения
+'	для работы стандартных решений для Акцент 7.4
+'	027
+'-------------------
+Option Explicit
+
+'#include "HL74_ADO.avb"
+'#include "HL74_Const.avb"
+'#include "HL74_Common.avb"
+'#include "HL74_UpdateSolution.avb"
+'#include "HL74_XML.avb"
+'#include "HL74_Actionmenu_class.avb"
+'#include "hl74_AssistantLog.avb"
+
+Const solution_name = "ПРБ_00"
+Const ver = "027"
+Const update_xml_filename = "HL74_update_"
+
+Dim LogFile
+'---
+'
+'---
+Sub Main(Updater)
+	Dim Fail
+
+	Set LogFile = OpenLogFile(solution_name & ver & ".log.txt")
+
+	writelog Array(String(10, "-"), "Начало установки обновления", ver), updater
+	writelog Array("База данных:", Getdbname(), "пользователь:", workarea.dbuser), updater
+	UpdateFromXML update_xml_filename & ver & ".xml", updater
+
+	If Not updater.fail Then Add2022(updater)
+
+	If updater.fail Then
+		writelog Array(String(10, "-"), "Процесс установки прерван из-за возникшей ошибки"), updater
+	End If
+
+	If Not LogFile Is Nothing Then LogFile.Close
+
+End Sub
+'---
+'
+'---
+Sub Add2022(updater)
+	Dim MscID, Msc, MscRoot, i, SQL, ErrorMsg
+
+	MscID = Com_GetParamValue(Workarea, prmDBCalendar, 0)
+
+	If MscID = 0 Then
+		If MsgBox("Не указана аналитика для календаря рабочего времени. Желаете выбрать ?", vbQuestion + vbOKCancel, "Установка обновления") = vbOK Then 
+			MscID = Workarea.Browse(acMisc,,,, "Выберите аналитику для календаря рабочего времени")
+
+			If MscID = 0 Then
+				writelog Array("Ошибка:", "Календарь рабочего времени не установлен. Укажите аналитику в свойствах базы данных"), updater
+				updater.fail = True
+				Exit Sub
+			Else
+				Com_SetParamValue Workarea, prmDBCalendar, MscID
+			End If
+		End If
+	End If	
+
+	Set MscRoot = Nothing
+
+	With Workarea.Misc(MscID).Children
+		For i = 1 To .Count
+			Set Msc = .Item(i)
+			If Msc.Name = "2022" Then
+				Set MscRoot = Msc
+				Exit For
+			End If
+		Next
+
+		If MscRoot Is Nothing Then Set MscRoot = .Create(0, "2022")
+	End With
+	
+	SQL = "update MISC_ATTR Set MSC_VISIBLE = 1985, MS1_NAME = 'График рабочего времени', " & _
+				"MC1_NAME = 'Часов', MC2_NAME = 'Дней', MC3_NAME = 'Часов в день', MD1_NAME = 'Дата начала'," & _
+				" MD2_NAME = 'Дата окончания' where msc_no =" & MscRoot.MscNo
+
+	If ExecQuery(SQL, ErrorMsg) <> 0 Then
+		writelog Array("Ошибка:", "Ошибка обновления рабочего календаря.", ErrorMsg), updater
+		updater.fail = True
+		Exit Sub
+	End If
+
+	Set MscRoot = MscRoot.Children
+
+	AddMonthCalendar MscRoot, "2022/08/01", "2022/08/31", "Август 2022",	"8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;",	184.00, 23.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/04/01", "2022/04/30", "Апрель 2022",	"8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;В;8;8;8;8;В;",	160.00, 20.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/12/01", "2022/12/31", "Декабрь 2022",	"8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;",	176.00, 22.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/07/01", "2022/07/31", "Июль 2022",	"8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;",	168.00, 21.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/05/01", "2022/06/30", "Июнь 2022",	"8;8;8;В;В;8;8;8;8;8;В;В;В;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;",	168.00, 21.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/05/01", "2022/05/31", "Май 2022",	"В;В;В;8;8;8;В;В;В;В;В;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;",	136.00, 17.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/03/01", "2022/03/31", "Март 2022",	"8;8;8;8;7;В;В;В;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;",	175.00, 22.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/11/01", "2022/11/30", "Ноябрь 2022",	"8;8;7;В;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;",	167.00, 21.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/10/01", "2022/10/31", "Октябрь 2022",	"В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;",	168.00, 21.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/09/01", "2022/09/30", "Сентябрь 2022",	"8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;",	176.00, 22.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/02/01", "2022/02/28", "Февраль 2022",	"8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;7;В;8;8;В;В;8;",		43.00,  18.00, 8.00, updater
+	AddMonthCalendar MscRoot, "2022/01/01", "2022/01/31", "Январь 2022",	"В;В;В;В;В;В;В;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;8;8;8;8;В;В;8;",	128.00, 16.00, 8.00, updater
+
+End Sub
+
+'---
+'
+'---
+Sub AddMonthCalendar(Root, Date1, Date2, MscName, String1, Sum1, Sum2,  Sum3, updater)
+	Dim MscID, Msc
+
+	MscID = Root.Find(MscName, 0, 2)
+
+	If MscID = 0 Then
+		Set Msc = Root.Create(1, MscName)
+
+		If Not Msc Is Nothing Then
+			Msc.Date1 = CDate(Date1)
+			Msc.Date2 = CDate(Date2)
+			Msc.String1 = String1
+			Msc.Sum1 = Sum1
+			Msc.Sum2 = Sum2
+			Msc.Sum3 = Sum3
+	
+			Msc.Save
+			writelog Array("Сообщение:", "Добавлена аналитика", Msc.Name), updater
+		Else
+			writelog Array("Ошибка:", "Ошибка добавления аналитики:", MscName), updater
+		End If
+	End If
+
+End Sub
+'---
+'
+'---
+
+
